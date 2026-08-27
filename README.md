@@ -139,6 +139,8 @@ Gemini API의 이미지 이해 기능과 구조화된 출력을 사용하여 비
 | Development | Visual Studio Code, IntelliJ IDEA, GitHub |
 | Collaboration | Notion |
 
+Notion 페이지 구성과 운영 방법은 [PLANNIT Notion 운영 가이드](docs/planning/notion-guide.md)를 참고합니다.
+
 ## 📂 목표 폴더 구조
 
 현재 저장소는 기획 문서 중심의 초기 상태입니다. 구현을 시작하면 아래 구조를 기준으로 실제 파일에 맞게 갱신합니다.
