@@ -5,6 +5,7 @@
   "description": "PLANNIT desktop HTML, CSS, and JavaScript frontend",
   "scripts": {
     "build": "node scripts/build.js",
+    "preview": "node scripts/serve.js",
     "test": "node --test tests/*.test.js"
   }
 }
