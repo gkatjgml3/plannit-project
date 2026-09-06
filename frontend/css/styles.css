@@ -908,6 +908,11 @@ img {
   height: 18px;
 }
 
+.dashboard-nav__item .notification-icon {
+  width: 14px;
+  height: 14px;
+}
+
 .dashboard-nav__item:hover,
 .logout-button:hover {
   color: var(--blue-700);
