@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="안내문 사진을 일정으로 정리하는 AI 캘린더 서비스 PLANNIT 로그인"
+    />
+    <meta name="theme-color" content="#0f3f36" />
+    <title>로그인 | PLANNIT</title>
+    <link rel="icon" href="assets/brand/plannit-symbol-v5.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#loginForm">로그인 양식으로 바로가기</a>
+
+    <main class="login-page">
+      <section class="brand-panel" aria-labelledby="brandHeading">
+        <header class="brand-header">
+          <a class="brand-link" href="index.html" aria-label="PLANNIT 로그인 홈">
+            <img
+              class="wordmark"
+              src="assets/brand/plannit-wordmark-v5.svg"
+              alt="PLANNIT"
+            />
+          </a>
+          <span class="brand-tag">FOR STUDENTS</span>
+        </header>
+
+        <div class="brand-content">
+          <div class="brand-copy">
+            <p class="eyebrow"><span aria-hidden="true">✦</span> AI SCHEDULE ASSISTANT</p>
+            <h1 id="brandHeading">사진 속 일정을<br />가장 빠르게<br />내 캘린더로.</h1>
+            <p class="brand-description">
+              학교 안내문을 올리면 PLANNIT이 날짜와 할 일을 찾고,<br />확인한 일정만 깔끔하게 정리해 드려요.
+            </p>
+          </div>
+
+          <div class="product-visual" aria-hidden="true">
+            <div class="orbit orbit--one"></div>
+            <div class="orbit orbit--two"></div>
+            <div class="paper-card">
+              <div class="paper-card__top">
+                <span class="paper-card__label">SEPTEMBER 2026</span>
+                <span class="paper-card__status">3 EVENTS</span>
+              </div>
+              <div class="paper-card__date">
+                <strong>06</strong>
+                <span>SUNDAY<br />오늘</span>
+              </div>
+              <div class="paper-card__schedule">
+                <i></i>
+                <div>
+                  <span>UPCOMING</span>
+                  <strong>이번 주 일정 확인하기</strong>
+                </div>
+                <b>→</b>
+              </div>
+              <div class="paper-card__grid">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="scan-chip scan-chip--image"><span>▣</span> 이미지 인식</div>
+            <div class="scan-chip scan-chip--done"><span>✓</span> 일정 정리 완료</div>
+            <div class="sparkle sparkle--one">✦</div>
+            <div class="sparkle sparkle--two">✦</div>
+          </div>
+
+          <ol class="flow-list" aria-label="PLANNIT 일정 등록 과정">
+            <li><b>01</b><span>사진 업로드</span></li>
+            <li><b>02</b><span>AI 일정 추출</span></li>
+            <li><b>03</b><span>확인 후 저장</span></li>
+          </ol>
+        </div>
+
+        <footer class="brand-footer">
+          <span>© <span id="currentYear">2026</span> PLANNIT</span>
+          <span>Plan less. Do more.</span>
+        </footer>
+      </section>
+
+      <section class="form-panel" aria-labelledby="loginHeading">
+        <div class="form-wrap">
+          <div class="mobile-brand" aria-hidden="true">
+            <img src="assets/brand/plannit-wordmark-v5.svg" alt="" />
+          </div>
+
+          <header class="form-heading">
+            <p class="eyebrow">WELCOME BACK</p>
+            <h2 id="loginHeading">다시 만나서<br />반가워요.</h2>
+            <p>내 일정으로 돌아가려면 로그인해 주세요.</p>
+          </header>
+
+          <form id="loginForm" novalidate>
+            <label class="form-field" for="loginId">
+              <span>아이디</span>
+              <span class="input-wrap">
+                <span class="input-icon" aria-hidden="true">@</span>
+                <input
+                  id="loginId"
+                  name="loginId"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="아이디 또는 이메일"
+                  aria-describedby="loginIdError"
+                  required
+                />
+              </span>
+              <small id="loginIdError" class="field-error" aria-live="polite"></small>
+            </label>
+
+            <label class="form-field" for="password">
+              <span>비밀번호</span>
+              <span class="input-wrap">
+                <span class="input-icon input-icon--lock" aria-hidden="true"></span>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="비밀번호 입력"
+                  aria-describedby="passwordError"
+                  required
+                />
+                <button
+                  id="passwordToggle"
+                  class="password-toggle"
+                  type="button"
+                  aria-label="비밀번호 표시"
+                  aria-pressed="false"
+                >
+                  보기
+                </button>
+              </span>
+              <small id="passwordError" class="field-error" aria-live="polite"></small>
+            </label>
+
+            <div class="form-options">
+              <label class="check-label">
+                <input id="keepSignedIn" name="keepSignedIn" type="checkbox" />
+                <span aria-hidden="true"></span>
+                로그인 상태 유지
+              </label>
+              <button id="forgotPasswordButton" class="text-button" type="button">비밀번호 찾기</button>
+            </div>
+
+            <button id="loginButton" class="login-button" type="submit">
+              <span>로그인</span>
+              <span aria-hidden="true">→</span>
+            </button>
+
+            <div id="formNotice" class="form-notice" role="status" aria-live="polite"></div>
+          </form>
+
+          <div class="signup-row">
+            <span>아직 PLANNIT 계정이 없나요?</span>
+            <button id="signupButton" class="text-button text-button--green" type="button">회원가입</button>
+          </div>
+
+          <p class="security-note">
+            <span aria-hidden="true">•</span>
+            로그인 정보는 서버 연결 후 안전하게 처리됩니다.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="js/auth-utils.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

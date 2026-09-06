@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Planit symbol</title>
+  <desc id="description">A black calendar with three separated binding tabs and a transparent AI sparkle.</desc>
+  <defs>
+    <mask id="symbolCutouts">
+      <rect width="512" height="512" fill="#ffffff"/>
+      <g fill="#000000">
+        <rect x="166" y="116" width="10" height="60" rx="5"/>
+        <rect x="200" y="116" width="10" height="60" rx="5"/>
+        <rect x="234" y="116" width="10" height="60" rx="5"/>
+        <rect x="268" y="116" width="10" height="60" rx="5"/>
+        <rect x="302" y="116" width="10" height="60" rx="5"/>
+        <rect x="336" y="116" width="10" height="60" rx="5"/>
+        <path d="m256 202 14 34 35-16-19 32 40 8-40 8 19 32-35-16-14 38-14-38-35 16 19-32-40-8 40-8-19-32 35 16 14-34Z"/>
+      </g>
+    </mask>
+  </defs>
+  <g fill="#000000" mask="url(#symbolCutouts)">
+    <rect x="112" y="132" width="288" height="268" rx="60"/>
+    <path d="M176 84h24v84h-24zM244 84h24v84h-24zM312 84h24v84h-24z"/>
+  </g>
+</svg>

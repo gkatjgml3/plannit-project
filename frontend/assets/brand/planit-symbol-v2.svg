@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Planit symbol</title>
+  <desc id="description">A simple black calendar with three binding tabs and a white AI sparkle.</desc>
+  <g fill="#000000">
+    <rect x="112" y="132" width="288" height="268" rx="60"/>
+    <path d="M176 84h24v72h-24zM244 84h24v72h-24zM312 84h24v72h-24z"/>
+  </g>
+  <path
+    d="m256 202 14 34 35-16-19 32 40 8-40 8 19 32-35-16-14 38-14-38-35 16 19-32-40-8 40-8-19-32 35 16 14-34Z"
+    fill="#ffffff"
+  />
+</svg>

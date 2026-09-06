@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">PLANNIT symbol</title>
+  <desc id="description">An AI sparkle inside a calendar, framed by two image scanning corners.</desc>
+  <g fill="none" stroke="#000000" stroke-width="30" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M64 184v-72c0-26.51 21.49-48 48-48h72"/>
+    <path d="M328 448h72c26.51 0 48-21.49 48-48v-72"/>
+    <rect x="152" y="144" width="208" height="224" rx="40"/>
+    <path d="M204 112v48M308 112v48"/>
+  </g>
+  <path
+    d="M256 208c5.28 27.39 20.61 42.72 48 48-27.39 5.28-42.72 20.61-48 48-5.28-27.39-20.61-42.72-48-48 27.39-5.28 42.72-20.61 48-48Z"
+    fill="#000000"
+  />
+</svg>

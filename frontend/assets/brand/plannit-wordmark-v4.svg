@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 240" role="img" aria-labelledby="title description">
+  <title id="title">PLANNIT wordmark</title>
+  <desc id="description">The PLANNIT name drawn as a rounded geometric monoline wordmark.</desc>
+  <g
+    fill="none"
+    stroke="#4F46E5"
+    stroke-width="34"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M56 184V56h60c38 0 58 22 58 54s-20 50-58 50H56"/>
+    <path d="M220 56v128h80"/>
+    <path d="m342 184 56-128 56 128M362 140h72"/>
+    <path d="M500 184V56l92 128V56"/>
+    <path d="M642 184V56l92 128V56"/>
+    <path d="M784 56v128"/>
+    <path d="M826 56h114M883 56v128"/>
+  </g>
+</svg>
