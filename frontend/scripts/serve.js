@@ -46,5 +46,5 @@ function serveRequest(request, response) {
 }
 
 http.createServer(serveRequest).listen(port, "127.0.0.1", () => {
-  console.log(`PLANNIT preview: http://127.0.0.1:${port}`);
+  console.log(`PLANIT preview: http://127.0.0.1:${port}`);
 });

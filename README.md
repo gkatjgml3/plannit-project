@@ -1,4 +1,4 @@
-# 📅 PLANNIT
+# 📅 PLANIT
 
 > **사진 한 장으로 시작하는 AI 일정 관리 서비스**
 
@@ -12,7 +12,7 @@
 
 학생들은 학교 공지에 흩어진 일정 제목, 날짜, 시간, 장소, 준비물과 알림을 캘린더에 하나씩 입력해야 합니다. 여러 일정이 겹치는지 직접 확인해야 하고, 할 일과 일정이 분리되어 우선순위를 잡기 어렵거나 조별 과제 일정을 구성원 모두에게 다시 전달해야 하는 문제도 있습니다.
 
-PLANNIT은 다음 흐름으로 이 문제를 해결합니다.
+PLANIT은 다음 흐름으로 이 문제를 해결합니다.
 
 ```text
 📷 안내문 이미지 업로드
@@ -141,7 +141,7 @@ Gemini API의 이미지 이해 기능과 구조화된 출력을 사용하여 비
 | Development | Visual Studio Code, IntelliJ IDEA, GitHub |
 | Collaboration | Notion |
 
-Notion 페이지 구성과 운영 방법은 [PLANNIT Notion 운영 가이드](docs/planning/notion-guide.md)를 참고합니다.
+Notion 페이지 구성과 운영 방법은 [PLANIT Notion 운영 가이드](docs/planning/notion-guide.md)를 참고합니다.
 
 ## 📂 목표 폴더 구조
 
@@ -175,7 +175,7 @@ plannit-project/
 
 프로젝트의 UI/UX는 Figma를 기반으로 설계합니다.
 
-[PLANNIT Figma 디자인](https://www.figma.com/design/gwXMAeV2ZnSeJLfUhU3TX4/plannit?node-id=0-1&t=KMMbWhjt1i0npws9-1)
+[PLANIT Figma 디자인](https://www.figma.com/design/gwXMAeV2ZnSeJLfUhU3TX4/plannit?node-id=0-1&t=KMMbWhjt1i0npws9-1)
 
 ## 📌 협업 규칙
 
@@ -269,4 +269,4 @@ async function uploadImage(imageFile) {
 
 **“사진 한 장으로 시작하는 스마트한 일정 관리”**
 
-PLANNIT은 반복적인 일정 입력 부담을 줄이고, 개인과 그룹이 중요한 일정을 놓치지 않도록 돕는 AI 기반 일정 관리 서비스를 목표로 합니다.
+PLANIT은 반복적인 일정 입력 부담을 줄이고, 개인과 그룹이 중요한 일정을 놓치지 않도록 돕는 AI 기반 일정 관리 서비스를 목표로 합니다.

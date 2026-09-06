@@ -61,7 +61,7 @@
   }
 
   const authUtils = { hasRequiredConsents, validateLoginInput, validateSignupInput };
-  globalObject.PlannitAuthUtils = authUtils;
+  globalObject.PlanitAuthUtils = authUtils;
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = authUtils;

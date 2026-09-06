@@ -1,12 +1,12 @@
 (function startAuthFlow() {
   "use strict";
 
-  const authUtils = window.PlannitAuthUtils;
+  const authUtils = window.PlanitAuthUtils;
   const viewHistory = [];
   const viewMeta = {
-    login: { label: "LOGIN", title: "로그인 | PLANNIT" },
-    signup: { label: "SIGN UP", title: "회원가입 | PLANNIT" },
-    consent: { label: "AGREEMENT", title: "약관 동의 | PLANNIT" },
+    login: { label: "LOGIN", title: "로그인 | PLANIT" },
+    signup: { label: "SIGN UP", title: "회원가입 | PLANIT" },
+    consent: { label: "AGREEMENT", title: "약관 동의 | PLANIT" },
   };
   const elements = {
     authContent: document.querySelector("#authContent"),

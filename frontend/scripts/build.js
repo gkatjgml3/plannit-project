@@ -23,7 +23,7 @@ function buildFrontend() {
     copyEntry(path.join(frontendRoot, entry), path.join(outputRoot, entry));
   });
 
-  console.log(`PLANNIT frontend build complete: ${outputRoot}`);
+  console.log(`PLANIT frontend build complete: ${outputRoot}`);
 }
 
 buildFrontend();

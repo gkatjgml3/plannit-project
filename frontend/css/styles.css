@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "SUIT Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../assets/fonts/SUIT-Variable.woff2") format("woff2-variations");
+}
+
 :root {
   --blue-700: #1f78c7;
   --blue-600: #328fdf;
@@ -30,9 +38,7 @@ body {
   margin: 0;
   color: var(--text);
   background: var(--canvas);
-  font-family:
-    Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+  font-family: "SUIT Variable", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
   line-height: 1.5;
 }
 
@@ -98,8 +104,11 @@ img {
   cursor: pointer;
 }
 
-.logo-button img {
-  width: 126px;
+.logo-text {
+  color: var(--navy);
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: -0.045em;
 }
 
 .site-header > p {
@@ -287,7 +296,7 @@ img {
   right: 90px;
   bottom: 3px;
   color: var(--blue-500);
-  font-family: "Segoe Print", "Comic Sans MS", cursive;
+  font-family: "SUIT Variable", sans-serif;
   font-size: 0.7rem;
   font-weight: 700;
   line-height: 1.35;
