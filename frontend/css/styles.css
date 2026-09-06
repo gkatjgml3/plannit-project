@@ -1582,21 +1582,9 @@ img {
 
 .large-calendar__days {
   min-height: 0;
-  grid-template-rows: repeat(var(--calendar-week-count, 5), calc(100% / var(--visible-calendar-week-count, 5)));
-  overflow-y: auto;
+  grid-template-rows: repeat(var(--calendar-week-count, 5), minmax(0, 1fr));
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  scrollbar-color: var(--blue-200) transparent;
-  scrollbar-width: thin;
-}
-
-.large-calendar__days::-webkit-scrollbar {
-  width: 5px;
-}
-
-.large-calendar__days::-webkit-scrollbar-thumb {
-  background: var(--blue-200);
-  border-radius: 5px;
 }
 
 .calendar-cell {

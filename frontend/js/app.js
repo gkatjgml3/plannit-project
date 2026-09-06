@@ -162,7 +162,6 @@
     const calendarDays = calendarUtils.buildCalendarDays(year, monthIndex, today);
     const calendarWeekCount = calendarDays.length / 7;
     elements.calendarDays.style.setProperty("--calendar-week-count", String(calendarWeekCount));
-    elements.calendarDays.style.setProperty("--visible-calendar-week-count", String(Math.min(calendarWeekCount, 5)));
     calendarDays.forEach((dayInfo) => {
       const calendarCell = document.createElement("div");
       calendarCell.className = "calendar-cell";
