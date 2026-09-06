@@ -2,13 +2,15 @@
   "use strict";
 
   // 입력값: 연도와 0부터 시작하는 월
-  // 출력값: 해당 월을 포함하는 6주 분량의 날짜 정보 42개
-  // 기능: 이전 달과 다음 달 날짜를 포함한 월간 캘린더 칸을 계산한다.
+  // 출력값: 해당 월의 마지막 주까지만 포함한 날짜 정보
+  // 기능: 이전 달과 다음 달 날짜를 포함하되 불필요한 다음 주는 만들지 않는다.
   function buildCalendarDays(year, monthIndex, today = new Date()) {
     const firstWeekday = new Date(year, monthIndex, 1).getDay();
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+    const visibleDayCount = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
     const gridStart = new Date(year, monthIndex, 1 - firstWeekday);
 
-    return Array.from({ length: 42 }, (_, index) => {
+    return Array.from({ length: visibleDayCount }, (_, index) => {
       const date = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + index);
       const dateYear = date.getFullYear();
       const dateMonthIndex = date.getMonth();
