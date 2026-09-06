@@ -902,6 +902,12 @@ img {
   font-size: 1rem;
 }
 
+.notification-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
 .dashboard-nav__item:hover,
 .logout-button:hover {
   color: var(--blue-700);
