@@ -276,19 +276,11 @@
           <button class="dashboard-nav__item" type="button" data-dashboard-action="알림"><span aria-hidden="true">○</span> 알림</button>
         </nav>
 
-        <div class="sidebar-message">
-          <span aria-hidden="true">✦</span>
-          <p>새로운 하루,<br />새로운 계획</p>
-        </div>
         <button id="logoutButton" class="logout-button" type="button"><span aria-hidden="true">←</span> 로그아웃</button>
       </aside>
 
       <main class="calendar-dashboard__main">
         <header class="dashboard-topbar">
-          <div class="dashboard-topbar__greeting">
-            <strong>안녕하세요!</strong>
-            <span>오늘도 계획을 가볍게 시작해 보세요.</span>
-          </div>
           <label class="dashboard-search">
             <span aria-hidden="true">⌕</span>
             <input type="search" placeholder="일정 검색..." aria-label="대시보드 일정 검색" />
@@ -302,8 +294,7 @@
         <div class="calendar-dashboard__content">
           <div class="calendar-dashboard__heading">
             <div>
-              <p>MY CALENDAR</p>
-              <h1>한눈에 보는 나의 일정</h1>
+              <h1>ㅇㅇ님, 안녕하세요!</h1>
             </div>
             <button type="button" data-dashboard-action="새 일정"><span aria-hidden="true">＋</span> 새 일정</button>
           </div>
@@ -368,11 +359,7 @@
 
               <section class="ai-chat-start" aria-labelledby="aiChatHeading">
                 <div class="ai-chat-start__icon" aria-hidden="true">✦</div>
-                <div>
-                  <span>PLANIT AI</span>
-                  <h2 id="aiChatHeading">AI와 함께 일정 정리를 시작해 보세요.</h2>
-                  <p>사진 속 일정 찾기부터 계획 세우기까지 도와드려요.</p>
-                </div>
+                <h2 id="aiChatHeading">AI 채팅 시작</h2>
                 <button type="button" data-dashboard-action="AI 채팅 시작">AI 채팅 시작 <span aria-hidden="true">→</span></button>
               </section>
             </div>
@@ -385,11 +372,7 @@
                 </div>
                 <span>0</span>
               </header>
-              <div class="upcoming-empty">
-                <span aria-hidden="true">□</span>
-                <strong>다가오는 일정이 없어요</strong>
-                <p>새 일정이 생기면 이곳에 표시됩니다.</p>
-              </div>
+              <div class="upcoming-empty" aria-label="등록된 일정 없음"></div>
             </aside>
           </div>
         </div>
