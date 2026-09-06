@@ -16,15 +16,51 @@
     }
 
     if (!password) {
-      errors.password = "비밀번호를 입력해 주세요.";
+      errors.loginPassword = "비밀번호를 입력해 주세요.";
     } else if (password.length < 6) {
-      errors.password = "비밀번호는 6자 이상 입력해 주세요.";
+      errors.loginPassword = "비밀번호는 6자 이상 입력해 주세요.";
     }
 
     return errors;
   }
 
-  const authUtils = { validateLoginInput };
+  // 입력값: 이름, 이메일, 비밀번호, 비밀번호 확인을 담은 객체
+  // 출력값: 필드별 사용자용 오류 메시지 객체
+  // 기능: 회원가입 정보의 필수값, 이메일 형식, 비밀번호 규칙과 일치 여부를 검증한다.
+  function validateSignupInput(profile) {
+    const errors = {};
+    const name = profile.name?.trim() || "";
+    const email = profile.email?.trim() || "";
+    const password = profile.password || "";
+    const passwordConfirm = profile.passwordConfirm || "";
+
+    if (name.length < 2) {
+      errors.signupName = "이름을 2자 이상 입력해 주세요.";
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.signupEmail = "올바른 이메일 형식으로 입력해 주세요.";
+    }
+
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+      errors.signupPassword = "영문과 숫자를 포함해 8자 이상 입력해 주세요.";
+    }
+
+    if (!passwordConfirm || passwordConfirm !== password) {
+      errors.signupPasswordConfirm = "비밀번호가 일치하지 않아요.";
+    }
+
+    return errors;
+  }
+
+  // 입력값: 서비스 이용약관과 개인정보 약관의 동의 여부
+  // 출력값: 필수 약관을 모두 동의했으면 true
+  // 기능: 선택 약관과 구분해 회원가입에 필요한 필수 동의를 확인한다.
+  function hasRequiredConsents(consents) {
+    return Boolean(consents.serviceTerms && consents.privacyTerms);
+  }
+
+  const authUtils = { hasRequiredConsents, validateLoginInput, validateSignupInput };
   globalObject.PlannitAuthUtils = authUtils;
 
   if (typeof module !== "undefined" && module.exports) {
