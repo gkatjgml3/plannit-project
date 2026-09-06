@@ -304,19 +304,6 @@ img {
   transform: rotate(6deg);
 }
 
-.hand-note {
-  position: absolute;
-  z-index: 4;
-  right: 90px;
-  bottom: 3px;
-  color: var(--blue-500);
-  font-family: "SUIT Variable", sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1.35;
-  transform: rotate(-7deg);
-}
-
 .intro-footer {
   position: relative;
   z-index: 3;
