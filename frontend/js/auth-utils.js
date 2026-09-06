@@ -1,6 +1,15 @@
 (function registerAuthUtils(globalObject) {
   "use strict";
 
+  const demoAccountEmail = "s2653@e-mirim.hs.kr";
+
+  // 입력값: 로그인 폼에 입력한 아이디 또는 이메일
+  // 출력값: 데모 계정 이메일과 정확히 일치하면 true
+  // 기능: 정적 데모 화면에 예시 일정을 표시할 계정을 구분한다.
+  function isDemoAccount(loginId) {
+    return (loginId?.trim().toLowerCase() || "") === demoAccountEmail;
+  }
+
   // 입력값: 아이디와 비밀번호를 담은 객체
   // 출력값: 필드별 사용자용 오류 메시지 객체
   // 기능: 로그인 요청 전에 필수 입력과 기본 길이를 검증한다.
@@ -65,7 +74,7 @@
     return Boolean(consents.serviceTerms && consents.privacyTerms);
   }
 
-  const authUtils = { hasRequiredConsents, validateLoginInput, validateSignupInput };
+  const authUtils = { hasRequiredConsents, isDemoAccount, validateLoginInput, validateSignupInput };
   globalObject.PlanitAuthUtils = authUtils;
 
   if (typeof module !== "undefined" && module.exports) {

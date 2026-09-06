@@ -43,6 +43,8 @@
     consentError: document.querySelector("#consentError"),
     consentNotice: document.querySelector("#consentNotice"),
     completeSignupButton: document.querySelector("#completeSignupButton"),
+    upcomingCount: document.querySelector("#upcomingCount"),
+    upcomingContent: document.querySelector("#upcomingContent"),
     toast: document.querySelector("#toast"),
   };
   let activeView = "login";
@@ -78,10 +80,54 @@
     elements.authContent.focus({ preventScroll: true });
   }
 
-  // 입력값: 없음
+  // 입력값: 데모 일정 표시 여부
+  // 출력값: 없음
+  // 기능: 지정된 데모 계정에는 예시 일정을, 나머지 화면에는 빈 상태를 표시한다.
+  function renderDashboardContent(shouldShowDemo) {
+    const demoSchedules = [
+      { day: 9, title: "수행평가 제출" },
+      { day: 14, title: "동아리 회의" },
+      { day: 22, title: "영어 시험" },
+    ];
+
+    document.querySelectorAll(".calendar-event").forEach((eventElement) => eventElement.remove());
+    elements.upcomingContent.replaceChildren();
+    elements.upcomingContent.classList.toggle("upcoming-empty", !shouldShowDemo);
+    elements.upcomingContent.classList.toggle("upcoming-list", shouldShowDemo);
+    elements.upcomingContent.setAttribute("aria-label", shouldShowDemo ? "데모 일정" : "등록된 일정 없음");
+    elements.upcomingCount.textContent = shouldShowDemo ? String(demoSchedules.length) : "0";
+
+    if (!shouldShowDemo) {
+      return;
+    }
+
+    const calendarCells = Array.from(document.querySelectorAll(".calendar-cell:not(.is-other)"));
+    demoSchedules.forEach((schedule) => {
+      const calendarCell = calendarCells.find((cell) => cell.querySelector("b")?.textContent === String(schedule.day));
+      if (calendarCell) {
+        const calendarEvent = document.createElement("span");
+        calendarEvent.className = "calendar-event";
+        calendarEvent.textContent = schedule.title;
+        calendarCell.append(calendarEvent);
+      }
+
+      const upcomingItem = document.createElement("article");
+      upcomingItem.className = "upcoming-item";
+      const scheduleDate = document.createElement("time");
+      scheduleDate.dateTime = `2026-09-${String(schedule.day).padStart(2, "0")}`;
+      scheduleDate.innerHTML = `<b>${schedule.day}일</b><span>9월</span>`;
+      const scheduleTitle = document.createElement("h3");
+      scheduleTitle.textContent = schedule.title;
+      upcomingItem.append(scheduleDate, scheduleTitle);
+      elements.upcomingContent.append(upcomingItem);
+    });
+  }
+
+  // 입력값: 데모 일정 표시 여부
   // 출력값: 없음
   // 기능: 정적 인증 화면을 숨기고 메인 대시보드를 표시한다.
-  function showDashboard() {
+  function showDashboard(shouldShowDemo = false) {
+    renderDashboardContent(shouldShowDemo);
     elements.siteHeader.classList.add("is-hidden");
     elements.authContent.classList.add("is-hidden");
     elements.siteFooter.classList.add("is-hidden");
@@ -148,7 +194,7 @@
       return;
     }
 
-    showDashboard();
+    showDashboard(authUtils.isDemoAccount(elements.loginId.value));
   }
 
   // 입력값: 회원가입 폼 제출 이벤트
@@ -215,7 +261,7 @@
       return;
     }
 
-    showDashboard();
+    showDashboard(false);
   }
 
   // 입력값: 비밀번호 보기 버튼
@@ -276,7 +322,7 @@
   function openLinkedView() {
     const linkedView = window.location.hash.replace("#", "");
     if (linkedView === "dashboard") {
-      showDashboard();
+      showDashboard(false);
       return;
     }
 

@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   hasRequiredConsents,
+  isDemoAccount,
   validateLoginInput,
   validateSignupInput,
 } = require("../js/auth-utils.js");
@@ -47,4 +48,10 @@ test("회원가입 아이디는 영문과 숫자로 4자 이상이어야 한다"
 test("필수 약관 두 항목이 모두 선택되어야 한다", () => {
   assert.equal(hasRequiredConsents({ serviceTerms: true, privacyTerms: false }), false);
   assert.equal(hasRequiredConsents({ serviceTerms: true, privacyTerms: true }), true);
+});
+
+test("지정 이메일로 로그인할 때만 데모 계정으로 구분한다", () => {
+  assert.equal(isDemoAccount("s2653@e-mirim.hs.kr"), true);
+  assert.equal(isDemoAccount(" S2653@E-MIRIM.HS.KR "), true);
+  assert.equal(isDemoAccount("student@example.com"), false);
 });
