@@ -449,8 +449,17 @@
       return;
     }
 
-    if (viewMeta[linkedView] && linkedView !== activeView) {
-      showView(linkedView, false);
+    if (viewMeta[linkedView]) {
+      elements.dashboardView.classList.add("is-hidden");
+      elements.siteHeader.classList.remove("is-hidden");
+      elements.authContent.classList.remove("is-hidden");
+      elements.siteFooter.classList.remove("is-hidden");
+      if (linkedView !== activeView) {
+        showView(linkedView, false);
+      } else {
+        document.title = viewMeta[linkedView].title;
+        elements.authContent.focus({ preventScroll: true });
+      }
     }
   }
 
