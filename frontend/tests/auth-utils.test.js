@@ -14,6 +14,7 @@ test("로그인 아이디와 비밀번호가 비어 있으면 두 필드를 안�
 test("회원가입 이메일과 비밀번호 규칙을 검증한다", () => {
   const errors = validateSignupInput({
     name: "김래원",
+    signupId: "planit01",
     email: "invalid-email",
     password: "password",
     passwordConfirm: "different",
@@ -24,11 +25,23 @@ test("회원가입 이메일과 비밀번호 규칙을 검증한다", () => {
 test("올바른 회원가입 정보는 오류가 없다", () => {
   const errors = validateSignupInput({
     name: "김래원",
+    signupId: "planit01",
     email: "student@example.com",
     password: "planit2026",
     passwordConfirm: "planit2026",
   });
   assert.deepEqual(errors, {});
+});
+
+test("회원가입 아이디는 영문과 숫자로 4자 이상이어야 한다", () => {
+  const errors = validateSignupInput({
+    name: "김래원",
+    signupId: "가나",
+    email: "student@example.com",
+    password: "planit2026",
+    passwordConfirm: "planit2026",
+  });
+  assert.match(errors.signupId, /영문과 숫자/);
 });
 
 test("필수 약관 두 항목이 모두 선택되어야 한다", () => {

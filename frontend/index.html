@@ -62,7 +62,7 @@
             <span id="screenLabel">LOGIN</span>
             <p id="topPrompt">
               계정이 없으신가요?
-              <button class="inline-button" type="button" data-view-target="signup">회원가입</button>
+              <a class="inline-button" href="#signup" data-view-target="signup">회원가입</a>
             </p>
           </div>
 
@@ -127,7 +127,7 @@
 
               <div class="auth-switch">
                 <span>처음 방문하셨나요?</span>
-                <button class="inline-button" type="button" data-view-target="signup">회원가입하기</button>
+                <a class="inline-button" href="#signup" data-view-target="signup">회원가입하기</a>
               </div>
             </div>
           </section>
@@ -153,6 +153,12 @@
                   <span>이름</span>
                   <input id="signupName" name="signupName" type="text" autocomplete="name" placeholder="이름을 입력하세요" aria-describedby="signupNameError" required />
                   <small id="signupNameError" class="field-error" aria-live="polite"></small>
+                </label>
+
+                <label class="form-field" for="signupId">
+                  <span>아이디</span>
+                  <input id="signupId" name="signupId" type="text" autocomplete="username" placeholder="영문, 숫자로 4~20자" aria-describedby="signupIdError" required />
+                  <small id="signupIdError" class="field-error" aria-live="polite"></small>
                 </label>
 
                 <label class="form-field" for="signupEmail">
@@ -184,7 +190,7 @@
 
               <div class="auth-switch">
                 <span>이미 계정이 있으신가요?</span>
-                <button class="inline-button" type="button" data-view-target="login">로그인</button>
+                <a class="inline-button" href="#login" data-view-target="login">로그인</a>
               </div>
             </div>
           </section>
@@ -254,143 +260,6 @@
       <span>로그인 · 회원가입 · 약관 동의</span>
     </footer>
 
-    <section id="dashboardViewLegacy" class="dashboard-view is-hidden" aria-hidden="true" hidden>
-      <aside class="dashboard-sidebar">
-        <button class="dashboard-logo" type="button" aria-label="PLANIT 홈">
-          <span class="dashboard-logo__mark" aria-hidden="true">✦</span>
-          <span>PLANIT</span>
-        </button>
-
-        <nav class="dashboard-nav" aria-label="대시보드 메뉴">
-          <button class="dashboard-nav__item is-active" type="button" aria-current="page">
-            <span aria-hidden="true">⌂</span> 홈
-          </button>
-          <button class="dashboard-nav__item" type="button" data-dashboard-action="캘린더">
-            <span aria-hidden="true">□</span> 캘린더
-          </button>
-          <button class="dashboard-nav__item" type="button" data-dashboard-action="일정 추가">
-            <span aria-hidden="true">＋</span> 일정 추가
-          </button>
-          <button class="dashboard-nav__item" type="button" data-dashboard-action="AI 분석">
-            <span aria-hidden="true">✦</span> AI 분석
-          </button>
-          <button class="dashboard-nav__item" type="button" data-dashboard-action="그룹">
-            <span aria-hidden="true">◎</span> 그룹
-          </button>
-          <button class="dashboard-nav__item" type="button" data-dashboard-action="알림">
-            <span aria-hidden="true">○</span> 알림
-          </button>
-        </nav>
-
-        <div class="sidebar-message">
-          <span aria-hidden="true">✦</span>
-          <p>새로운 하루,<br />새로운 계획</p>
-        </div>
-
-        <button class="logout-button" type="button" disabled>
-          <span aria-hidden="true">←</span> 로그아웃
-        </button>
-      </aside>
-
-      <main class="dashboard-main">
-        <header class="dashboard-topbar">
-          <label class="dashboard-search">
-            <span aria-hidden="true">⌕</span>
-            <input type="search" placeholder="일정, 그룹, 키워드 검색..." aria-label="대시보드 검색" />
-          </label>
-          <div class="dashboard-actions">
-            <button type="button" data-dashboard-action="알림" aria-label="알림 확인">○</button>
-            <span class="dashboard-profile" aria-label="사용자 프로필">P</span>
-          </div>
-        </header>
-
-        <div class="dashboard-content">
-          <section class="welcome-block" aria-labelledby="dashboardHeading">
-            <div>
-              <p class="dashboard-date">2026년 9월 6일 일요일</p>
-              <h1 id="dashboardHeading">안녕하세요! <span aria-hidden="true">👋</span></h1>
-              <p>오늘도 좋은 하루예요. 계획한 일정을 확인해 보세요.</p>
-            </div>
-            <div class="day-summary">
-              <span>오늘의 일정</span>
-              <strong>3</strong>
-              <small>개</small>
-            </div>
-          </section>
-
-          <section class="upload-banner" aria-labelledby="uploadBannerHeading">
-            <div class="upload-banner__copy">
-              <span class="banner-label">PLANIT AI</span>
-              <h2 id="uploadBannerHeading">사진을 업로드하면<br />AI가 일정을 찾아드려요!</h2>
-              <p>학교 안내문, 학습지, 시험 자료의 날짜와 할 일을 한눈에 정리해 보세요.</p>
-              <button type="button" data-dashboard-action="이미지 업로드">이미지 업로드하기 <span aria-hidden="true">→</span></button>
-            </div>
-            <div class="upload-banner__visual" aria-hidden="true">
-              <div class="mini-paper mini-paper--back"></div>
-              <div class="mini-paper mini-paper--front">
-                <i></i><i></i><i></i>
-              </div>
-              <span>＋</span>
-            </div>
-          </section>
-
-          <div class="dashboard-grid">
-            <section class="dashboard-card schedule-card" aria-labelledby="todayScheduleHeading">
-              <div class="dashboard-card__heading">
-                <div>
-                  <h2 id="todayScheduleHeading">오늘의 일정</h2>
-                  <p>3개의 일정이 있어요!</p>
-                </div>
-                <button type="button" data-dashboard-action="전체 일정">전체 보기 <span aria-hidden="true">›</span></button>
-              </div>
-
-              <div class="schedule-list">
-                <article class="schedule-row">
-                  <time datetime="2026-09-06T10:00">10:00</time>
-                  <span class="schedule-dot"></span>
-                  <div><strong>프로그래밍 수행평가 회의</strong><small>3-1 교실</small></div>
-                  <span class="schedule-tag">학교</span>
-                </article>
-                <article class="schedule-row">
-                  <time datetime="2026-09-06T13:00">13:00</time>
-                  <span class="schedule-dot"></span>
-                  <div><strong>일본어 시험</strong><small>2-4 교실</small></div>
-                  <span class="schedule-tag">시험</span>
-                </article>
-                <article class="schedule-row">
-                  <time datetime="2026-09-06T16:00">16:00</time>
-                  <span class="schedule-dot"></span>
-                  <div><strong>동아리 회의</strong><small>방송실</small></div>
-                  <span class="schedule-tag">그룹</span>
-                </article>
-              </div>
-            </section>
-
-            <section class="dashboard-card calendar-card" aria-labelledby="miniCalendarHeading">
-              <div class="dashboard-card__heading calendar-card__heading">
-                <h2 id="miniCalendarHeading">2026년 9월</h2>
-                <div>
-                  <button type="button" data-dashboard-action="이전 달" aria-label="이전 달">‹</button>
-                  <button type="button" data-dashboard-action="다음 달" aria-label="다음 달">›</button>
-                </div>
-              </div>
-              <div class="mini-calendar" role="grid" aria-label="2026년 9월 미니 캘린더">
-                <div class="mini-calendar__week" role="row"><b>일</b><b>월</b><b>화</b><b>수</b><b>목</b><b>금</b><b>토</b></div>
-                <div class="mini-calendar__days" role="row">
-                  <span class="is-muted">30</span><span class="is-muted">31</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                  <span class="is-today">6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
-                  <span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span>
-                  <span>20</span><span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span>
-                  <span>27</span><span>28</span><span>29</span><span>30</span><span class="is-muted">1</span><span class="is-muted">2</span><span class="is-muted">3</span>
-                </div>
-              </div>
-              <div class="calendar-legend"><span></span> 오늘</div>
-            </section>
-          </div>
-        </div>
-      </main>
-    </section>
-
     <section id="dashboardView" class="dashboard-view calendar-dashboard is-hidden" aria-label="PLANIT 메인 대시보드" tabindex="-1">
       <aside class="dashboard-sidebar">
         <button class="dashboard-logo" type="button" aria-label="PLANIT 홈">
@@ -457,38 +326,38 @@
                 <div class="large-calendar__days" role="grid" aria-label="2026년 9월 월간 캘린더">
                   <div class="calendar-cell is-other"><b>30</b></div>
                   <div class="calendar-cell is-other"><b>31</b></div>
-                  <div class="calendar-cell"><b>1</b><span class="calendar-event">영어 단어 시험</span></div>
+                  <div class="calendar-cell"><b>1</b></div>
                   <div class="calendar-cell"><b>2</b></div>
-                  <div class="calendar-cell"><b>3</b><span class="calendar-event calendar-event--light">과학 보고서</span></div>
+                  <div class="calendar-cell"><b>3</b></div>
                   <div class="calendar-cell"><b>4</b></div>
                   <div class="calendar-cell"><b>5</b></div>
 
-                  <div class="calendar-cell is-today"><b>6</b><span class="calendar-event">수행평가 회의</span></div>
+                  <div class="calendar-cell is-today"><b>6</b></div>
                   <div class="calendar-cell"><b>7</b></div>
-                  <div class="calendar-cell"><b>8</b><span class="calendar-event calendar-event--light">수학 과제</span></div>
+                  <div class="calendar-cell"><b>8</b></div>
                   <div class="calendar-cell"><b>9</b></div>
                   <div class="calendar-cell"><b>10</b></div>
-                  <div class="calendar-cell"><b>11</b><span class="calendar-event">동아리 회의</span></div>
+                  <div class="calendar-cell"><b>11</b></div>
                   <div class="calendar-cell"><b>12</b></div>
 
                   <div class="calendar-cell"><b>13</b></div>
-                  <div class="calendar-cell"><b>14</b><span class="calendar-event calendar-event--light">일본어 시험</span></div>
+                  <div class="calendar-cell"><b>14</b></div>
                   <div class="calendar-cell"><b>15</b></div>
                   <div class="calendar-cell"><b>16</b></div>
                   <div class="calendar-cell"><b>17</b></div>
-                  <div class="calendar-cell"><b>18</b><span class="calendar-event">발표 자료 제출</span></div>
+                  <div class="calendar-cell"><b>18</b></div>
                   <div class="calendar-cell"><b>19</b></div>
 
                   <div class="calendar-cell"><b>20</b></div>
                   <div class="calendar-cell"><b>21</b></div>
-                  <div class="calendar-cell"><b>22</b><span class="calendar-event calendar-event--light">체육대회</span></div>
+                  <div class="calendar-cell"><b>22</b></div>
                   <div class="calendar-cell"><b>23</b></div>
                   <div class="calendar-cell"><b>24</b></div>
                   <div class="calendar-cell"><b>25</b></div>
                   <div class="calendar-cell"><b>26</b></div>
 
                   <div class="calendar-cell"><b>27</b></div>
-                  <div class="calendar-cell"><b>28</b><span class="calendar-event">팀 프로젝트</span></div>
+                  <div class="calendar-cell"><b>28</b></div>
                   <div class="calendar-cell"><b>29</b></div>
                   <div class="calendar-cell"><b>30</b></div>
                   <div class="calendar-cell is-other"><b>1</b></div>
@@ -514,32 +383,13 @@
                   <p>UPCOMING</p>
                   <h2 id="upcomingHeading">다가오는 일정</h2>
                 </div>
-                <span>4</span>
+                <span>0</span>
               </header>
-
-              <div class="upcoming-date"><span>오늘</span><i></i></div>
-              <article class="upcoming-item">
-                <time datetime="2026-09-06T10:00"><b>10:00</b><span>오전</span></time>
-                <div><span class="upcoming-item__type">학교</span><h3>프로그래밍 수행평가 회의</h3><p>3-1 교실 · 50분</p></div>
-              </article>
-              <article class="upcoming-item">
-                <time datetime="2026-09-06T16:00"><b>16:00</b><span>오후</span></time>
-                <div><span class="upcoming-item__type">그룹</span><h3>방송부 동아리 회의</h3><p>방송실 · 1시간</p></div>
-              </article>
-
-              <div class="upcoming-date"><span>9월 8일 화요일</span><i></i></div>
-              <article class="upcoming-item">
-                <time datetime="2026-09-08T09:00"><b>09:00</b><span>오전</span></time>
-                <div><span class="upcoming-item__type">과제</span><h3>수학 과제 제출</h3><p>수학 교과실</p></div>
-              </article>
-
-              <div class="upcoming-date"><span>9월 11일 금요일</span><i></i></div>
-              <article class="upcoming-item">
-                <time datetime="2026-09-11T16:00"><b>16:00</b><span>오후</span></time>
-                <div><span class="upcoming-item__type">그룹</span><h3>동아리 정기 회의</h3><p>방송실 · 1시간</p></div>
-              </article>
-
-              <button class="upcoming-all" type="button" data-dashboard-action="전체 일정">전체 일정 보기 <span aria-hidden="true">→</span></button>
+              <div class="upcoming-empty">
+                <span aria-hidden="true">□</span>
+                <strong>다가오는 일정이 없어요</strong>
+                <p>새 일정이 생기면 이곳에 표시됩니다.</p>
+              </div>
             </aside>
           </div>
         </div>

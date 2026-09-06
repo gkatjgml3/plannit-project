@@ -94,7 +94,16 @@ img {
 }
 
 .site-header {
+  position: absolute;
+  z-index: 10;
+  top: 0;
+  right: 0;
+  left: 0;
   height: 84px;
+}
+
+.site-header > p {
+  display: none;
 }
 
 .logo-button {
@@ -122,31 +131,27 @@ img {
 
 .auth-stage {
   display: grid;
-  width: min(calc(100% - 72px), 1440px);
-  min-height: calc(100vh - 134px);
+  width: 100%;
+  min-height: 100vh;
   place-items: center;
-  margin: 0 auto;
 }
 
 .auth-shell {
   display: grid;
   width: 100%;
-  min-height: 690px;
+  min-height: 100vh;
   grid-template-columns: minmax(420px, 0.88fr) minmax(580px, 1.12fr);
   overflow: hidden;
   background: var(--paper);
-  border: 1px solid #e1ebf3;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
 }
 
 .intro-panel {
   position: relative;
   display: flex;
-  min-height: 690px;
+  min-height: 100vh;
   flex-direction: column;
   overflow: hidden;
-  padding: 54px 58px 34px;
+  padding: 118px 58px 34px;
   background: var(--blue-100);
 }
 
@@ -333,6 +338,7 @@ img {
 .form-panel {
   display: flex;
   min-width: 0;
+  min-height: 100vh;
   flex-direction: column;
   padding: 29px 44px 40px;
   background: #fbfdff;
@@ -393,7 +399,7 @@ img {
 
 .auth-view {
   display: flex;
-  min-height: 610px;
+  min-height: 0;
   flex: 1;
   flex-direction: column;
   justify-content: center;
@@ -413,6 +419,19 @@ img {
 .auth-card--consent {
   padding-top: 29px;
   padding-bottom: 29px;
+}
+
+.auth-card--signup {
+  width: min(100%, 560px);
+}
+
+.auth-card--signup .auth-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.auth-card--signup .form-field:nth-child(3),
+.auth-card--signup .primary-button {
+  grid-column: 1 / -1;
 }
 
 .card-heading {
@@ -780,11 +799,7 @@ img {
 }
 
 .site-footer {
-  height: 50px;
-  color: #8da0b1;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  display: none;
 }
 
 .toast {
@@ -1787,6 +1802,40 @@ img {
   font-weight: 800;
 }
 
+.upcoming-empty {
+  display: flex;
+  height: calc(100% - 62px);
+  min-height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.upcoming-empty > span {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  color: var(--blue-600);
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  border-radius: 15px;
+  font-size: 1.1rem;
+}
+
+.upcoming-empty strong {
+  margin-top: 14px;
+  color: var(--navy);
+  font-size: 0.72rem;
+}
+
+.upcoming-empty p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.58rem;
+}
+
 @media (max-height: 760px) {
   .calendar-dashboard__content {
     padding-top: 14px;
@@ -1838,16 +1887,12 @@ img {
   }
 
   .auth-stage {
-    min-height: 690px;
+    min-height: 100vh;
   }
 
   .auth-shell,
   .intro-panel {
-    min-height: 650px;
-  }
-
-  .site-footer {
-    height: 34px;
+    min-height: 100vh;
   }
 
   .plan-illustration {

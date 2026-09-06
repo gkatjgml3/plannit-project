@@ -17,6 +17,13 @@ PLANIT의 데스크톱용 정적 웹 화면입니다. 별도 프레임워크나 
 
 API 호출, 백엔드 연결, 계정 생성 기능은 포함하지 않습니다. 입력값은 현재 브라우저 화면의 동작 확인에만 사용되며 새로고침하면 사라집니다.
 
+## 화면 링크
+
+- `index.html#login` — 로그인
+- `index.html#signup` — 회원가입
+- `index.html#consent` — 약관 동의
+- `index.html#dashboard` — 내용이 비어 있는 메인 대시보드
+
 ## 실행과 검증
 
 `frontend/index.html`을 브라우저에서 열면 로그인 화면이 실행됩니다.

@@ -29,6 +29,8 @@
     signupForm: document.querySelector("#signupForm"),
     signupName: document.querySelector("#signupName"),
     signupNameError: document.querySelector("#signupNameError"),
+    signupId: document.querySelector("#signupId"),
+    signupIdError: document.querySelector("#signupIdError"),
     signupEmail: document.querySelector("#signupEmail"),
     signupEmailError: document.querySelector("#signupEmailError"),
     signupPassword: document.querySelector("#signupPassword"),
@@ -65,11 +67,12 @@
     elements.backButton.classList.toggle("is-hidden", viewName === "login");
     elements.screenLabel.textContent = viewMeta[viewName].label;
     document.title = viewMeta[viewName].title;
+    window.history.replaceState(null, "", `#${viewName}`);
 
     if (viewName === "login") {
-      elements.topPrompt.innerHTML = '계정이 없으신가요? <button class="inline-button" type="button" data-view-target="signup">회원가입</button>';
+      elements.topPrompt.innerHTML = '계정이 없으신가요? <a class="inline-button" href="#signup" data-view-target="signup">회원가입</a>';
     } else {
-      elements.topPrompt.innerHTML = '이미 계정이 있으신가요? <button class="inline-button" type="button" data-view-target="login">로그인</button>';
+      elements.topPrompt.innerHTML = '이미 계정이 있으신가요? <a class="inline-button" href="#login" data-view-target="login">로그인</a>';
     }
 
     elements.authContent.focus({ preventScroll: true });
@@ -84,6 +87,7 @@
     elements.siteFooter.classList.add("is-hidden");
     elements.dashboardView.classList.remove("is-hidden");
     document.title = "메인 대시보드 | PLANIT";
+    window.history.replaceState(null, "", "#dashboard");
     elements.dashboardView.focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -154,11 +158,12 @@
     event.preventDefault();
     const errors = authUtils.validateSignupInput({
       name: elements.signupName.value,
+      signupId: elements.signupId.value,
       email: elements.signupEmail.value,
       password: elements.signupPassword.value,
       passwordConfirm: elements.signupPasswordConfirm.value,
     });
-    const fieldIds = ["signupName", "signupEmail", "signupPassword", "signupPasswordConfirm"];
+    const fieldIds = ["signupName", "signupId", "signupEmail", "signupPassword", "signupPasswordConfirm"];
 
     fieldIds.forEach((fieldId) => showFieldError(fieldId, errors[fieldId]));
     if (Object.keys(errors).length > 0) {
@@ -260,9 +265,24 @@
     elements.consentCheckboxes.forEach((checkbox) => checkbox.addEventListener("change", updateConsentState));
     elements.forgotPasswordButton.addEventListener("click", () => showToast("비밀번호 찾기는 현재 제작 범위에 포함되지 않습니다."));
     elements.logoutButton.addEventListener("click", showLoginFromDashboard);
-    [elements.loginId, elements.loginPassword, elements.signupName, elements.signupEmail, elements.signupPassword, elements.signupPasswordConfirm].forEach((input) => {
+    [elements.loginId, elements.loginPassword, elements.signupName, elements.signupId, elements.signupEmail, elements.signupPassword, elements.signupPasswordConfirm].forEach((input) => {
       input.addEventListener("input", clearInputError);
     });
+  }
+
+  // 입력값: 없음
+  // 출력값: 없음
+  // 기능: 주소의 해시 링크를 읽어 요청한 정적 화면을 직접 연다.
+  function openLinkedView() {
+    const linkedView = window.location.hash.replace("#", "");
+    if (linkedView === "dashboard") {
+      showDashboard();
+      return;
+    }
+
+    if (viewMeta[linkedView] && linkedView !== activeView) {
+      showView(linkedView, false);
+    }
   }
 
   // 입력값: 없음
@@ -270,11 +290,13 @@
   // 기능: 연도, 오류 상태와 이벤트를 준비해 인증 흐름을 시작한다.
   function initialize() {
     elements.currentYear.textContent = String(new Date().getFullYear());
-    ["loginId", "loginPassword", "signupName", "signupEmail", "signupPassword", "signupPasswordConfirm"].forEach((fieldId) => {
+    ["loginId", "loginPassword", "signupName", "signupId", "signupEmail", "signupPassword", "signupPasswordConfirm"].forEach((fieldId) => {
       elements[fieldId].setAttribute("aria-invalid", "false");
     });
     bindEvents();
     updateConsentState();
+    openLinkedView();
+    window.addEventListener("hashchange", openLinkedView);
   }
 
   initialize();

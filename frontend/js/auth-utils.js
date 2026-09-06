@@ -24,18 +24,23 @@
     return errors;
   }
 
-  // 입력값: 이름, 이메일, 비밀번호, 비밀번호 확인을 담은 객체
+  // 입력값: 이름, 아이디, 이메일, 비밀번호, 비밀번호 확인을 담은 객체
   // 출력값: 필드별 사용자용 오류 메시지 객체
   // 기능: 회원가입 정보의 필수값, 이메일 형식, 비밀번호 규칙과 일치 여부를 검증한다.
   function validateSignupInput(profile) {
     const errors = {};
     const name = profile.name?.trim() || "";
+    const signupId = profile.signupId?.trim() || "";
     const email = profile.email?.trim() || "";
     const password = profile.password || "";
     const passwordConfirm = profile.passwordConfirm || "";
 
     if (name.length < 2) {
       errors.signupName = "이름을 2자 이상 입력해 주세요.";
+    }
+
+    if (!/^[A-Za-z0-9]{4,20}$/.test(signupId)) {
+      errors.signupId = "아이디는 영문과 숫자로 4~20자 입력해 주세요.";
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
