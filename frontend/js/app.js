@@ -9,7 +9,11 @@
     consent: { label: "AGREEMENT", title: "약관 동의 | PLANIT" },
   };
   const elements = {
+    siteHeader: document.querySelector("#siteHeader"),
+    siteFooter: document.querySelector("#siteFooter"),
     authContent: document.querySelector("#authContent"),
+    dashboardView: document.querySelector("#dashboardView"),
+    logoutButton: document.querySelector("#logoutButton"),
     authViews: document.querySelectorAll("[data-auth-view]"),
     backButton: document.querySelector("#backButton"),
     screenLabel: document.querySelector("#screenLabel"),
@@ -71,6 +75,36 @@
     elements.authContent.focus({ preventScroll: true });
   }
 
+  // 입력값: 없음
+  // 출력값: 없음
+  // 기능: 정적 인증 화면을 숨기고 메인 대시보드를 표시한다.
+  function showDashboard() {
+    elements.siteHeader.classList.add("is-hidden");
+    elements.authContent.classList.add("is-hidden");
+    elements.siteFooter.classList.add("is-hidden");
+    elements.dashboardView.classList.remove("is-hidden");
+    document.title = "메인 대시보드 | PLANIT";
+    elements.dashboardView.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // 입력값: 없음
+  // 출력값: 없음
+  // 기능: 대시보드를 닫고 로그인 화면으로 돌아간다.
+  function showLoginFromDashboard() {
+    elements.dashboardView.classList.add("is-hidden");
+    elements.siteHeader.classList.remove("is-hidden");
+    elements.authContent.classList.remove("is-hidden");
+    elements.siteFooter.classList.remove("is-hidden");
+    viewHistory.length = 0;
+    if (activeView === "login") {
+      document.title = viewMeta.login.title;
+      elements.authContent.focus({ preventScroll: true });
+    } else {
+      showView("login", false);
+    }
+  }
+
   // 입력값: 사용자에게 보여 줄 짧은 안내 문장
   // 출력값: 없음
   // 기능: 준비 중인 기능이나 약관 상세 상태를 잠시 알린다.
@@ -110,8 +144,7 @@
       return;
     }
 
-    elements.loginNotice.textContent = "입력 확인이 완료되었습니다. 현재 화면에서는 로그인 정보를 전송하지 않습니다.";
-    elements.loginNotice.classList.add("is-visible");
+    showDashboard();
   }
 
   // 입력값: 회원가입 폼 제출 이벤트
@@ -177,8 +210,7 @@
       return;
     }
 
-    elements.consentNotice.textContent = "필수 약관 동의가 확인되었습니다. 현재 화면에서는 계정을 생성하지 않습니다.";
-    elements.consentNotice.classList.add("is-visible");
+    showDashboard();
   }
 
   // 입력값: 비밀번호 보기 버튼
@@ -214,6 +246,9 @@
       if (passwordButton) togglePasswordVisibility(passwordButton);
       if (termButton) showToast(`${termButton.dataset.term} 상세 화면은 현재 제작 범위에 포함되지 않습니다.`);
     });
+    document.querySelectorAll("[data-dashboard-action]").forEach((button) => {
+      button.addEventListener("click", () => showToast(`${button.dataset.dashboardAction} 기능은 메인 대시보드 다음 제작 범위입니다.`));
+    });
     elements.backButton.addEventListener("click", () => {
       const previousView = viewHistory.pop() || (activeView === "consent" ? "signup" : "login");
       showView(previousView, false);
@@ -224,6 +259,7 @@
     elements.consentAll.addEventListener("change", toggleAllConsents);
     elements.consentCheckboxes.forEach((checkbox) => checkbox.addEventListener("change", updateConsentState));
     elements.forgotPasswordButton.addEventListener("click", () => showToast("비밀번호 찾기는 현재 제작 범위에 포함되지 않습니다."));
+    elements.logoutButton.addEventListener("click", showLoginFromDashboard);
     [elements.loginId, elements.loginPassword, elements.signupName, elements.signupEmail, elements.signupPassword, elements.signupPasswordConfirm].forEach((input) => {
       input.addEventListener("input", clearInputError);
     });
