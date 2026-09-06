@@ -1697,7 +1697,7 @@ img {
 
 .upcoming-panel {
   min-height: 0;
-  padding: 20px 18px 16px;
+  padding: 20px;
   overflow: hidden;
 }
 
@@ -1705,27 +1705,33 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 14px;
+  padding: 2px 2px 16px;
   border-bottom: 1px solid var(--line);
 }
 
 .upcoming-panel header h2 {
   margin: 0;
   color: var(--navy);
-  font-size: 0.9rem;
+  font-size: 1rem;
   letter-spacing: -0.03em;
 }
 
 .upcoming-panel header > span {
   display: grid;
-  width: 27px;
-  height: 27px;
+  width: 30px;
+  height: 30px;
   place-items: center;
   color: var(--blue-700);
   background: var(--blue-100);
   border-radius: 50%;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 850;
+}
+
+.upcoming-list {
+  display: grid;
+  gap: 11px;
+  padding-top: 16px;
 }
 
 .upcoming-date {
@@ -1749,15 +1755,46 @@ img {
 }
 
 .upcoming-item {
+  position: relative;
   display: grid;
-  grid-template-columns: 45px 1fr;
-  gap: 11px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
+  min-height: 70px;
+  grid-template-columns: 50px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 13px 10px 12px;
+  overflow: hidden;
+  background: #f8fbff;
+  border: 1px solid var(--blue-100);
+  border-radius: 11px;
+  box-shadow: 0 7px 18px rgb(50 95 135 / 7%);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.upcoming-item::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 3px;
+  background: var(--blue-500);
+  border-radius: 0 3px 3px 0;
+  content: "";
+}
+
+.upcoming-item:hover {
+  border-color: var(--blue-200);
+  box-shadow: 0 10px 22px rgb(50 95 135 / 11%);
+  transform: translateY(-2px);
 }
 
 .upcoming-item time {
-  padding-top: 2px;
+  display: grid;
+  width: 46px;
+  height: 48px;
+  align-content: center;
+  background: var(--paper);
+  border: 1px solid var(--blue-100);
+  border-radius: 9px;
   text-align: center;
 }
 
@@ -1767,13 +1804,14 @@ img {
 }
 
 .upcoming-item time b {
-  color: var(--navy);
-  font-size: 0.66rem;
+  color: var(--blue-700);
+  font-size: 0.72rem;
 }
 
 .upcoming-item time span {
-  color: var(--muted);
-  font-size: 0.49rem;
+  margin-top: 1px;
+  color: #7892aa;
+  font-size: 0.5rem;
 }
 
 .upcoming-item__type {
@@ -1787,10 +1825,10 @@ img {
 }
 
 .upcoming-item h3 {
-  margin: 4px 0 0;
+  margin: 0;
   overflow: hidden;
   color: var(--navy);
-  font-size: 0.65rem;
+  font-size: 0.74rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
