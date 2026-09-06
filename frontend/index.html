@@ -10,13 +10,14 @@
     <meta name="theme-color" content="#eef6fd" />
     <title>로그인 | PLANIT</title>
     <link rel="icon" href="assets/brand/plannit-symbol-v5.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="css/styles.css?v=demo-account-1" />
+    <link rel="stylesheet" href="css/styles.css?v=calendar-navigation-1" />
   </head>
   <body>
     <a class="skip-link" href="#authContent">인증 화면으로 바로가기</a>
 
     <header id="siteHeader" class="site-header">
       <button class="logo-button" type="button" data-view-target="login" aria-label="PLANIT 로그인 홈">
+        <img class="logo-symbol" src="assets/brand/plannit-symbol-v5.svg" alt="" />
         <span class="logo-text">PLANIT</span>
       </button>
       <p>PLAN YOUR DAY,<br />LIVE A BETTER TOMORROW.</p>
@@ -263,7 +264,7 @@
     <section id="dashboardView" class="dashboard-view calendar-dashboard is-hidden" aria-label="PLANIT 메인 대시보드" tabindex="-1">
       <aside class="dashboard-sidebar">
         <button class="dashboard-logo" type="button" aria-label="PLANIT 홈">
-          <span class="dashboard-logo__mark" aria-hidden="true">✦</span>
+          <img class="dashboard-logo__mark" src="assets/brand/plannit-symbol-v5.svg" alt="" />
           <span>PLANIT</span>
         </button>
 
@@ -294,7 +295,7 @@
         <div class="calendar-dashboard__content">
           <div class="calendar-dashboard__heading">
             <div>
-              <h1>ㅇㅇ님, 안녕하세요!</h1>
+              <h1 id="dashboardGreeting">ㅇㅇ님, 안녕하세요!</h1>
             </div>
             <button type="button" data-dashboard-action="새 일정" aria-label="새 일정 추가">+</button>
           </div>
@@ -304,57 +305,17 @@
               <section class="large-calendar" aria-labelledby="largeCalendarHeading">
                 <header class="large-calendar__header">
                   <div>
-                    <button type="button" data-dashboard-action="이전 달" aria-label="이전 달">‹</button>
-                    <h2 id="largeCalendarHeading">2026년 9월</h2>
-                    <button type="button" data-dashboard-action="다음 달" aria-label="다음 달">›</button>
+                    <button id="previousMonthButton" type="button" aria-label="이전 달">‹</button>
+                    <h2 id="largeCalendarHeading"></h2>
+                    <button id="nextMonthButton" type="button" aria-label="다음 달">›</button>
                   </div>
-                  <button class="today-control" type="button" data-dashboard-action="오늘로 이동">오늘</button>
+                  <button id="todayButton" class="today-control" type="button">오늘</button>
                 </header>
 
                 <div class="large-calendar__weekdays" role="row">
                   <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
                 </div>
-                <div class="large-calendar__days" role="grid" aria-label="2026년 9월 월간 캘린더">
-                  <div class="calendar-cell is-other"><b>30</b></div>
-                  <div class="calendar-cell is-other"><b>31</b></div>
-                  <div class="calendar-cell"><b>1</b></div>
-                  <div class="calendar-cell"><b>2</b></div>
-                  <div class="calendar-cell"><b>3</b></div>
-                  <div class="calendar-cell"><b>4</b></div>
-                  <div class="calendar-cell"><b>5</b></div>
-
-                  <div class="calendar-cell is-today"><b>6</b></div>
-                  <div class="calendar-cell"><b>7</b></div>
-                  <div class="calendar-cell"><b>8</b></div>
-                  <div class="calendar-cell"><b>9</b></div>
-                  <div class="calendar-cell"><b>10</b></div>
-                  <div class="calendar-cell"><b>11</b></div>
-                  <div class="calendar-cell"><b>12</b></div>
-
-                  <div class="calendar-cell"><b>13</b></div>
-                  <div class="calendar-cell"><b>14</b></div>
-                  <div class="calendar-cell"><b>15</b></div>
-                  <div class="calendar-cell"><b>16</b></div>
-                  <div class="calendar-cell"><b>17</b></div>
-                  <div class="calendar-cell"><b>18</b></div>
-                  <div class="calendar-cell"><b>19</b></div>
-
-                  <div class="calendar-cell"><b>20</b></div>
-                  <div class="calendar-cell"><b>21</b></div>
-                  <div class="calendar-cell"><b>22</b></div>
-                  <div class="calendar-cell"><b>23</b></div>
-                  <div class="calendar-cell"><b>24</b></div>
-                  <div class="calendar-cell"><b>25</b></div>
-                  <div class="calendar-cell"><b>26</b></div>
-
-                  <div class="calendar-cell"><b>27</b></div>
-                  <div class="calendar-cell"><b>28</b></div>
-                  <div class="calendar-cell"><b>29</b></div>
-                  <div class="calendar-cell"><b>30</b></div>
-                  <div class="calendar-cell is-other"><b>1</b></div>
-                  <div class="calendar-cell is-other"><b>2</b></div>
-                  <div class="calendar-cell is-other"><b>3</b></div>
-                </div>
+                <div id="calendarDays" class="large-calendar__days" role="grid"></div>
               </section>
 
               <section class="ai-chat-start" aria-labelledby="aiChatHeading">
@@ -381,7 +342,8 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="js/auth-utils.js?v=demo-account-1"></script>
-    <script src="js/app.js?v=demo-account-1"></script>
+    <script src="js/auth-utils.js?v=calendar-navigation-1"></script>
+    <script src="js/calendar-utils.js?v=calendar-navigation-1"></script>
+    <script src="js/app.js?v=calendar-navigation-1"></script>
   </body>
 </html>

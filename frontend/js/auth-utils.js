@@ -10,6 +10,14 @@
     return (loginId?.trim().toLowerCase() || "") === demoAccountEmail;
   }
 
+  // 입력값: 회원가입에서 입력한 이름
+  // 출력값: 대시보드에 표시할 인사말
+  // 기능: 이름이 있으면 이름을 사용하고 없으면 기본 표시값으로 인사말을 만든다.
+  function createGreeting(name) {
+    const displayName = name?.trim() || "ㅇㅇ";
+    return `${displayName}님, 안녕하세요!`;
+  }
+
   // 입력값: 아이디와 비밀번호를 담은 객체
   // 출력값: 필드별 사용자용 오류 메시지 객체
   // 기능: 로그인 요청 전에 필수 입력과 기본 길이를 검증한다.
@@ -74,7 +82,7 @@
     return Boolean(consents.serviceTerms && consents.privacyTerms);
   }
 
-  const authUtils = { hasRequiredConsents, isDemoAccount, validateLoginInput, validateSignupInput };
+  const authUtils = { createGreeting, hasRequiredConsents, isDemoAccount, validateLoginInput, validateSignupInput };
   globalObject.PlanitAuthUtils = authUtils;
 
   if (typeof module !== "undefined" && module.exports) {

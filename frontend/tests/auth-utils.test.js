@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  createGreeting,
   hasRequiredConsents,
   isDemoAccount,
   validateLoginInput,
@@ -54,4 +55,9 @@ test("지정 이메일로 로그인할 때만 데모 계정으로 구분한다",
   assert.equal(isDemoAccount("s2653@e-mirim.hs.kr"), true);
   assert.equal(isDemoAccount(" S2653@E-MIRIM.HS.KR "), true);
   assert.equal(isDemoAccount("student@example.com"), false);
+});
+
+test("회원가입 이름으로 대시보드 인사말을 만든다", () => {
+  assert.equal(createGreeting("지민"), "지민님, 안녕하세요!");
+  assert.equal(createGreeting(""), "ㅇㅇ님, 안녕하세요!");
 });

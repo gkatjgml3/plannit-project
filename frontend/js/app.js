@@ -2,6 +2,9 @@
   "use strict";
 
   const authUtils = window.PlanitAuthUtils;
+  const calendarUtils = window.PlanitCalendarUtils;
+  const profileStorageKey = "planitProfile";
+  const today = new Date();
   const viewHistory = [];
   const viewMeta = {
     login: { label: "LOGIN", title: "로그인 | PLANIT" },
@@ -43,12 +46,59 @@
     consentError: document.querySelector("#consentError"),
     consentNotice: document.querySelector("#consentNotice"),
     completeSignupButton: document.querySelector("#completeSignupButton"),
+    dashboardGreeting: document.querySelector("#dashboardGreeting"),
+    largeCalendarHeading: document.querySelector("#largeCalendarHeading"),
+    calendarDays: document.querySelector("#calendarDays"),
+    previousMonthButton: document.querySelector("#previousMonthButton"),
+    nextMonthButton: document.querySelector("#nextMonthButton"),
+    todayButton: document.querySelector("#todayButton"),
     upcomingCount: document.querySelector("#upcomingCount"),
     upcomingContent: document.querySelector("#upcomingContent"),
     toast: document.querySelector("#toast"),
   };
   let activeView = "login";
+  let currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
+  let shouldShowDemoSchedules = false;
+  let pendingSignupProfile = null;
   let toastTimer = null;
+
+  // 입력값: 없음
+  // 출력값: 현재 브라우저에 저장된 회원 프로필 또는 null
+  // 기능: 비밀번호를 제외한 이름, 아이디, 이메일을 로컬 저장소에서 안전하게 읽는다.
+  function readStoredProfile() {
+    try {
+      const profile = JSON.parse(window.localStorage.getItem(profileStorageKey));
+      if (!profile || typeof profile.name !== "string" || typeof profile.signupId !== "string" || typeof profile.email !== "string") {
+        return null;
+      }
+      return profile;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  // 입력값: 이름, 아이디, 이메일이 담긴 회원 프로필
+  // 출력값: 없음
+  // 기능: 회원가입 완료 프로필을 비밀번호 없이 현재 브라우저에 저장한다.
+  function saveProfile(profile) {
+    try {
+      window.localStorage.setItem(profileStorageKey, JSON.stringify(profile));
+    } catch (error) {
+      showToast("이름을 브라우저에 저장하지 못했습니다.");
+    }
+  }
+
+  // 입력값: 로그인 폼에 입력한 아이디 또는 이메일
+  // 출력값: 입력값과 일치하는 저장 프로필 또는 null
+  // 기능: 같은 브라우저에서 가입한 사용자의 표시 이름을 로그인 정보와 연결한다.
+  function findStoredProfile(loginId) {
+    const profile = readStoredProfile();
+    const normalizedLoginId = loginId.trim().toLowerCase();
+    if (!profile) {
+      return null;
+    }
+    return [profile.signupId, profile.email].some((value) => value.toLowerCase() === normalizedLoginId) ? profile : null;
+  }
 
   // 입력값: 이동할 화면 이름과 이전 화면 기록 여부
   // 출력값: 없음
@@ -80,42 +130,85 @@
     elements.authContent.focus({ preventScroll: true });
   }
 
-  // 입력값: 데모 일정 표시 여부
-  // 출력값: 없음
-  // 기능: 지정된 데모 계정에는 예시 일정을, 나머지 화면에는 빈 상태를 표시한다.
-  function renderDashboardContent(shouldShowDemo) {
-    const demoSchedules = [
+  // 입력값: 없음
+  // 출력값: 현재 연월에 연결된 데모 일정 목록
+  // 기능: 실제 현재 월을 기준으로 개인정보가 없는 세 개의 데모 일정을 만든다.
+  function getDemoSchedules() {
+    return [
       { day: 9, title: "수행평가 제출" },
       { day: 14, title: "동아리 회의" },
       { day: 22, title: "영어 시험" },
-    ];
+    ].map((schedule) => ({
+      ...schedule,
+      year: today.getFullYear(),
+      monthIndex: today.getMonth(),
+      isoDate: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(schedule.day).padStart(2, "0")}`,
+    }));
+  }
 
-    document.querySelectorAll(".calendar-event").forEach((eventElement) => eventElement.remove());
-    elements.upcomingContent.replaceChildren();
-    elements.upcomingContent.classList.toggle("upcoming-empty", !shouldShowDemo);
-    elements.upcomingContent.classList.toggle("upcoming-list", shouldShowDemo);
-    elements.upcomingContent.setAttribute("aria-label", shouldShowDemo ? "데모 일정" : "등록된 일정 없음");
-    elements.upcomingCount.textContent = shouldShowDemo ? String(demoSchedules.length) : "0";
+  // 입력값: 없음
+  // 출력값: 없음
+  // 기능: 선택된 연월의 실제 날짜 42개와 오늘 표시, 데모 일정을 캘린더에 그린다.
+  function renderCalendar() {
+    const year = currentCalendarDate.getFullYear();
+    const monthIndex = currentCalendarDate.getMonth();
+    const monthLabel = calendarUtils.createMonthLabel(year, monthIndex);
+    const demoSchedules = shouldShowDemoSchedules ? getDemoSchedules() : [];
 
-    if (!shouldShowDemo) {
-      return;
-    }
+    elements.largeCalendarHeading.textContent = monthLabel;
+    elements.calendarDays.setAttribute("aria-label", `${monthLabel} 월간 캘린더`);
+    elements.calendarDays.replaceChildren();
 
-    const calendarCells = Array.from(document.querySelectorAll(".calendar-cell:not(.is-other)"));
-    demoSchedules.forEach((schedule) => {
-      const calendarCell = calendarCells.find((cell) => cell.querySelector("b")?.textContent === String(schedule.day));
-      if (calendarCell) {
+    calendarUtils.buildCalendarDays(year, monthIndex, today).forEach((dayInfo) => {
+      const calendarCell = document.createElement("div");
+      calendarCell.className = "calendar-cell";
+      calendarCell.setAttribute("role", "gridcell");
+      calendarCell.dataset.date = dayInfo.isoDate;
+      calendarCell.classList.toggle("is-other", dayInfo.isOtherMonth);
+      calendarCell.classList.toggle("is-today", dayInfo.isToday);
+
+      const dayNumber = document.createElement("b");
+      dayNumber.textContent = String(dayInfo.day);
+      calendarCell.append(dayNumber);
+
+      const schedule = demoSchedules.find((item) => item.isoDate === dayInfo.isoDate);
+      if (schedule) {
         const calendarEvent = document.createElement("span");
         calendarEvent.className = "calendar-event";
         calendarEvent.textContent = schedule.title;
         calendarCell.append(calendarEvent);
       }
+      elements.calendarDays.append(calendarCell);
+    });
+  }
 
+  // 입력값: 데모 일정 표시 여부
+  // 출력값: 없음
+  // 기능: 지정된 데모 계정에는 예시 일정을, 나머지 화면에는 빈 상태를 표시한다.
+  function renderDashboardContent(shouldShowDemo) {
+    const demoSchedules = getDemoSchedules();
+    shouldShowDemoSchedules = shouldShowDemo;
+    elements.upcomingContent.replaceChildren();
+    elements.upcomingContent.classList.toggle("upcoming-empty", !shouldShowDemo);
+    elements.upcomingContent.classList.toggle("upcoming-list", shouldShowDemo);
+    elements.upcomingContent.setAttribute("aria-label", shouldShowDemo ? "데모 일정" : "등록된 일정 없음");
+    elements.upcomingCount.textContent = shouldShowDemo ? String(demoSchedules.length) : "0";
+    renderCalendar();
+
+    if (!shouldShowDemo) {
+      return;
+    }
+
+    demoSchedules.forEach((schedule) => {
       const upcomingItem = document.createElement("article");
       upcomingItem.className = "upcoming-item";
       const scheduleDate = document.createElement("time");
-      scheduleDate.dateTime = `2026-09-${String(schedule.day).padStart(2, "0")}`;
-      scheduleDate.innerHTML = `<b>${schedule.day}일</b><span>9월</span>`;
+      scheduleDate.dateTime = schedule.isoDate;
+      const scheduleDay = document.createElement("b");
+      scheduleDay.textContent = `${schedule.day}일`;
+      const scheduleMonth = document.createElement("span");
+      scheduleMonth.textContent = `${schedule.monthIndex + 1}월`;
+      scheduleDate.append(scheduleDay, scheduleMonth);
       const scheduleTitle = document.createElement("h3");
       scheduleTitle.textContent = schedule.title;
       upcomingItem.append(scheduleDate, scheduleTitle);
@@ -123,11 +216,28 @@
     });
   }
 
-  // 입력값: 데모 일정 표시 여부
+  // 입력값: 이동할 월 수
+  // 출력값: 없음
+  // 기능: 이전 또는 다음 달로 이동하고 1월과 12월 경계에서 연도도 함께 변경한다.
+  function moveCalendarMonth(amount) {
+    currentCalendarDate = calendarUtils.moveMonth(currentCalendarDate, amount);
+    renderCalendar();
+  }
+
+  // 입력값: 없음
+  // 출력값: 없음
+  // 기능: 캘린더를 실제 오늘이 포함된 연월로 되돌린다.
+  function showCurrentMonth() {
+    currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    renderCalendar();
+  }
+
+  // 입력값: 데모 일정 표시 여부와 화면에 표시할 이름
   // 출력값: 없음
   // 기능: 정적 인증 화면을 숨기고 메인 대시보드를 표시한다.
-  function showDashboard(shouldShowDemo = false) {
+  function showDashboard(shouldShowDemo = false, displayName = "") {
     renderDashboardContent(shouldShowDemo);
+    elements.dashboardGreeting.textContent = authUtils.createGreeting(displayName);
     elements.siteHeader.classList.add("is-hidden");
     elements.authContent.classList.add("is-hidden");
     elements.siteFooter.classList.add("is-hidden");
@@ -194,7 +304,8 @@
       return;
     }
 
-    showDashboard(authUtils.isDemoAccount(elements.loginId.value));
+    const storedProfile = findStoredProfile(elements.loginId.value);
+    showDashboard(authUtils.isDemoAccount(elements.loginId.value), storedProfile?.name);
   }
 
   // 입력값: 회원가입 폼 제출 이벤트
@@ -217,6 +328,11 @@
       return;
     }
 
+    pendingSignupProfile = {
+      name: elements.signupName.value.trim(),
+      signupId: elements.signupId.value.trim(),
+      email: elements.signupEmail.value.trim(),
+    };
     showView("consent");
   }
 
@@ -261,7 +377,11 @@
       return;
     }
 
-    showDashboard(false);
+    if (pendingSignupProfile) {
+      saveProfile(pendingSignupProfile);
+    }
+    showDashboard(false, pendingSignupProfile?.name);
+    pendingSignupProfile = null;
   }
 
   // 입력값: 비밀번호 보기 버튼
@@ -309,6 +429,9 @@
     elements.consentForm.addEventListener("submit", handleConsentSubmit);
     elements.consentAll.addEventListener("change", toggleAllConsents);
     elements.consentCheckboxes.forEach((checkbox) => checkbox.addEventListener("change", updateConsentState));
+    elements.previousMonthButton.addEventListener("click", () => moveCalendarMonth(-1));
+    elements.nextMonthButton.addEventListener("click", () => moveCalendarMonth(1));
+    elements.todayButton.addEventListener("click", showCurrentMonth);
     elements.forgotPasswordButton.addEventListener("click", () => showToast("비밀번호 찾기는 현재 제작 범위에 포함되지 않습니다."));
     elements.logoutButton.addEventListener("click", showLoginFromDashboard);
     [elements.loginId, elements.loginPassword, elements.signupName, elements.signupId, elements.signupEmail, elements.signupPassword, elements.signupPasswordConfirm].forEach((input) => {
@@ -322,7 +445,7 @@
   function openLinkedView() {
     const linkedView = window.location.hash.replace("#", "");
     if (linkedView === "dashboard") {
-      showDashboard(false);
+      showDashboard(false, readStoredProfile()?.name);
       return;
     }
 
