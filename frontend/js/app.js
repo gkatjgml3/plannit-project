@@ -54,6 +54,13 @@
     todayButton: document.querySelector("#todayButton"),
     upcomingCount: document.querySelector("#upcomingCount"),
     upcomingContent: document.querySelector("#upcomingContent"),
+    scheduleDialog: document.querySelector("#scheduleDialog"),
+    scheduleForm: document.querySelector("#scheduleForm"),
+    scheduleTitle: document.querySelector("#scheduleTitle"),
+    scheduleDate: document.querySelector("#scheduleDate"),
+    closeScheduleDialogButton: document.querySelector("#closeScheduleDialogButton"),
+    cancelScheduleButton: document.querySelector("#cancelScheduleButton"),
+    scheduleDialogOpenButtons: document.querySelectorAll("[data-schedule-dialog-open]"),
     toast: document.querySelector("#toast"),
   };
   let activeView = "login";
@@ -62,9 +69,6 @@
   let pendingSignupProfile = null;
   let toastTimer = null;
 
-  // 입력값: 없음
-  // 출력값: 현재 브라우저에 저장된 회원 프로필 또는 null
-  // 기능: 비밀번호를 제외한 이름, 아이디, 이메일을 로컬 저장소에서 안전하게 읽는다.
   function readStoredProfile() {
     try {
       const profile = JSON.parse(window.localStorage.getItem(profileStorageKey));
@@ -77,9 +81,6 @@
     }
   }
 
-  // 입력값: 이름, 아이디, 이메일이 담긴 회원 프로필
-  // 출력값: 없음
-  // 기능: 회원가입 완료 프로필을 비밀번호 없이 현재 브라우저에 저장한다.
   function saveProfile(profile) {
     try {
       window.localStorage.setItem(profileStorageKey, JSON.stringify(profile));
@@ -88,9 +89,6 @@
     }
   }
 
-  // 입력값: 로그인 폼에 입력한 아이디 또는 이메일
-  // 출력값: 입력값과 일치하는 저장 프로필 또는 null
-  // 기능: 같은 브라우저에서 가입한 사용자의 표시 이름을 로그인 정보와 연결한다.
   function findStoredProfile(loginId) {
     const profile = readStoredProfile();
     const normalizedLoginId = loginId.trim().toLowerCase();
@@ -100,9 +98,6 @@
     return [profile.signupId, profile.email].some((value) => value.toLowerCase() === normalizedLoginId) ? profile : null;
   }
 
-  // 입력값: 이동할 화면 이름과 이전 화면 기록 여부
-  // 출력값: 없음
-  // 기능: 로그인, 회원가입, 동의 화면을 전환하고 화면 제목과 탐색 요소를 갱신한다.
   function showView(viewName, shouldRemember = true) {
     if (!viewMeta[viewName] || viewName === activeView) {
       return;
@@ -130,9 +125,6 @@
     elements.authContent.focus({ preventScroll: true });
   }
 
-  // 입력값: 없음
-  // 출력값: 현재 연월에 연결된 데모 일정 목록
-  // 기능: 실제 현재 월을 기준으로 개인정보가 없는 세 개의 데모 일정을 만든다.
   function getDemoSchedules() {
     return [
       { day: 9, title: "수행평가 제출" },
@@ -146,9 +138,6 @@
     }));
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 선택된 연월의 실제 날짜 42개와 오늘 표시, 데모 일정을 캘린더에 그린다.
   function renderCalendar() {
     const year = currentCalendarDate.getFullYear();
     const monthIndex = currentCalendarDate.getMonth();
@@ -185,9 +174,6 @@
     });
   }
 
-  // 입력값: 데모 일정 표시 여부
-  // 출력값: 없음
-  // 기능: 지정된 데모 계정에는 예시 일정을, 나머지 화면에는 빈 상태를 표시한다.
   function renderDashboardContent(shouldShowDemo) {
     const demoSchedules = getDemoSchedules();
     shouldShowDemoSchedules = shouldShowDemo;
@@ -219,25 +205,51 @@
     });
   }
 
-  // 입력값: 이동할 월 수
-  // 출력값: 없음
-  // 기능: 이전 또는 다음 달로 이동하고 1월과 12월 경계에서 연도도 함께 변경한다.
   function moveCalendarMonth(amount) {
     currentCalendarDate = calendarUtils.moveMonth(currentCalendarDate, amount);
     renderCalendar();
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 캘린더를 실제 오늘이 포함된 연월로 되돌린다.
   function showCurrentMonth() {
     currentCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
     renderCalendar();
   }
 
-  // 입력값: 데모 일정 표시 여부와 화면에 표시할 이름
-  // 출력값: 없음
-  // 기능: 정적 인증 화면을 숨기고 메인 대시보드를 표시한다.
+  function getTodayInputValue() {
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  }
+
+  function openScheduleDialog() {
+    if (!elements.scheduleDate.value) {
+      elements.scheduleDate.value = getTodayInputValue();
+    }
+    elements.scheduleDialog.showModal();
+    elements.scheduleTitle.focus();
+  }
+
+  function closeScheduleDialog() {
+    elements.scheduleDialog.close();
+  }
+
+  function handleScheduleSubmit(event) {
+    event.preventDefault();
+    if (!elements.scheduleForm.checkValidity()) {
+      elements.scheduleForm.reportValidity();
+      return;
+    }
+    closeScheduleDialog();
+    elements.scheduleForm.reset();
+    showToast("일정 추가 화면 동작을 확인했습니다. 실제 저장은 연결되지 않았습니다.");
+  }
+
+  function closeScheduleDialogFromBackdrop(event) {
+    const dialogRect = elements.scheduleDialog.getBoundingClientRect();
+    const isOutside = event.clientX < dialogRect.left || event.clientX > dialogRect.right || event.clientY < dialogRect.top || event.clientY > dialogRect.bottom;
+    if (isOutside) {
+      closeScheduleDialog();
+    }
+  }
+
   function showDashboard(shouldShowDemo = false, displayName = "") {
     renderDashboardContent(shouldShowDemo);
     elements.dashboardGreeting.textContent = authUtils.createGreeting(displayName);
@@ -251,9 +263,6 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 대시보드를 닫고 로그인 화면으로 돌아간다.
   function showLoginFromDashboard() {
     elements.dashboardView.classList.add("is-hidden");
     elements.siteHeader.classList.remove("is-hidden");
@@ -268,9 +277,6 @@
     }
   }
 
-  // 입력값: 사용자에게 보여 줄 짧은 안내 문장
-  // 출력값: 없음
-  // 기능: 준비 중인 기능이나 약관 상세 상태를 잠시 알린다.
   function showToast(message) {
     window.clearTimeout(toastTimer);
     elements.toast.textContent = message;
@@ -278,9 +284,6 @@
     toastTimer = window.setTimeout(() => elements.toast.classList.remove("is-visible"), 2400);
   }
 
-  // 입력값: 입력 요소의 id와 오류 메시지
-  // 출력값: 없음
-  // 기능: 입력창과 연결된 오류 영역에 접근 가능한 검증 결과를 표시한다.
   function showFieldError(fieldId, message) {
     const input = elements[fieldId];
     const errorElement = elements[`${fieldId}Error`];
@@ -288,9 +291,6 @@
     errorElement.textContent = message || "";
   }
 
-  // 입력값: 로그인 폼 제출 이벤트
-  // 출력값: 없음
-  // 기능: 로그인 입력을 검증하고 정적 화면에서 동작 확인 결과를 알린다.
   function handleLoginSubmit(event) {
     event.preventDefault();
     elements.loginNotice.classList.remove("is-visible");
@@ -311,9 +311,6 @@
     showDashboard(authUtils.isDemoAccount(elements.loginId.value), storedProfile?.name);
   }
 
-  // 입력값: 회원가입 폼 제출 이벤트
-  // 출력값: 없음
-  // 기능: 가입 정보를 검증한 뒤 약관 동의 화면으로 이동한다.
   function handleSignupSubmit(event) {
     event.preventDefault();
     const errors = authUtils.validateSignupInput({
@@ -339,9 +336,6 @@
     showView("consent");
   }
 
-  // 입력값: 없음
-  // 출력값: 필수 약관의 현재 동의 여부
-  // 기능: 동의 체크박스 상태에서 필수 항목 값을 모은다.
   function getConsentState() {
     return {
       serviceTerms: elements.consentForm.elements.serviceTerms.checked,
@@ -349,9 +343,6 @@
     };
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 개별 약관 상태에 맞춰 전체 동의와 가입 버튼 상태를 갱신한다.
   function updateConsentState() {
     const checkboxes = Array.from(elements.consentCheckboxes);
     elements.consentAll.checked = checkboxes.every((checkbox) => checkbox.checked);
@@ -360,9 +351,6 @@
     elements.consentNotice.classList.remove("is-visible");
   }
 
-  // 입력값: 전체 동의 체크박스 변경 이벤트
-  // 출력값: 없음
-  // 기능: 필수와 선택을 포함한 모든 동의 항목을 같은 상태로 변경한다.
   function toggleAllConsents(event) {
     elements.consentCheckboxes.forEach((checkbox) => {
       checkbox.checked = event.target.checked;
@@ -370,9 +358,6 @@
     updateConsentState();
   }
 
-  // 입력값: 약관 동의 폼 제출 이벤트
-  // 출력값: 없음
-  // 기능: 필수 약관을 검증하고 정적 회원가입 화면의 완료 상태를 안내한다.
   function handleConsentSubmit(event) {
     event.preventDefault();
     if (!authUtils.hasRequiredConsents(getConsentState())) {
@@ -387,9 +372,6 @@
     pendingSignupProfile = null;
   }
 
-  // 입력값: 비밀번호 보기 버튼
-  // 출력값: 없음
-  // 기능: 연결된 비밀번호 입력값의 표시 여부와 버튼 설명을 전환한다.
   function togglePasswordVisibility(button) {
     const passwordInput = document.querySelector(`#${button.dataset.passwordTarget}`);
     const shouldShow = passwordInput.type === "password";
@@ -400,16 +382,10 @@
     passwordInput.focus();
   }
 
-  // 입력값: 입력 이벤트
-  // 출력값: 없음
-  // 기능: 사용자가 값을 다시 입력하면 해당 필드의 이전 오류를 지운다.
   function clearInputError(event) {
     showFieldError(event.target.id, "");
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 화면 이동, 폼 제출, 입력과 동의 요소에 상호작용을 연결한다.
   function bindEvents() {
     document.addEventListener("click", (event) => {
       const viewButton = event.target.closest("[data-view-target]");
@@ -435,6 +411,11 @@
     elements.previousMonthButton.addEventListener("click", () => moveCalendarMonth(-1));
     elements.nextMonthButton.addEventListener("click", () => moveCalendarMonth(1));
     elements.todayButton.addEventListener("click", showCurrentMonth);
+    elements.scheduleDialogOpenButtons.forEach((button) => button.addEventListener("click", openScheduleDialog));
+    elements.closeScheduleDialogButton.addEventListener("click", closeScheduleDialog);
+    elements.cancelScheduleButton.addEventListener("click", closeScheduleDialog);
+    elements.scheduleForm.addEventListener("submit", handleScheduleSubmit);
+    elements.scheduleDialog.addEventListener("click", closeScheduleDialogFromBackdrop);
     elements.forgotPasswordButton.addEventListener("click", () => showToast("비밀번호 찾기는 현재 제작 범위에 포함되지 않습니다."));
     elements.logoutButton.addEventListener("click", showLoginFromDashboard);
     [elements.loginId, elements.loginPassword, elements.signupName, elements.signupId, elements.signupEmail, elements.signupPassword, elements.signupPasswordConfirm].forEach((input) => {
@@ -442,9 +423,6 @@
     });
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 주소의 해시 링크를 읽어 요청한 정적 화면을 직접 연다.
   function openLinkedView() {
     const linkedView = window.location.hash.replace("#", "");
     if (linkedView === "dashboard") {
@@ -466,9 +444,6 @@
     }
   }
 
-  // 입력값: 없음
-  // 출력값: 없음
-  // 기능: 연도, 오류 상태와 이벤트를 준비해 인증 흐름을 시작한다.
   function initialize() {
     elements.currentYear.textContent = String(new Date().getFullYear());
     ["loginId", "loginPassword", "signupName", "signupId", "signupEmail", "signupPassword", "signupPasswordConfirm"].forEach((fieldId) => {

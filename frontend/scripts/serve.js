@@ -12,16 +12,10 @@ const contentTypes = {
   ".svg": "image/svg+xml",
 };
 
-// 입력값: 파일의 확장자를 포함한 경로
-// 출력값: 브라우저 응답에 사용할 콘텐츠 유형
-// 기능: 정적 파일 종류에 맞는 HTTP Content-Type을 선택한다.
 function getContentType(filePath) {
   return contentTypes[path.extname(filePath).toLowerCase()] || "application/octet-stream";
 }
 
-// 입력값: HTTP 요청과 응답 객체
-// 출력값: 없음
-// 기능: 빌드된 로그인 화면 파일을 로컬 미리보기로 제공한다.
 function serveRequest(request, response) {
   const requestPath = decodeURIComponent((request.url || "/").split("?")[0]);
   const relativePath = requestPath === "/" ? "index.html" : requestPath.replace(/^\/+/, "");

@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#eef6fd" />
     <title>로그인 | PLANIT</title>
     <link rel="icon" href="assets/brand/plannit-symbol-v5.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="css/styles.css?v=calendar-auto-weeks-1" />
+    <link rel="stylesheet" href="css/styles.css?v=schedule-dialog-1" />
   </head>
   <body>
     <a class="skip-link" href="#authContent">인증 화면으로 바로가기</a>
@@ -270,7 +270,7 @@
         <nav class="dashboard-nav" aria-label="대시보드 메뉴">
           <button class="dashboard-nav__item is-active" type="button" aria-current="page"><span aria-hidden="true">⌂</span> 홈</button>
           <button class="dashboard-nav__item" type="button" data-dashboard-action="캘린더"><span aria-hidden="true">□</span> 캘린더</button>
-          <button class="dashboard-nav__item" type="button" data-dashboard-action="일정 추가"><span aria-hidden="true">＋</span> 일정 추가</button>
+          <button class="dashboard-nav__item" type="button" data-schedule-dialog-open><span aria-hidden="true">＋</span> 일정 추가</button>
           <button class="dashboard-nav__item" type="button" data-dashboard-action="AI 채팅"><span aria-hidden="true">✦</span> AI 채팅</button>
           <button class="dashboard-nav__item" type="button" data-dashboard-action="그룹"><span aria-hidden="true">◎</span> 그룹</button>
           <button class="dashboard-nav__item" type="button" data-dashboard-action="알림"><span aria-hidden="true"><svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> 알림</button>
@@ -296,7 +296,7 @@
             <div>
               <h1 id="dashboardGreeting">ㅇㅇ님, 안녕하세요!</h1>
             </div>
-            <button type="button" data-dashboard-action="새 일정" aria-label="새 일정 추가">+</button>
+            <button type="button" data-schedule-dialog-open aria-label="새 일정 추가">+</button>
           </div>
 
           <div class="calendar-dashboard__grid">
@@ -339,10 +339,75 @@
       </main>
     </section>
 
+    <dialog id="scheduleDialog" class="schedule-dialog" aria-labelledby="scheduleDialogHeading">
+      <form id="scheduleForm" class="schedule-form" novalidate>
+        <header class="schedule-dialog__header">
+          <div>
+            <span>NEW SCHEDULE</span>
+            <h2 id="scheduleDialogHeading">일정 추가</h2>
+          </div>
+          <button id="closeScheduleDialogButton" type="button" aria-label="일정 추가 창 닫기">×</button>
+        </header>
+
+        <div class="schedule-form__grid">
+          <label class="schedule-field schedule-field--full" for="scheduleTitle">
+            <span>일정 제목</span>
+            <input id="scheduleTitle" name="scheduleTitle" type="text" placeholder="일정 제목을 입력하세요" required />
+          </label>
+
+          <label class="schedule-field" for="scheduleDate">
+            <span>날짜</span>
+            <input id="scheduleDate" name="scheduleDate" type="date" required />
+          </label>
+
+          <label class="schedule-field" for="scheduleReminder">
+            <span>알림</span>
+            <select id="scheduleReminder" name="scheduleReminder">
+              <option value="none">알림 없음</option>
+              <option value="10">10분 전</option>
+              <option value="30">30분 전</option>
+              <option value="60">1시간 전</option>
+              <option value="1440">하루 전</option>
+            </select>
+          </label>
+
+          <label class="schedule-field" for="scheduleStartTime">
+            <span>시작 시간</span>
+            <input id="scheduleStartTime" name="scheduleStartTime" type="time" />
+          </label>
+
+          <label class="schedule-field" for="scheduleEndTime">
+            <span>종료 시간</span>
+            <input id="scheduleEndTime" name="scheduleEndTime" type="time" />
+          </label>
+
+          <label class="schedule-field schedule-field--full" for="scheduleLocation">
+            <span>장소</span>
+            <input id="scheduleLocation" name="scheduleLocation" type="text" placeholder="장소를 입력하세요" />
+          </label>
+
+          <label class="schedule-field schedule-field--full" for="scheduleSupplies">
+            <span>준비물</span>
+            <input id="scheduleSupplies" name="scheduleSupplies" type="text" placeholder="준비물을 입력하세요" />
+          </label>
+
+          <label class="schedule-field schedule-field--full" for="scheduleDetails">
+            <span>상세 내용</span>
+            <textarea id="scheduleDetails" name="scheduleDetails" rows="3" placeholder="상세 내용을 입력하세요"></textarea>
+          </label>
+        </div>
+
+        <footer class="schedule-dialog__footer">
+          <button id="cancelScheduleButton" class="schedule-dialog__cancel" type="button">취소</button>
+          <button class="schedule-dialog__submit" type="submit">일정 추가</button>
+        </footer>
+      </form>
+    </dialog>
+
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="js/auth-utils.js?v=calendar-auto-weeks-1"></script>
-    <script src="js/calendar-utils.js?v=calendar-auto-weeks-1"></script>
-    <script src="js/app.js?v=calendar-auto-weeks-1"></script>
+    <script src="js/auth-utils.js?v=schedule-dialog-1"></script>
+    <script src="js/calendar-utils.js?v=schedule-dialog-1"></script>
+    <script src="js/app.js?v=schedule-dialog-1"></script>
   </body>
 </html>

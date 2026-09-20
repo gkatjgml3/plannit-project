@@ -3,24 +3,15 @@
 
   const demoAccountEmail = "s2653@e-mirim.hs.kr";
 
-  // 입력값: 로그인 폼에 입력한 아이디 또는 이메일
-  // 출력값: 데모 계정 이메일과 정확히 일치하면 true
-  // 기능: 정적 데모 화면에 예시 일정을 표시할 계정을 구분한다.
   function isDemoAccount(loginId) {
     return (loginId?.trim().toLowerCase() || "") === demoAccountEmail;
   }
 
-  // 입력값: 회원가입에서 입력한 이름
-  // 출력값: 대시보드에 표시할 인사말
-  // 기능: 이름이 있으면 이름을 사용하고 없으면 기본 표시값으로 인사말을 만든다.
   function createGreeting(name) {
     const displayName = name?.trim() || "ㅇㅇ";
     return `${displayName}님, 안녕하세요!`;
   }
 
-  // 입력값: 아이디와 비밀번호를 담은 객체
-  // 출력값: 필드별 사용자용 오류 메시지 객체
-  // 기능: 로그인 요청 전에 필수 입력과 기본 길이를 검증한다.
   function validateLoginInput(credentials) {
     const errors = {};
     const loginId = credentials.loginId?.trim() || "";
@@ -41,9 +32,6 @@
     return errors;
   }
 
-  // 입력값: 이름, 아이디, 이메일, 비밀번호, 비밀번호 확인을 담은 객체
-  // 출력값: 필드별 사용자용 오류 메시지 객체
-  // 기능: 회원가입 정보의 필수값, 이메일 형식, 비밀번호 규칙과 일치 여부를 검증한다.
   function validateSignupInput(profile) {
     const errors = {};
     const name = profile.name?.trim() || "";
@@ -75,9 +63,6 @@
     return errors;
   }
 
-  // 입력값: 서비스 이용약관과 개인정보 약관의 동의 여부
-  // 출력값: 필수 약관을 모두 동의했으면 true
-  // 기능: 선택 약관과 구분해 회원가입에 필요한 필수 동의를 확인한다.
   function hasRequiredConsents(consents) {
     return Boolean(consents.serviceTerms && consents.privacyTerms);
   }
