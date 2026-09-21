@@ -100,6 +100,7 @@ img {
   right: 0;
   left: 0;
   height: 84px;
+  pointer-events: none;
 }
 
 .site-header > p {
@@ -107,6 +108,7 @@ img {
 }
 
 .logo-button {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 9px;
