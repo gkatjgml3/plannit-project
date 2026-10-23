@@ -397,10 +397,12 @@ svg {
 
 .date-item {
   display: grid;
+  min-width: 0;
   height: 64px;
   place-content: center;
   gap: 8px;
   border-radius: 17px;
+  background: transparent;
   text-align: center;
 }
 
@@ -453,6 +455,17 @@ svg {
   padding: 8px 15px;
   border: 1px solid var(--line);
   border-radius: 15px;
+}
+
+.deadline-empty {
+  display: grid;
+  min-height: 72px;
+  margin-top: 14px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .deadline-card p {

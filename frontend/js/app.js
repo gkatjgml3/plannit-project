@@ -22,8 +22,76 @@ const state = {
     privacy: false,
     notification: false,
   },
+  selectedDate: "23",
   homeFilter: "all",
   addMenuOpen: false,
+};
+
+const homeContentByDate = {
+  "18": {
+    heading: "10월 18일 일요일",
+    deadlines: [],
+    schedules: [],
+  },
+  "19": {
+    heading: "10월 19일 월요일",
+    deadlines: [],
+    schedules: [
+      { time: "09:00", title: "국어", meta: "1교시 · 3반 교실", type: "class" },
+      { time: "10:00", title: "수학", meta: "2교시 · 3반 교실", type: "class" },
+      { time: "11:00", title: "영어", meta: "3교시 · 3반 교실", type: "class" },
+      { time: "12:00", title: "과학", meta: "4교시 · 과학실", type: "class" },
+    ],
+  },
+  "20": {
+    heading: "10월 20일 화요일",
+    deadlines: [],
+    schedules: [
+      { time: "09:00", title: "수학", meta: "1교시 · 3반 교실", type: "class" },
+      { time: "10:00", title: "과학", meta: "2교시 · 과학실", type: "class" },
+      { time: "11:00", title: "한국사", meta: "3교시 · 3반 교실", type: "class" },
+      { time: "14:00", title: "영어", meta: "5교시 · 3반 교실", type: "class" },
+    ],
+  },
+  "21": {
+    heading: "10월 21일 수요일",
+    deadlines: [],
+    schedules: [
+      { time: "09:00", title: "영어", meta: "1교시 · 3반 교실", type: "class" },
+      { time: "10:00", title: "국어", meta: "2교시 · 3반 교실", type: "class" },
+      { time: "11:00", title: "수학", meta: "3교시 · 3반 교실", type: "class" },
+      { time: "14:00", title: "과학", meta: "5교시 · 과학실", type: "class" },
+    ],
+  },
+  "22": {
+    heading: "10월 22일 목요일",
+    deadlines: [],
+    schedules: [
+      { time: "09:00", title: "사회", meta: "1교시 · 3반 교실", type: "class" },
+      { time: "10:00", title: "과학", meta: "2교시 · 과학실", type: "class" },
+      { time: "11:00", title: "수학", meta: "3교시 · 3반 교실", type: "class" },
+      { time: "14:00", title: "한국사", meta: "5교시 · 3반 교실", type: "class" },
+    ],
+  },
+  "23": {
+    heading: "10월 23일 금요일",
+    deadlines: [
+      { title: "영어 수행평가 제출", due: "23:59까지" },
+      { title: "수학 수행 보고서", due: "종례 전까지" },
+    ],
+    schedules: [
+      { time: "09:00", title: "국어", meta: "1교시 · 3반 교실", type: "class" },
+      { time: "10:00", title: "수학", meta: "2교시 · 3반 교실", type: "class" },
+      { time: "11:00", title: "영어", meta: "3교시 · 3반 교실", type: "class" },
+      { time: "12:00", title: "사회", meta: "4교시 · 3반 교실", type: "class" },
+      { time: "14:00", title: "과학 조별 발표", meta: "과학실 · 2학년 3반", type: "personal" },
+    ],
+  },
+  "24": {
+    heading: "10월 24일 토요일",
+    deadlines: [],
+    schedules: [],
+  },
 };
 
 const icons = {
@@ -183,26 +251,31 @@ function renderTerms() {
   `;
 }
 
-// 입력값: 현재 필터 이름
+// 입력값: 선택한 날짜의 일정 목록과 현재 필터 이름
 // 출력값: 선택된 필터에 해당하는 일정 카드 HTML 문자열
 // 기능: 메인 홈의 전체, 수업, 개인 일정 목록을 구분해 반환한다.
-function renderScheduleItems(filter) {
-  const schedules = [
-    { time: "09:00", title: "국어", meta: "1교시 · 3반 교실", type: "class" },
-    { time: "10:00", title: "수학", meta: "2교시 · 3반 교실", type: "class" },
-    { time: "11:00", title: "영어", meta: "3교시 · 3반 교실", type: "class" },
-    { time: "12:00", title: "사회", meta: "4교시 · 3반 교실", type: "class" },
-    { time: "14:00", title: "과학 조별 발표", meta: "과학실 · 2학년 3반", type: "personal" },
-  ];
+function renderScheduleItems(schedules, filter) {
   const filteredSchedules = filter === "all" ? schedules : schedules.filter((schedule) => schedule.type === filter);
 
   if (filteredSchedules.length === 0) {
-    return `<p class="schedule-empty">등록된 개인 일정이 없어요</p>`;
+    const emptyMessage = filter === "personal" ? "등록된 개인 일정이 없어요" : "등록된 일정이 없어요";
+    return `<p class="schedule-empty">${emptyMessage}</p>`;
   }
 
   return filteredSchedules
     .map((schedule) => `<article class="schedule-row"><time>${schedule.time}</time><div class="schedule-card"><strong>${schedule.title}</strong><span>${schedule.meta}</span></div></article>`)
     .join("");
+}
+
+// 입력값: 선택한 날짜의 마감 일정 목록
+// 출력값: 마감 일정 카드 HTML 문자열
+// 기능: 선택한 날짜의 마감 일정 또는 빈 상태를 표시한다.
+function renderDeadlines(deadlines) {
+  if (deadlines.length === 0) {
+    return `<div class="deadline-empty">마감 일정이 없어요</div>`;
+  }
+
+  return `<div class="deadline-card">${deadlines.map((deadline) => `<p><strong>${deadline.title}</strong><span>${deadline.due}</span></p>`).join("")}</div>`;
 }
 
 // 입력값: 없음
@@ -214,24 +287,26 @@ function renderHome() {
     ["class", "수업"],
     ["personal", "개인"],
   ];
+  const selectedContent = homeContentByDate[state.selectedDate];
+  const dates = [["일", "18"], ["월", "19"], ["화", "20"], ["수", "21"], ["목", "22"], ["금", "23"], ["토", "24"]];
 
   return `
     <section class="screen home-screen ${state.addMenuOpen ? "has-menu" : ""}">
       <div class="home-scroll">
-        <header class="home-header"><h1>10월 23일 금요일</h1><button class="bell-button" type="button" aria-label="알림">${icon("bell")}</button></header>
+        <header class="home-header"><h1>${selectedContent.heading}</h1><button class="bell-button" type="button" aria-label="알림">${icon("bell")}</button></header>
 
         <div class="date-strip" aria-label="10월 셋째 주">
-          ${[["일", "18"], ["월", "19"], ["화", "20"], ["수", "21"], ["목", "22"], ["금", "23"], ["토", "24"]].map(([day, date]) => `<span class="date-item ${date === "23" ? "is-selected" : ""} ${day === "일" ? "is-sunday" : ""}"><small>${day}</small><strong>${date}</strong></span>`).join("")}
+          ${dates.map(([day, date]) => `<button class="date-item ${date === state.selectedDate ? "is-selected" : ""} ${day === "일" ? "is-sunday" : ""}" type="button" data-action="select-date" data-date="${date}" aria-pressed="${date === state.selectedDate}"><small>${day}</small><strong>${date}</strong></button>`).join("")}
         </div>
 
         <section class="deadline-section">
-          <h2>오늘 마감 <em>2</em></h2>
-          <div class="deadline-card"><p><strong>영어 수행평가 제출</strong><span>23:59까지</span></p><p><strong>수학 수행 보고서</strong><span>종례 전까지</span></p></div>
+          <h2>${state.selectedDate === "23" ? "오늘 마감" : "마감 일정"} <em>${selectedContent.deadlines.length}</em></h2>
+          ${renderDeadlines(selectedContent.deadlines)}
         </section>
 
         <section class="schedule-section">
-          <div class="schedule-heading"><h2>오늘의 일정</h2><div class="schedule-filters">${filters.map(([value, label]) => `<button class="${state.homeFilter === value ? "is-active" : ""}" type="button" data-action="set-filter" data-filter="${value}">${label}</button>`).join("")}</div></div>
-          <div class="schedule-list">${renderScheduleItems(state.homeFilter)}</div>
+          <div class="schedule-heading"><h2>${state.selectedDate === "23" ? "오늘의 일정" : "일정"}</h2><div class="schedule-filters">${filters.map(([value, label]) => `<button class="${state.homeFilter === value ? "is-active" : ""}" type="button" data-action="set-filter" data-filter="${value}">${label}</button>`).join("")}</div></div>
+          <div class="schedule-list">${renderScheduleItems(selectedContent.schedules, state.homeFilter)}</div>
         </section>
       </div>
 
@@ -366,6 +441,10 @@ function handleClick(event) {
   }
 
   if (action === "set-filter") state.homeFilter = target.dataset.filter;
+  if (action === "select-date") {
+    state.selectedDate = target.dataset.date;
+    state.homeFilter = "all";
+  }
   if (action === "toggle-add-menu") state.addMenuOpen = !state.addMenuOpen;
   if (action === "close-add-menu") state.addMenuOpen = false;
 
