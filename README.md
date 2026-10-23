@@ -27,12 +27,36 @@
 
 | 구분 | 사용 기술 |
 | --- | --- |
-| 화면 | HTML |
+| 화면 | HTML, CSS, JavaScript ([frontend/](frontend/README.md)) |
 | 서버 | Java 17, Spring Boot 4 ([backend/](backend/README.md)) |
 | 데이터베이스 | PostgreSQL, Flyway |
 | AI 이미지 분석 | 교체 가능한 AI 어댑터 (제공 업체 미정, Gemini 검토 중. 지금은 개발용 가짜 분석기) |
 | 개발 도구 | Visual Studio Code, IntelliJ IDEA |
 | 프로젝트 관리 | GitHub |
+
+## 개발 현황
+
+**프론트엔드** ([frontend/](frontend/README.md), 피그마 기준 상호작용 프로토타입)
+
+- **완료**: 로그인, 회원가입, 약관 동의와 약관 상세
+- **완료**: 날짜별 홈, 시간표와 수업 설정
+- **완료**: 월간 캘린더와 일정 추가·조회·수정·삭제
+- **완료**: 이미지 검증·미리보기·분석 상태·여러 일정 후보 확인 및 수정
+- **완료**: 마이, 그룹 생성·코드 참여·구성원 확인·일정 공유
+- **임시 구현**: 프론트엔드 이미지 분석 결과와 사용자 데이터는 데모용 메모리 상태이며 새로고침하면 초기화됩니다.
+
+**백엔드** ([backend/](backend/README.md), 자동 테스트와 PostgreSQL 실행으로 확인)
+
+- **완료**: 회원가입·로그인·토큰 재발급·로그아웃, 개인·팀 일정과 권한, 준비물·반복 일정
+- **완료**: 이미지 분석 후보 검토·확정 흐름(비동기), 원본 이미지 보관 정책, 알림 예약·재시도
+- **임시 구현**: AI 분석은 개발용 가짜 분석기, 알림 발송은 로그만 남기는 가짜 발송기입니다.
+
+**미연결**: 프론트엔드는 아직 백엔드 API를 호출하지 않습니다. 서버 인증·PostgreSQL 저장·이미지 분석·알림은 프론트엔드 API 연동 단계에서 연결합니다. 실제 AI 분석과 브라우저 푸시 알림 발송은 아직 없습니다.
+
+## 실행
+
+- 프론트엔드: 저장소 루트에서 `node frontend/server.js` → http://localhost:4173/frontend/index.html
+- 백엔드: `backend/`에서 `gradlew bootRun` → http://localhost:8080 (자세한 내용은 [backend/README.md](backend/README.md))
 
 ## 개발 일정
 
