@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: planit-backend
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/planit}
+    username: ${DB_USERNAME:planit}
+    password: ${DB_PASSWORD:planit}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # 테이블은 Flyway가 만들고, JPA는 엔티티와 테이블이 맞는지만 확인한다.
+      ddl-auto: validate
+
+planit:
+  jwt:
+    # 로컬 개발용 기본값. 배포할 때는 반드시 JWT_SECRET 환경변수로 32자 이상 값을 넣는다.
+    secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789}
+    expiration: 24h
