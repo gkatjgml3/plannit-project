@@ -63,6 +63,33 @@ const state = {
     { period: 6, start: "15:00", end: "15:50" },
     { period: 7, start: "16:00", end: "16:50" },
   ],
+  calendarYear: 2026,
+  calendarMonth: 10,
+  calendarSelectedDay: 23,
+  selectedEventId: null,
+  eventFormMode: "create",
+  eventReturnView: "calendar",
+  eventDeleteOpen: false,
+  dateTimePickerOpen: false,
+  alarmPickerOpen: false,
+  eventDraft: {
+    title: "",
+    category: "개인",
+    date: "2026-10-23",
+    start: "14:00",
+    end: "15:00",
+    allDay: false,
+    location: "",
+    memo: "",
+    alarm: "10분 전",
+  },
+  events: [
+    { id: 101, title: "영어 수행평가 제출", category: "과제", date: "2026-10-23", start: "23:00", end: "23:59", allDay: false, location: "온라인 클래스", memo: "영어 에세이 최종본 제출", alarm: "1시간 전", shared: false },
+    { id: 102, title: "수학 수행 보고서", category: "과제", date: "2026-10-23", start: "08:30", end: "09:00", allDay: false, location: "2학년 3반", memo: "인쇄한 보고서 준비", alarm: "1일 전", shared: false },
+    { id: 103, title: "과학 조별 발표", category: "그룹", date: "2026-10-23", start: "14:00", end: "15:00", allDay: false, location: "과학실", memo: "발표 자료와 실험 결과 준비", alarm: "30분 전", shared: true },
+    { id: 104, title: "중간고사", category: "학교", date: "2026-10-15", start: "09:00", end: "12:00", allDay: false, location: "본교", memo: "국어, 수학 시험", alarm: "1일 전", shared: false },
+    { id: 105, title: "동아리 회의", category: "그룹", date: "2026-10-28", start: "16:00", end: "17:00", allDay: false, location: "동아리실", memo: "축제 준비 회의", alarm: "10분 전", shared: true },
+  ],
 };
 
 const homeContentByDate = {
@@ -149,6 +176,10 @@ const icons = {
   user: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c.7-3.2 3.1-5 7-5s6.3 1.8 7 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   gear: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.2 13.3a7.5 7.5 0 0 0 0-2.6l2-1.6-2-3.4-2.5 1a8.8 8.8 0 0 0-2.2-1.3L14.2 3h-4.4l-.4 2.4a8.8 8.8 0 0 0-2.2 1.3l-2.4-1-2.1 3.4 2.1 1.6a7.5 7.5 0 0 0 0 2.6l-2.1 1.6 2.1 3.4 2.4-1a8.8 8.8 0 0 0 2.2 1.3l.4 2.4h4.4l.4-2.4a8.8 8.8 0 0 0 2.2-1.3l2.4 1 2.1-3.4-2.1-1.6Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`,
   trash: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  pin: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.3 6-11a6 6 0 1 0-12 0c0 5.7 6 11 6 11Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  note: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 9h8M8 13h8M8 17h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  share: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8 11 8-5M8 13l8 5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>`,
 };
 
 // 입력값: 아이콘 이름
@@ -477,6 +508,191 @@ function renderTimetableSettings() {
     </section>`;
 }
 
+// 입력값: 연도, 월, 일
+// 출력값: YYYY-MM-DD 형식의 날짜 문자열
+// 기능: 캘린더 셀과 일정 데이터가 공통으로 사용할 날짜 키를 만든다.
+function toDateKey(year, month, day) {
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+// 입력값: YYYY-MM-DD 형식의 날짜 문자열
+// 출력값: 한국어 날짜 표시 문자열
+// 기능: 일정 상세와 입력 화면에 읽기 쉬운 날짜를 표시한다.
+function formatKoreanDate(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const weekday = ["일", "월", "화", "수", "목", "금", "토"][new Date(year, month - 1, day).getDay()];
+  return `${year}년 ${month}월 ${day}일 ${weekday}요일`;
+}
+
+// 입력값: 일정 객체 또는 빈 값, 완료 뒤 돌아갈 화면
+// 출력값: 없음
+// 기능: 새 일정 또는 기존 일정을 일정 입력 상태에 준비하고 편집 화면으로 이동한다.
+function openEventForm(eventItem = null, returnView = "calendar") {
+  state.eventFormMode = eventItem ? "edit" : "create";
+  state.eventReturnView = returnView;
+  state.eventDraft = eventItem
+    ? { title: eventItem.title, category: eventItem.category, date: eventItem.date, start: eventItem.start, end: eventItem.end, allDay: eventItem.allDay, location: eventItem.location, memo: eventItem.memo, alarm: eventItem.alarm }
+    : { title: "", category: "개인", date: toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay), start: "14:00", end: "15:00", allDay: false, location: "", memo: "", alarm: "10분 전" };
+  state.dateTimePickerOpen = false;
+  state.alarmPickerOpen = false;
+  state.currentView = "eventForm";
+}
+
+// 입력값: 일정 종류
+// 출력값: 카드에 적용할 종류별 클래스 이름
+// 기능: 개인·과제·학교·그룹 일정을 색상으로 구분한다.
+function getEventTone(category) {
+  const tones = { 개인: "violet", 과제: "pink", 학교: "blue", 그룹: "green" };
+  return tones[category] ?? "violet";
+}
+
+// 입력값: 없음
+// 출력값: 현재 월의 달력 셀 HTML 문자열
+// 기능: 이전·현재·다음 달 날짜를 포함한 6주 달력을 생성하고 일정 유무를 표시한다.
+function renderCalendarGrid() {
+  const firstDay = new Date(state.calendarYear, state.calendarMonth - 1, 1).getDay();
+  const daysInMonth = new Date(state.calendarYear, state.calendarMonth, 0).getDate();
+  const daysInPreviousMonth = new Date(state.calendarYear, state.calendarMonth - 1, 0).getDate();
+  const cells = [];
+
+  for (let index = 0; index < 42; index += 1) {
+    let day = index - firstDay + 1;
+    let monthOffset = 0;
+    if (day < 1) {
+      day = daysInPreviousMonth + day;
+      monthOffset = -1;
+    } else if (day > daysInMonth) {
+      day -= daysInMonth;
+      monthOffset = 1;
+    }
+    const cellDate = new Date(state.calendarYear, state.calendarMonth - 1 + monthOffset, day);
+    const year = cellDate.getFullYear();
+    const month = cellDate.getMonth() + 1;
+    const dateKey = toDateKey(year, month, day);
+    const hasEvents = state.events.some((item) => item.date === dateKey);
+    const isSelected = dateKey === toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay);
+    const isCurrentMonth = monthOffset === 0;
+    const weekday = index % 7;
+    cells.push(`<button class="calendar-day ${isCurrentMonth ? "" : "is-outside"} ${isSelected ? "is-selected" : ""} ${weekday === 0 ? "is-sunday" : ""}" type="button" data-action="select-calendar-date" data-date="${dateKey}"><span>${day}</span>${hasEvents ? `<i></i>` : ""}</button>`);
+  }
+  return cells.join("");
+}
+
+// 입력값: 선택한 날짜의 일정 목록
+// 출력값: 일정 요약 카드 HTML 문자열
+// 기능: 선택한 날짜의 일정들을 시간순으로 보여 주고 상세 화면으로 연결한다.
+function renderCalendarEvents(events) {
+  if (!events.length) {
+    return `<div class="calendar-empty"><strong>등록된 일정이 없어요</strong><p>+ 버튼을 눌러 새 일정을 추가해 보세요</p></div>`;
+  }
+  return events
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .map((item) => `<button class="calendar-event color-${getEventTone(item.category)}" type="button" data-action="open-event" data-event-id="${item.id}"><span class="event-time">${item.allDay ? "종일" : item.start}</span><span class="event-summary"><strong>${item.title}</strong><small>${item.location || item.category}${item.shared ? " · 공유 일정" : ""}</small></span>${icon("chevron")}</button>`)
+    .join("");
+}
+
+// 입력값: 없음
+// 출력값: 일정 캘린더 화면 HTML 문자열
+// 기능: 월간 달력과 선택한 날짜의 일정 목록을 함께 표시한다.
+function renderCalendar() {
+  const dateKey = toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay);
+  const selectedEvents = state.events.filter((item) => item.date === dateKey);
+  return `
+    <section class="screen calendar-screen">
+      <header class="feature-header"><h1>일정 캘린더</h1><button type="button" data-action="new-event" aria-label="일정 추가">${icon("plus")}</button></header>
+      <div class="month-heading"><button type="button" data-action="change-month" data-offset="-1" aria-label="이전 달">${icon("back")}</button><strong>${state.calendarYear}년 ${state.calendarMonth}월</strong><button class="next-month" type="button" data-action="change-month" data-offset="1" aria-label="다음 달">${icon("chevron")}</button></div>
+      <div class="calendar-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="calendar-grid">${renderCalendarGrid()}</div>
+      <section class="calendar-agenda"><div class="agenda-heading"><h2>${state.calendarMonth}월 ${state.calendarSelectedDay}일 일정</h2><em>${selectedEvents.length}</em></div><div class="calendar-event-list">${renderCalendarEvents(selectedEvents)}</div></section>
+      <button class="floating-button calendar-add" type="button" data-action="new-event" aria-label="일정 추가">${icon("plus")}</button>
+      ${renderBottomNav("calendar")}
+    </section>`;
+}
+
+// 입력값: 아이콘 이름, 항목 제목, 항목 값
+// 출력값: 일정 상세 정보 행 HTML 문자열
+// 기능: 날짜·장소·메모·알림 정보를 같은 형식으로 표시한다.
+function renderEventInfoRow(iconName, label, value) {
+  return `<div class="event-info-row"><span class="event-info-icon">${icon(iconName)}</span><div><small>${label}</small><p>${value || "없음"}</p></div></div>`;
+}
+
+// 입력값: 없음
+// 출력값: 일정 삭제 확인 팝업 HTML 문자열
+// 기능: 실수로 일정을 삭제하지 않도록 마지막 확인 단계를 표시한다.
+function renderDeleteEventDialog() {
+  if (!state.eventDeleteOpen) return "";
+  return `<div class="sheet-scrim"></div><section class="confirm-dialog" role="alertdialog" aria-modal="true"><h2>일정을 삭제할까요?</h2><p>삭제한 일정은 다시 복구할 수 없어요.</p><div><button type="button" data-action="cancel-delete-event">취소</button><button class="danger-button" type="button" data-action="confirm-delete-event">삭제</button></div></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 선택한 일정의 상세 화면 HTML 문자열
+// 기능: 일정의 모든 정보를 확인하고 수정·삭제·공유 기능으로 연결한다.
+function renderEventDetail() {
+  const eventItem = state.events.find((item) => item.id === state.selectedEventId);
+  if (!eventItem) {
+    state.currentView = "calendar";
+    return renderCalendar();
+  }
+  const timeText = eventItem.allDay ? "종일" : `${eventItem.start} - ${eventItem.end}`;
+  return `
+    <section class="screen event-detail-screen">
+      <header class="feature-header centered"><button type="button" data-action="navigate" data-view="calendar" aria-label="캘린더로 돌아가기">${icon("back")}</button><h1>일정 상세</h1><button type="button" data-action="open-delete-event" aria-label="일정 삭제">${icon("trash")}</button></header>
+      <div class="event-detail-scroll">
+        <div class="event-title-block"><span class="event-category color-${getEventTone(eventItem.category)}">${eventItem.category}</span><h2>${eventItem.title}</h2>${eventItem.shared ? `<p>그룹과 공유 중인 일정이에요</p>` : ""}</div>
+        <div class="event-info-card">
+          ${renderEventInfoRow("calendar", "날짜", formatKoreanDate(eventItem.date))}
+          ${renderEventInfoRow("clock", "시간", timeText)}
+          ${renderEventInfoRow("pin", "장소", eventItem.location)}
+          ${renderEventInfoRow("note", "메모", eventItem.memo)}
+          ${renderEventInfoRow("bell", "알림", eventItem.alarm)}
+        </div>
+        <button class="share-event-button" type="button" data-action="open-share-groups">${icon("share")}<span><strong>그룹에 공유</strong><small>내 그룹 구성원과 이 일정을 공유해요</small></span>${icon("chevron")}</button>
+      </div>
+      <div class="detail-actions"><button type="button" data-action="edit-event">수정하기</button></div>
+      ${renderDeleteEventDialog()}
+    </section>`;
+}
+
+// 입력값: 없음
+// 출력값: 날짜와 시간 선택 바텀시트 HTML 문자열
+// 기능: 일정 날짜, 시작 시간, 종료 시간을 한 번에 수정한다.
+function renderDateTimePicker() {
+  if (!state.dateTimePickerOpen) return "";
+  return `<div class="sheet-scrim" data-action="close-date-time-picker"></div><section class="bottom-sheet picker-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>날짜 및 시간</h2><button type="button" data-action="close-date-time-picker">${icon("close")}</button></div><div class="picker-fields"><label class="compact-field"><span>날짜</span><input type="date" data-draft-field="date" value="${state.eventDraft.date}" /></label><div class="field-pair"><label class="compact-field"><span>시작</span><input type="time" data-draft-field="start" value="${state.eventDraft.start}" ${state.eventDraft.allDay ? "disabled" : ""} /></label><label class="compact-field"><span>종료</span><input type="time" data-draft-field="end" value="${state.eventDraft.end}" ${state.eventDraft.allDay ? "disabled" : ""} /></label></div><label class="switch-row"><span><strong>종일</strong><small>시간 없이 날짜만 등록해요</small></span><input type="checkbox" data-draft-field="allDay" ${state.eventDraft.allDay ? "checked" : ""} /></label></div><button class="primary-button" type="button" data-action="close-date-time-picker">확인</button></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 알림 선택 바텀시트 HTML 문자열
+// 기능: 일정 전에 받을 알림 시간을 선택한다.
+function renderAlarmPicker() {
+  if (!state.alarmPickerOpen) return "";
+  const alarms = ["알림 없음", "정시", "10분 전", "30분 전", "1시간 전", "1일 전"];
+  return `<div class="sheet-scrim" data-action="close-alarm-picker"></div><section class="bottom-sheet alarm-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>알림</h2><button type="button" data-action="close-alarm-picker">${icon("close")}</button></div><div class="alarm-options">${alarms.map((alarm) => `<button class="${state.eventDraft.alarm === alarm ? "is-selected" : ""}" type="button" data-action="select-alarm" data-alarm="${alarm}"><span>${alarm}</span>${state.eventDraft.alarm === alarm ? icon("check") : ""}</button>`).join("")}</div></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 일정 추가·수정 화면 HTML 문자열
+// 기능: 일정의 제목, 종류, 날짜, 시간, 장소, 메모와 알림을 입력받는다.
+function renderEventForm() {
+  const isEditing = state.eventFormMode === "edit";
+  const timeText = state.eventDraft.allDay ? `${formatKoreanDate(state.eventDraft.date)} · 종일` : `${formatKoreanDate(state.eventDraft.date)} · ${state.eventDraft.start} - ${state.eventDraft.end}`;
+  return `
+    <section class="screen event-form-screen">
+      <header class="feature-header centered"><button type="button" data-action="cancel-event-form" aria-label="이전 화면">${icon("back")}</button><h1>${isEditing ? "일정 수정" : "일정 추가"}</h1><span></span></header>
+      <form class="event-form" data-form="event" novalidate>
+        <label class="compact-field event-title-field"><span>일정 제목 <b>*</b></span><input name="title" value="${escapeAttribute(state.eventDraft.title)}" placeholder="일정 제목을 입력해 주세요" /></label>
+        <fieldset class="category-field"><legend>일정 종류</legend><div>${["개인", "과제", "학교", "그룹"].map((category) => `<button class="${state.eventDraft.category === category ? "is-selected" : ""}" type="button" data-action="select-event-category" data-category="${category}">${category}</button>`).join("")}</div></fieldset>
+        <button class="form-navigation-row" type="button" data-action="open-date-time-picker"><span class="event-info-icon">${icon("calendar")}</span><span><small>날짜 및 시간</small><strong>${timeText}</strong></span>${icon("chevron")}</button>
+        <label class="compact-field"><span>장소</span><input name="location" value="${escapeAttribute(state.eventDraft.location)}" placeholder="장소를 입력해 주세요" /></label>
+        <label class="compact-field"><span>메모</span><textarea name="memo" placeholder="일정에 필요한 내용을 입력해 주세요">${state.eventDraft.memo}</textarea></label>
+        <button class="form-navigation-row" type="button" data-action="open-alarm-picker"><span class="event-info-icon">${icon("bell")}</span><span><small>알림</small><strong>${state.eventDraft.alarm}</strong></span>${icon("chevron")}</button>
+        <button class="primary-button event-submit" type="submit" ${state.eventDraft.title.trim() ? "" : "disabled"}>${isEditing ? "수정 완료" : "일정 등록"}</button>
+      </form>
+      ${renderDateTimePicker()}
+      ${renderAlarmPicker()}
+    </section>`;
+}
+
 // 입력값: 없음
 // 출력값: 회원가입 입력값의 유효 여부
 // 기능: 이름, 이메일, 비밀번호 규칙과 비밀번호 일치 여부를 검사한다.
@@ -497,6 +713,9 @@ function renderApp() {
     home: renderHome,
     timetable: renderTimetable,
     timetableSettings: renderTimetableSettings,
+    calendar: renderCalendar,
+    eventDetail: renderEventDetail,
+    eventForm: renderEventForm,
   };
   app.innerHTML = (views[state.currentView] ?? renderHome)();
 }
@@ -538,6 +757,11 @@ function handleInput(event) {
     return;
   }
 
+  if (input.dataset.draftField) {
+    state.eventDraft[input.dataset.draftField] = input.type === "checkbox" ? input.checked : input.value;
+    return;
+  }
+
   if (!form) return;
 
   if (form.dataset.form === "login") {
@@ -552,6 +776,12 @@ function handleInput(event) {
 
   if (form.dataset.form === "class") {
     state.classDraft[input.name] = input.value;
+  }
+
+  if (form.dataset.form === "event") {
+    state.eventDraft[input.name] = input.value;
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = !state.eventDraft.title.trim();
   }
 }
 
@@ -583,6 +813,30 @@ function handleSubmit(event) {
     }
     state.selectedWeekday = state.classDraft.day;
     state.classEditorOpen = false;
+    renderApp();
+  }
+
+
+  if (form.dataset.form === "event" && state.eventDraft.title.trim()) {
+    if (!state.eventDraft.allDay && state.eventDraft.end <= state.eventDraft.start) {
+      state.eventDraft.end = state.eventDraft.start;
+      state.alarmPickerOpen = false;
+      renderApp();
+      return;
+    }
+    if (state.eventFormMode === "edit") {
+      const eventItem = state.events.find((item) => item.id === state.selectedEventId);
+      Object.assign(eventItem, state.eventDraft);
+    } else {
+      const newEvent = { id: Date.now(), ...state.eventDraft, shared: false };
+      state.events.push(newEvent);
+      state.selectedEventId = newEvent.id;
+    }
+    const [year, month, day] = state.eventDraft.date.split("-").map(Number);
+    state.calendarYear = year;
+    state.calendarMonth = month;
+    state.calendarSelectedDay = day;
+    state.currentView = "eventDetail";
     renderApp();
   }
 }
@@ -650,6 +904,49 @@ function handleClick(event) {
   }
   if (action === "close-class-editor") state.classEditorOpen = false;
   if (action === "choose-class-color") state.classDraft.color = target.dataset.color;
+
+  if (action === "change-month") {
+    const nextDate = new Date(state.calendarYear, state.calendarMonth - 1 + Number(target.dataset.offset), 1);
+    state.calendarYear = nextDate.getFullYear();
+    state.calendarMonth = nextDate.getMonth() + 1;
+    state.calendarSelectedDay = 1;
+  }
+  if (action === "select-calendar-date") {
+    const [year, month, day] = target.dataset.date.split("-").map(Number);
+    state.calendarYear = year;
+    state.calendarMonth = month;
+    state.calendarSelectedDay = day;
+  }
+  if (action === "open-event") {
+    state.selectedEventId = Number(target.dataset.eventId);
+    state.currentView = "eventDetail";
+  }
+  if (action === "new-event") {
+    state.addMenuOpen = false;
+    openEventForm(null, state.currentView === "home" ? "home" : "calendar");
+  }
+  if (action === "edit-event") {
+    const eventItem = state.events.find((item) => item.id === state.selectedEventId);
+    if (eventItem) openEventForm(eventItem, "eventDetail");
+  }
+  if (action === "cancel-event-form") state.currentView = state.eventReturnView;
+  if (action === "open-delete-event") state.eventDeleteOpen = true;
+  if (action === "cancel-delete-event") state.eventDeleteOpen = false;
+  if (action === "confirm-delete-event") {
+    state.events = state.events.filter((item) => item.id !== state.selectedEventId);
+    state.selectedEventId = null;
+    state.eventDeleteOpen = false;
+    state.currentView = "calendar";
+  }
+  if (action === "select-event-category") state.eventDraft.category = target.dataset.category;
+  if (action === "open-date-time-picker") state.dateTimePickerOpen = true;
+  if (action === "close-date-time-picker") state.dateTimePickerOpen = false;
+  if (action === "open-alarm-picker") state.alarmPickerOpen = true;
+  if (action === "close-alarm-picker") state.alarmPickerOpen = false;
+  if (action === "select-alarm") {
+    state.eventDraft.alarm = target.dataset.alarm;
+    state.alarmPickerOpen = false;
+  }
 
   renderApp();
 }
