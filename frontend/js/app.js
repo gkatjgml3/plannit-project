@@ -90,6 +90,17 @@ const state = {
     { id: 104, title: "중간고사", category: "학교", date: "2026-10-15", start: "09:00", end: "12:00", allDay: false, location: "본교", memo: "국어, 수학 시험", alarm: "1일 전", shared: false },
     { id: 105, title: "동아리 회의", category: "그룹", date: "2026-10-28", start: "16:00", end: "17:00", allDay: false, location: "동아리실", memo: "축제 준비 회의", alarm: "10분 전", shared: true },
   ],
+  upload: {
+    status: "idle",
+    fileName: "",
+    fileSize: 0,
+    previewUrl: "",
+    error: "",
+  },
+  extractionCandidates: [],
+  editingCandidateId: null,
+  candidateDraft: null,
+  registrationComplete: false,
 };
 
 const homeContentByDate = {
@@ -180,6 +191,9 @@ const icons = {
   pin: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6-5.3 6-11a6 6 0 1 0-12 0c0 5.7 6 11 6 11Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`,
   note: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 9h8M8 13h8M8 17h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
   share: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="2.2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m8 11 8-5M8 13l8 5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>`,
+  upload: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  warning: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3.5 19h17L12 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v4M12 16.5v.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  refresh: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8a8 8 0 1 0 .3 7M19 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 };
 
 // 입력값: 아이콘 이름
@@ -694,6 +708,83 @@ function renderEventForm() {
 }
 
 // 입력값: 없음
+// 출력값: 분석 예시 일정 후보 배열
+// 기능: 교체 가능한 이미지 분석 단계의 정적 데모 결과를 만든다.
+function createExtractionCandidates() {
+  return [
+    { id: 201, selected: true, title: "영어 수행평가 제출", category: "과제", date: "2026-10-23", start: "23:00", end: "23:59", allDay: false, location: "온라인 클래스", memo: "영어 에세이 최종본 제출", alarm: "1시간 전", confidence: "확인 필요", uncertain: ["종료 시간"] },
+    { id: 202, selected: true, title: "수학 수행 보고서", category: "과제", date: "2026-10-23", start: "08:30", end: "09:00", allDay: false, location: "2학년 3반", memo: "인쇄한 보고서 준비", alarm: "1일 전", confidence: "추출 완료", uncertain: [] },
+    { id: 203, selected: true, title: "과학 조별 발표", category: "그룹", date: "2026-10-23", start: "14:00", end: "15:00", allDay: false, location: "과학실", memo: "발표 자료와 실험 결과 준비", alarm: "30분 전", confidence: "확인 필요", uncertain: ["장소"] },
+  ];
+}
+
+// 입력값: 없음
+// 출력값: 이미지 파일 선택 영역 HTML 문자열
+// 기능: JPEG·PNG 파일을 선택하거나 드래그할 수 있는 첫 업로드 상태를 표시한다.
+function renderUploadDropzone() {
+  return `<label class="upload-dropzone" for="notice-image"><span class="upload-icon">${icon("upload")}</span><strong>안내문 이미지를 올려 주세요</strong><p>사진 속 날짜와 일정 내용을 찾아드려요</p><em>JPEG, PNG · 최대 10MB</em><input id="notice-image" type="file" accept="image/jpeg,image/png" /></label>`;
+}
+
+// 입력값: 없음
+// 출력값: 선택한 이미지 미리보기 HTML 문자열
+// 기능: 분석 전에 파일명과 원본 이미지를 확인하고 다시 선택할 수 있게 한다.
+function renderUploadPreview() {
+  return `<div class="upload-preview"><div class="preview-image-wrap"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="선택한 안내문 미리보기" /></div><div class="preview-file-row"><span>${icon("image")}</span><div><strong>${state.upload.fileName}</strong><small>${(state.upload.fileSize / 1024 / 1024).toFixed(1)}MB</small></div><label for="notice-image">다시 선택<input id="notice-image" type="file" accept="image/jpeg,image/png" /></label></div><button class="primary-button" type="button" data-action="analyze-image">일정 분석하기</button></div>`;
+}
+
+// 입력값: 제목, 설명, 아이콘 이름
+// 출력값: 이미지 분석 오류·빈 결과 상태 HTML 문자열
+// 기능: 분석 실패와 일정 미검출 상태에 맞는 안내와 재시도 버튼을 표시한다.
+function renderAnalysisMessage(title, description, iconName) {
+  return `<div class="analysis-message"><span>${icon(iconName)}</span><h2>${title}</h2><p>${description}</p><button class="primary-button" type="button" data-action="reset-upload">다른 이미지 선택</button>${state.upload.previewUrl ? `<button class="text-retry" type="button" data-action="analyze-image">${icon("refresh")} 다시 분석하기</button>` : ""}</div>`;
+}
+
+// 입력값: 없음
+// 출력값: 이미지 업로드·미리보기·분석 상태 화면 HTML 문자열
+// 기능: 이미지 분석 흐름의 업로드부터 로딩·실패·빈 결과까지 상태별 화면을 제공한다.
+function renderUpload() {
+  let content = renderUploadDropzone();
+  if (state.upload.status === "preview") content = renderUploadPreview();
+  if (state.upload.status === "analyzing") content = `<div class="analyzing-state"><div class="scan-preview"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="분석 중인 안내문" /><i></i></div><div class="loading-orbit"></div><h2>이미지에서 일정을 찾고 있어요</h2><p>여러 날짜와 일정 내용을 꼼꼼히 확인하고 있어요</p></div>`;
+  if (state.upload.status === "error") content = renderAnalysisMessage("이미지를 분석하지 못했어요", state.upload.error || "이미지가 선명한지 확인하고 다시 시도해 주세요.", "warning");
+  if (state.upload.status === "empty") content = renderAnalysisMessage("찾은 일정이 없어요", "날짜와 일정 내용이 잘 보이는 안내문으로 다시 시도해 주세요.", "calendar");
+
+  return `<section class="screen upload-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="home" aria-label="홈으로 돌아가기">${icon("back")}</button><h1>사진으로 일정 추가</h1><span></span></header><div class="upload-content"><div class="upload-copy"><h2>안내문을 일정으로 바꿔드릴게요</h2><p>분석 결과는 등록 전에 직접 확인하고 수정할 수 있어요.</p></div>${content}</div></section>`;
+}
+
+// 입력값: 분석된 일정 후보 객체
+// 출력값: 선택·수정 가능한 일정 후보 카드 HTML 문자열
+// 기능: AI가 추출한 각 일정과 확인이 필요한 필드를 구분해 표시한다.
+function renderCandidateCard(candidate) {
+  const timeText = candidate.allDay ? "종일" : `${candidate.start} - ${candidate.end}`;
+  return `<article class="candidate-card ${candidate.selected ? "is-selected" : ""}"><button class="candidate-check" type="button" data-action="toggle-candidate" data-candidate-id="${candidate.id}" aria-label="${candidate.title} 선택">${candidate.selected ? icon("check") : ""}</button><div class="candidate-main"><div class="candidate-title-row"><span class="event-category color-${getEventTone(candidate.category)}">${candidate.category}</span><em class="${candidate.uncertain.length ? "needs-check" : ""}">${candidate.confidence}</em></div><h3>${candidate.title}</h3><p>${formatKoreanDate(candidate.date)}</p><p>${timeText}${candidate.location ? ` · ${candidate.location}` : ""}</p>${candidate.uncertain.length ? `<small>${icon("warning")} ${candidate.uncertain.join(", ")}을 확인해 주세요</small>` : ""}</div><button class="candidate-edit" type="button" data-action="edit-candidate" data-candidate-id="${candidate.id}" aria-label="${candidate.title} 수정">${icon("pencil")}</button></article>`;
+}
+
+// 입력값: 없음
+// 출력값: 추출 일정 수정 바텀시트 HTML 문자열
+// 기능: 분석 후보의 모호하거나 잘못된 정보를 등록 전에 직접 수정한다.
+function renderCandidateEditor() {
+  if (!state.candidateDraft) return "";
+  return `<div class="sheet-scrim" data-action="close-candidate-editor"></div><section class="bottom-sheet candidate-editor-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>추출 일정 수정</h2><button type="button" data-action="close-candidate-editor">${icon("close")}</button></div><form class="candidate-form" data-form="candidate"><label class="compact-field"><span>일정 제목</span><input name="title" value="${escapeAttribute(state.candidateDraft.title)}" /></label><div class="field-pair"><label class="compact-field"><span>날짜</span><input type="date" name="date" value="${state.candidateDraft.date}" /></label><label class="compact-field"><span>종류</span><select name="category">${["개인", "과제", "학교", "그룹"].map((category) => `<option ${category === state.candidateDraft.category ? "selected" : ""}>${category}</option>`).join("")}</select></label></div><div class="field-pair"><label class="compact-field"><span>시작</span><input type="time" name="start" value="${state.candidateDraft.start}" /></label><label class="compact-field"><span>종료</span><input type="time" name="end" value="${state.candidateDraft.end}" /></label></div><label class="compact-field"><span>장소</span><input name="location" value="${escapeAttribute(state.candidateDraft.location)}" /></label><label class="compact-field"><span>메모</span><textarea name="memo">${state.candidateDraft.memo}</textarea></label><button class="primary-button" type="submit">수정 완료</button></form></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 일정 등록 완료 팝업 HTML 문자열
+// 기능: 선택한 분석 후보가 캘린더에 등록됐음을 알리고 캘린더로 이동시킨다.
+function renderRegistrationComplete() {
+  if (!state.registrationComplete) return "";
+  return `<div class="sheet-scrim"></div><section class="complete-dialog" role="dialog" aria-modal="true"><span>${icon("check")}</span><h2>일정 등록이 완료됐어요</h2><p>캘린더에서 등록한 일정을 확인할 수 있어요.</p><button class="primary-button" type="button" data-action="finish-registration">캘린더 확인</button></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 이미지 분석 결과 확인 화면 HTML 문자열
+// 기능: 여러 일정 후보를 선택·수정한 뒤 한 번에 캘린더에 등록한다.
+function renderExtractionResults() {
+  const selectedCount = state.extractionCandidates.filter((candidate) => candidate.selected).length;
+  return `<section class="screen extraction-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="upload" aria-label="업로드로 돌아가기">${icon("back")}</button><h1>분석 결과 확인</h1><span></span></header><div class="result-scroll"><div class="result-summary"><div><strong>${state.extractionCandidates.length}개의 일정을 찾았어요</strong><p>잘못 읽은 내용이 없는지 확인해 주세요.</p></div><span>부분 추출</span></div><div class="source-preview"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="원본 안내문" /><div><strong>원본 이미지</strong><small>${state.upload.fileName}</small></div></div><div class="candidate-list">${state.extractionCandidates.map(renderCandidateCard).join("")}</div></div><div class="result-actions"><p><strong>${selectedCount}</strong>개 일정 선택</p><button class="primary-button" type="button" data-action="register-candidates" ${selectedCount ? "" : "disabled"}>선택 일정 등록</button></div>${renderCandidateEditor()}${renderRegistrationComplete()}</section>`;
+}
+
+// 입력값: 없음
 // 출력값: 회원가입 입력값의 유효 여부
 // 기능: 이름, 이메일, 비밀번호 규칙과 비밀번호 일치 여부를 검사한다.
 function isSignupValid() {
@@ -716,6 +807,8 @@ function renderApp() {
     calendar: renderCalendar,
     eventDetail: renderEventDetail,
     eventForm: renderEventForm,
+    upload: renderUpload,
+    extractionResults: renderExtractionResults,
   };
   app.innerHTML = (views[state.currentView] ?? renderHome)();
 }
@@ -783,6 +876,9 @@ function handleInput(event) {
     const submitButton = form.querySelector('[type="submit"]');
     if (submitButton) submitButton.disabled = !state.eventDraft.title.trim();
   }
+  if (form.dataset.form === "candidate" && state.candidateDraft) {
+    state.candidateDraft[input.name] = input.value;
+  }
 }
 
 // 입력값: 폼 제출 이벤트
@@ -837,6 +933,15 @@ function handleSubmit(event) {
     state.calendarMonth = month;
     state.calendarSelectedDay = day;
     state.currentView = "eventDetail";
+    renderApp();
+  }
+
+
+  if (form.dataset.form === "candidate" && state.candidateDraft?.title.trim()) {
+    const candidate = state.extractionCandidates.find((item) => item.id === state.editingCandidateId);
+    Object.assign(candidate, state.candidateDraft, { uncertain: [], confidence: "수정 완료" });
+    state.candidateDraft = null;
+    state.editingCandidateId = null;
     renderApp();
   }
 }
@@ -947,11 +1052,82 @@ function handleClick(event) {
     state.eventDraft.alarm = target.dataset.alarm;
     state.alarmPickerOpen = false;
   }
+  if (action === "reset-upload") {
+    if (state.upload.previewUrl) URL.revokeObjectURL(state.upload.previewUrl);
+    state.upload = { status: "idle", fileName: "", fileSize: 0, previewUrl: "", error: "" };
+    state.extractionCandidates = [];
+  }
+  if (action === "analyze-image" && state.upload.previewUrl) {
+    state.upload.status = "analyzing";
+    renderApp();
+    window.setTimeout(() => {
+      if (state.upload.fileSize === 0) {
+        state.upload.status = "empty";
+        renderApp();
+        return;
+      }
+      state.extractionCandidates = createExtractionCandidates();
+      state.currentView = "extractionResults";
+      renderApp();
+    }, 850);
+    return;
+  }
+  if (action === "toggle-candidate") {
+    const candidate = state.extractionCandidates.find((item) => item.id === Number(target.dataset.candidateId));
+    if (candidate) candidate.selected = !candidate.selected;
+  }
+  if (action === "edit-candidate") {
+    const candidate = state.extractionCandidates.find((item) => item.id === Number(target.dataset.candidateId));
+    if (candidate) {
+      state.editingCandidateId = candidate.id;
+      state.candidateDraft = { ...candidate };
+    }
+  }
+  if (action === "close-candidate-editor") {
+    state.editingCandidateId = null;
+    state.candidateDraft = null;
+  }
+  if (action === "register-candidates") {
+    const selectedCandidates = state.extractionCandidates.filter((candidate) => candidate.selected);
+    selectedCandidates.forEach((candidate, index) => {
+      state.events.push({ ...candidate, id: Date.now() + index, shared: false });
+    });
+    state.registrationComplete = true;
+  }
+  if (action === "finish-registration") {
+    state.registrationComplete = false;
+    state.currentView = "calendar";
+  }
 
   renderApp();
 }
 
+// 입력값: 파일 선택 변경 이벤트
+// 출력값: 없음
+// 기능: 이미지 형식과 용량을 검증하고 안전한 로컬 미리보기 주소를 만든다.
+function handleFileChange(event) {
+  const input = event.target.closest('input[type="file"]');
+  if (!input) return;
+  const [file] = input.files;
+  if (!file) return;
+  const allowedTypes = ["image/jpeg", "image/png"];
+  if (!allowedTypes.includes(file.type)) {
+    state.upload = { status: "error", fileName: file.name, fileSize: file.size, previewUrl: "", error: "JPEG 또는 PNG 형식의 이미지만 올릴 수 있어요." };
+    renderApp();
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    state.upload = { status: "error", fileName: file.name, fileSize: file.size, previewUrl: "", error: "이미지 용량은 10MB 이하로 올려 주세요." };
+    renderApp();
+    return;
+  }
+  if (state.upload.previewUrl) URL.revokeObjectURL(state.upload.previewUrl);
+  state.upload = { status: "preview", fileName: file.name, fileSize: file.size, previewUrl: URL.createObjectURL(file), error: "" };
+  renderApp();
+}
+
 app.addEventListener("input", handleInput);
+app.addEventListener("change", handleFileChange);
 app.addEventListener("submit", handleSubmit);
 app.addEventListener("click", handleClick);
 renderApp();
