@@ -1,4 +1,5 @@
 const app = document.querySelector("#app");
+const temporaryStorageKey = "planitTemporaryData";
 
 const state = {
   currentView: "login",
@@ -39,46 +40,55 @@ const state = {
     color: "violet",
   },
   timetable: [
-    { id: 1, day: "월", period: 1, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
-    { id: 2, day: "화", period: 1, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
-    { id: 3, day: "수", period: 1, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
-    { id: 4, day: "목", period: 1, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 5, day: "금", period: 1, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
-    { id: 6, day: "월", period: 2, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
-    { id: 7, day: "화", period: 2, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
-    { id: 8, day: "수", period: 2, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
-    { id: 9, day: "목", period: 2, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
-    { id: 10, day: "금", period: 2, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
-    { id: 11, day: "월", period: 3, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
-    { id: 12, day: "화", period: 3, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
-    { id: 13, day: "수", period: 3, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
-    { id: 14, day: "목", period: 3, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
-    { id: 15, day: "금", period: 3, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
-    { id: 16, day: "월", period: 4, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 17, day: "화", period: 4, title: "사회", teacher: "한선생님", room: "3반", color: "yellow" },
-    { id: 18, day: "수", period: 4, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 19, day: "목", period: 4, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
-    { id: 20, day: "금", period: 4, title: "사회", teacher: "한선생님", room: "3반", color: "yellow" },
-    { id: 21, day: "월", period: 5, title: "체육", teacher: "윤선생님", room: "체육관", color: "pink" },
-    { id: 22, day: "화", period: 5, title: "음악", teacher: "오선생님", room: "음악실", color: "pink" },
-    { id: 23, day: "수", period: 5, title: "미술", teacher: "서선생님", room: "미술실", color: "pink" },
-    { id: 24, day: "목", period: 5, title: "사회", teacher: "한선생님", room: "3반", color: "yellow" },
-    { id: 25, day: "금", period: 5, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 26, day: "월", period: 6, title: "한국사", teacher: "정선생님", room: "3반", color: "yellow" },
-    { id: 27, day: "화", period: 6, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 28, day: "수", period: 6, title: "창체", teacher: "담임선생님", room: "3반", color: "violet" },
-    { id: 29, day: "목", period: 6, title: "체육", teacher: "윤선생님", room: "체육관", color: "pink" },
-    { id: 30, day: "금", period: 6, title: "한국사", teacher: "정선생님", room: "3반", color: "yellow" },
+    { id: 1, day: "월", period: 1, title: "학급자치", teacher: "", room: "", color: "violet" },
+    { id: 2, day: "화", period: 1, title: "일본어", teacher: "", room: "", color: "blue" },
+    { id: 3, day: "수", period: 1, title: "JAVA", teacher: "", room: "", color: "green" },
+    { id: 4, day: "목", period: 1, title: "공통영어", teacher: "", room: "", color: "orange" },
+    { id: 5, day: "금", period: 1, title: "공통국어(이)", teacher: "", room: "", color: "pink" },
+    { id: 6, day: "월", period: 2, title: "한국사", teacher: "", room: "", color: "yellow" },
+    { id: 7, day: "화", period: 2, title: "공통영어", teacher: "", room: "", color: "orange" },
+    { id: 8, day: "수", period: 2, title: "JAVA", teacher: "", room: "", color: "green" },
+    { id: 9, day: "목", period: 2, title: "JAVA", teacher: "", room: "", color: "green" },
+    { id: 10, day: "금", period: 2, title: "공통영어", teacher: "", room: "", color: "orange" },
+    { id: 11, day: "월", period: 3, title: "일본어", teacher: "", room: "", color: "blue" },
+    { id: 12, day: "화", period: 3, title: "한국사", teacher: "", room: "", color: "yellow" },
+    { id: 13, day: "수", period: 3, title: "일본어", teacher: "", room: "", color: "blue" },
+    { id: 14, day: "목", period: 3, title: "MC", teacher: "", room: "", color: "violet" },
+    { id: 15, day: "금", period: 3, title: "기술가정", teacher: "", room: "", color: "pink" },
+    { id: 16, day: "월", period: 4, title: "MC", teacher: "", room: "", color: "violet" },
+    { id: 17, day: "화", period: 4, title: "공통국어(손)", teacher: "", room: "", color: "pink" },
+    { id: 18, day: "수", period: 4, title: "공통수학", teacher: "", room: "", color: "blue" },
+    { id: 19, day: "목", period: 4, title: "MC", teacher: "", room: "", color: "violet" },
+    { id: 20, day: "금", period: 4, title: "공통수학", teacher: "", room: "", color: "blue" },
+    { id: 21, day: "월", period: 5, title: "JAVA", teacher: "", room: "", color: "green" },
+    { id: 22, day: "화", period: 5, title: "공통국어(이)", teacher: "", room: "", color: "pink" },
+    { id: 23, day: "수", period: 5, title: "성공적인 직업생활", teacher: "", room: "", color: "yellow" },
+    { id: 24, day: "목", period: 5, title: "공통수학", teacher: "", room: "", color: "blue" },
+    { id: 25, day: "금", period: 5, title: "성공적인 직업생활", teacher: "", room: "", color: "yellow" },
+    { id: 26, day: "월", period: 6, title: "JAVA", teacher: "", room: "", color: "green" },
+    { id: 27, day: "화", period: 6, title: "체육", teacher: "", room: "", color: "orange" },
+    { id: 28, day: "수", period: 6, title: "동아리", teacher: "", room: "", color: "violet" },
+    { id: 29, day: "목", period: 6, title: "체육", teacher: "", room: "", color: "orange" },
+    { id: 30, day: "금", period: 6, title: "한국사", teacher: "", room: "", color: "yellow" },
+    { id: 31, day: "화", period: 7, title: "기술가정", teacher: "", room: "", color: "pink" },
+    { id: 32, day: "수", period: 7, title: "멘토링", teacher: "", room: "", color: "violet" },
+    { id: 33, day: "목", period: 7, title: "기술가정", teacher: "", room: "", color: "pink" },
   ],
   periodTimes: [
-    { period: 1, start: "09:00", end: "09:50" },
-    { period: 2, start: "10:00", end: "10:50" },
-    { period: 3, start: "11:00", end: "11:50" },
-    { period: 4, start: "12:00", end: "12:50" },
-    { period: 5, start: "14:00", end: "14:50" },
-    { period: 6, start: "15:00", end: "15:50" },
+    { period: 1, start: "08:20", end: "09:10" },
+    { period: 2, start: "09:20", end: "10:10" },
+    { period: 3, start: "10:20", end: "11:10" },
+    { period: 4, start: "11:20", end: "12:10" },
+    { period: 5, start: "13:00", end: "13:50" },
+    { period: 6, start: "14:00", end: "14:50" },
+    { period: 7, start: "15:00", end: "15:50" },
   ],
-  lunchTime: { start: "12:50", end: "14:00" },
+  lunchTime: { start: "12:10", end: "13:00" },
+  routineTimes: {
+    morning: { label: "조회", start: "08:05", end: "08:20", note: "" },
+    cleaning: { label: "청소", start: "15:50", end: "16:00", note: "14:50~15:00" },
+    homeroom: { label: "종례", start: "16:00", end: "", note: "15:00~" },
+  },
   timetableTimeDraft: null,
   timetableTimeError: "",
   calendarYear: 2026,
@@ -135,6 +145,44 @@ const state = {
     { id: 3, name: "방송부", description: "방송부 공지와 활동 일정", code: "PLN-ON-AIR", color: "blue", members: ["김플래닛", "정도윤", "한유진"], eventIds: [105] },
   ],
 };
+
+// 입력값: 없음
+// 출력값: 없음
+// 기능: DB 연결 전 사용자가 등록한 일정과 시간표 변경값을 현재 브라우저 탭에 임시 저장한다.
+function persistTemporaryData() {
+  const temporaryData = {
+    events: state.events,
+    timetable: state.timetable,
+    periodTimes: state.periodTimes,
+    lunchTime: state.lunchTime,
+    routineTimes: state.routineTimes,
+    groups: state.groups,
+  };
+
+  try {
+    window.sessionStorage.setItem(temporaryStorageKey, JSON.stringify(temporaryData));
+  } catch (error) {
+    console.warn("임시 데이터를 저장하지 못했습니다.", error);
+  }
+}
+
+// 입력값: 없음
+// 출력값: 없음
+// 기능: 같은 브라우저 탭에서 새로고침해도 임시 등록 내용을 이어서 볼 수 있게 복원한다.
+function restoreTemporaryData() {
+  try {
+    const savedData = JSON.parse(window.sessionStorage.getItem(temporaryStorageKey) || "null");
+    if (!savedData || typeof savedData !== "object") return;
+    if (Array.isArray(savedData.events)) state.events = savedData.events;
+    if (Array.isArray(savedData.timetable)) state.timetable = savedData.timetable;
+    if (Array.isArray(savedData.periodTimes)) state.periodTimes = savedData.periodTimes;
+    if (savedData.lunchTime && typeof savedData.lunchTime === "object") state.lunchTime = savedData.lunchTime;
+    if (savedData.routineTimes && typeof savedData.routineTimes === "object") state.routineTimes = savedData.routineTimes;
+    if (Array.isArray(savedData.groups)) state.groups = savedData.groups;
+  } catch (error) {
+    console.warn("임시 데이터를 불러오지 못했습니다.", error);
+  }
+}
 
 const homeContentByDate = {
   "18": {
@@ -409,6 +457,27 @@ function renderDeadlines(deadlines) {
   return `<div class="deadline-card">${deadlines.map((deadline) => `<p><strong>${deadline.title}</strong><span>${deadline.due}</span></p>`).join("")}</div>`;
 }
 
+// 입력값: 홈 날짜 숫자 문자열
+// 출력값: 고정 수업과 사용자가 임시 등록한 일정을 합친 홈 화면 데이터
+// 기능: DB 없이 등록한 일정도 현재 탭을 나가기 전까지 홈에서 바로 확인하게 한다.
+function getHomeContent(date) {
+  const baseContent = homeContentByDate[date];
+  const dateKey = `2026-10-${date.padStart(2, "0")}`;
+  const temporarySchedules = state.events
+    .filter((eventItem) => eventItem.temporary && eventItem.date === dateKey)
+    .map((eventItem) => ({
+      time: eventItem.allDay ? "종일" : eventItem.start,
+      title: eventItem.title,
+      meta: eventItem.location || eventItem.category,
+      type: "personal",
+    }));
+
+  return {
+    ...baseContent,
+    schedules: [...baseContent.schedules, ...temporarySchedules].sort((first, second) => first.time.localeCompare(second.time)),
+  };
+}
+
 // 입력값: 현재 활성화할 메뉴 이름
 // 출력값: 공통 하단 내비게이션 HTML 문자열
 // 기능: 홈, 시간표, 캘린더, 마이 화면을 오가는 고정 메뉴를 표시한다.
@@ -434,7 +503,7 @@ function renderHome() {
     ["class", "수업"],
     ["personal", "개인"],
   ];
-  const selectedContent = homeContentByDate[state.selectedDate];
+  const selectedContent = getHomeContent(state.selectedDate);
   const dates = [["일", "18"], ["월", "19"], ["화", "20"], ["수", "21"], ["목", "22"], ["금", "23"], ["토", "24"]];
 
   return `
@@ -506,24 +575,35 @@ function renderClassEditor() {
     </section>`;
 }
 
+// 입력값: 조회·청소·종례 시간 정보
+// 출력값: 시간표에 표시할 시간 문자열
+// 기능: 종료 시간이 없는 종례와 대체 시간이 있는 일과를 원본 표 형식으로 만든다.
+function formatRoutineTime(routine) {
+  const mainTime = routine.end ? `${routine.start}~${routine.end}` : `${routine.start}~`;
+  return routine.note ? `${mainTime} (${routine.note})` : mainTime;
+}
+
 // 입력값: 없음
 // 출력값: 월요일부터 금요일까지의 전체 시간표 격자 HTML 문자열
-// 기능: 1교시부터 6교시까지 모든 요일을 빠짐없이 피그마 구조로 표시한다.
+// 기능: 1교시부터 7교시까지 모든 요일을 빠짐없이 학교 시간표 구조로 표시한다.
 function renderTimetableClasses() {
   const weekdays = ["월", "화", "수", "목", "금"];
   const header = `<span class="timetable-corner"></span>${weekdays.map((day) => `<strong class="timetable-weekday">${day}</strong>`).join("")}`;
+  const morning = `<div class="timetable-routine"><strong>${state.routineTimes.morning.label}</strong><span>${formatRoutineTime(state.routineTimes.morning)}</span></div>`;
   const rows = state.periodTimes.map(({ period, start }) => {
     const cells = weekdays.map((day) => {
       const classItem = state.timetable.find((item) => item.day === day && item.period === period);
       if (!classItem) {
         return `<button class="timetable-cell is-empty" type="button" data-action="add-class-for-slot" data-day="${day}" data-period="${period}" aria-label="${day}요일 ${period}교시 수업 추가">${icon("plus")}</button>`;
       }
-      return `<button class="timetable-cell" type="button" data-action="edit-class" data-class-id="${classItem.id}"><strong>${escapeAttribute(classItem.title)}</strong><small>${escapeAttribute(classItem.room)}</small></button>`;
+      return `<button class="timetable-cell color-${classItem.color}" type="button" data-action="edit-class" data-class-id="${classItem.id}"><strong>${escapeAttribute(classItem.title)}</strong>${classItem.room ? `<small>${escapeAttribute(classItem.room)}</small>` : ""}</button>`;
     }).join("");
     const lunch = period === 4 ? `<div class="timetable-lunch">점심시간 ${state.lunchTime.start} – ${state.lunchTime.end}</div>` : "";
     return `<div class="timetable-time"><strong>${period}</strong><small>${start}</small></div>${cells}${lunch}`;
   }).join("");
-  return `<div class="timetable-grid">${header}${rows}</div>`;
+  const cleaning = `<div class="timetable-routine"><strong>${state.routineTimes.cleaning.label}</strong><span>${formatRoutineTime(state.routineTimes.cleaning)}</span></div>`;
+  const homeroom = `<div class="timetable-routine"><strong>${state.routineTimes.homeroom.label}</strong><span>${formatRoutineTime(state.routineTimes.homeroom)}</span></div>`;
+  return `<div class="timetable-grid">${header}${morning}${rows}${cleaning}${homeroom}</div>`;
 }
 
 // 입력값: 없음
@@ -546,7 +626,7 @@ function renderSubjectSettings() {
   const weekdays = ["월", "화", "수", "목", "금"];
   return `<div class="settings-content">${weekdays.map((day) => {
     const classes = state.timetable.filter((item) => item.day === day).sort((a, b) => a.period - b.period);
-    return `<section class="settings-day"><h3>${day}요일</h3>${classes.length ? classes.map((item) => `<div class="settings-class color-${item.color}"><button type="button" data-action="edit-class" data-class-id="${item.id}"><strong>${item.period}교시 · ${escapeAttribute(item.title)}</strong><small>${escapeAttribute(item.teacher)} · ${escapeAttribute(item.room)}</small></button><button class="row-delete" type="button" data-action="delete-class" data-class-id="${item.id}" aria-label="${escapeAttribute(item.title)} 삭제">${icon("trash")}</button></div>`).join("") : `<p class="settings-empty">등록된 수업이 없어요</p>`}<button class="inline-add" type="button" data-action="add-class-for-day" data-day="${day}">${icon("plus")} 과목 추가</button></section>`;
+    return `<section class="settings-day"><h3>${day}요일</h3>${classes.length ? classes.map((item) => `<div class="settings-class color-${item.color}"><button type="button" data-action="edit-class" data-class-id="${item.id}"><strong>${item.period}교시 · ${escapeAttribute(item.title)}</strong>${item.teacher || item.room ? `<small>${escapeAttribute([item.teacher, item.room].filter(Boolean).join(" · "))}</small>` : ""}</button><button class="row-delete" type="button" data-action="delete-class" data-class-id="${item.id}" aria-label="${escapeAttribute(item.title)} 삭제">${icon("trash")}</button></div>`).join("") : `<p class="settings-empty">등록된 수업이 없어요</p>`}<button class="inline-add" type="button" data-action="add-class-for-day" data-day="${day}">${icon("plus")} 과목 추가</button></section>`;
   }).join("")}</div>`;
 }
 
@@ -557,6 +637,7 @@ function prepareTimetableTimeDraft() {
   state.timetableTimeDraft = {
     periods: state.periodTimes.map((period) => ({ ...period })),
     lunch: { ...state.lunchTime },
+    routines: Object.fromEntries(Object.entries(state.routineTimes).map(([key, routine]) => [key, { ...routine }])),
   };
   state.timetableTimeError = "";
 }
@@ -565,15 +646,26 @@ function prepareTimetableTimeDraft() {
 // 출력값: 모든 종료 시간이 시작 시간보다 늦은지 여부
 // 기능: 잘못된 시간 범위가 시간표에 적용되지 않도록 검증한다.
 function isTimetableTimeDraftValid(draft) {
-  return draft.periods.every((period) => period.start < period.end) && draft.lunch.start < draft.lunch.end;
+  const validRoutines = Object.values(draft.routines).every((routine) => !routine.end || routine.start < routine.end);
+  return draft.periods.every((period) => period.start < period.end) && draft.lunch.start < draft.lunch.end && validRoutines;
+}
+
+// 입력값: 생활 일정 키와 시간 정보
+// 출력값: 조회·청소·종례 시간 설정 행 HTML 문자열
+// 기능: 정규 교시 외 학교 일과도 직접 설정할 수 있는 입력 행을 만든다.
+function renderRoutineSettingRow(key, routine) {
+  const optionalLabel = key === "homeroom" ? "(선택)" : "";
+  return `<div class="period-setting-row routine-setting-row"><strong>${routine.label}</strong><label><span>시작</span><input type="time" data-time-kind="routine" data-routine="${key}" data-time-field="start" value="${routine.start}" /></label><i>—</i><label><span>종료${optionalLabel}</span><input type="time" data-time-kind="routine" data-routine="${key}" data-time-field="end" value="${routine.end}" /></label></div>`;
 }
 
 // 입력값: 없음
 // 출력값: 교시 시간 설정 HTML 문자열
-// 기능: 각 교시와 점심시간을 사용자가 직접 입력하고 시간표에 적용하게 한다.
+// 기능: 조회, 각 교시, 점심, 청소와 종례 시간을 직접 입력하고 시간표에 적용하게 한다.
 function renderPeriodSettings() {
-  const draft = state.timetableTimeDraft ?? { periods: state.periodTimes, lunch: state.lunchTime };
-  return `<div class="settings-content period-settings"><div class="time-settings-guide"><strong>수업 시간을 설정해 주세요</strong><p>각 교시와 점심시간을 학교 시간에 맞게 직접 바꿀 수 있어요.</p></div>${draft.periods.map(({ period, start, end }) => `<div class="period-setting-row"><strong>${period}교시</strong><label><span>시작</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="end" value="${end}" /></label></div>`).join("")}<div class="period-setting-row lunch-setting-row"><strong>점심</strong><label><span>시작</span><input type="time" data-time-kind="lunch" data-time-field="start" value="${draft.lunch.start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="lunch" data-time-field="end" value="${draft.lunch.end}" /></label></div>${state.timetableTimeError ? `<p class="time-settings-error">${icon("warning")}${state.timetableTimeError}</p>` : ""}<button class="primary-button time-settings-submit" type="button" data-action="apply-timetable-times">시간표에 적용</button></div>`;
+  const draft = state.timetableTimeDraft ?? { periods: state.periodTimes, lunch: state.lunchTime, routines: state.routineTimes };
+  const lunchRow = `<div class="period-setting-row lunch-setting-row"><strong>점심</strong><label><span>시작</span><input type="time" data-time-kind="lunch" data-time-field="start" value="${draft.lunch.start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="lunch" data-time-field="end" value="${draft.lunch.end}" /></label></div>`;
+  const periodRows = draft.periods.map(({ period, start, end }) => `<div class="period-setting-row"><strong>${period}교시</strong><label><span>시작</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="end" value="${end}" /></label></div>${period === 4 ? lunchRow : ""}`).join("");
+  return `<div class="settings-content period-settings"><div class="time-settings-guide"><strong>수업 시간을 설정해 주세요</strong><p>조회·교시·점심·청소·종례 시간을 학교 시간에 맞게 직접 바꿀 수 있어요.</p></div>${renderRoutineSettingRow("morning", draft.routines.morning)}${periodRows}${renderRoutineSettingRow("cleaning", draft.routines.cleaning)}${renderRoutineSettingRow("homeroom", draft.routines.homeroom)}${state.timetableTimeError ? `<p class="time-settings-error">${icon("warning")}${state.timetableTimeError}</p>` : ""}<button class="primary-button time-settings-submit" type="button" data-action="apply-timetable-times">시간표에 적용</button></div>`;
 }
 
 // 입력값: 없음
@@ -955,6 +1047,7 @@ function renderApp() {
     groups: renderGroups,
     groupDetail: renderGroupDetail,
   };
+  persistTemporaryData();
   app.innerHTML = (views[state.currentView] ?? renderHome)();
 }
 
@@ -993,6 +1086,8 @@ function handleInput(event) {
     if (!state.timetableTimeDraft) prepareTimetableTimeDraft();
     if (input.dataset.timeKind === "lunch") {
       state.timetableTimeDraft.lunch[input.dataset.timeField] = input.value;
+    } else if (input.dataset.timeKind === "routine") {
+      state.timetableTimeDraft.routines[input.dataset.routine][input.dataset.timeField] = input.value;
     } else {
       const period = state.timetableTimeDraft.periods.find((entry) => entry.period === Number(input.dataset.period));
       if (period) period[input.dataset.timeField] = input.value;
@@ -1082,7 +1177,7 @@ function handleSubmit(event) {
       Object.assign(eventItem, state.eventDraft);
     } else {
       const isGroupEvent = state.eventReturnView === "groupDetail";
-      const newEvent = { id: Date.now(), ...state.eventDraft, shared: isGroupEvent };
+      const newEvent = { id: Date.now(), ...state.eventDraft, shared: isGroupEvent, temporary: true };
       state.events.push(newEvent);
       state.selectedEventId = newEvent.id;
       if (isGroupEvent) {
@@ -1199,6 +1294,7 @@ function handleClick(event) {
     } else {
       state.periodTimes = state.timetableTimeDraft.periods.map((period) => ({ ...period }));
       state.lunchTime = { ...state.timetableTimeDraft.lunch };
+      state.routineTimes = Object.fromEntries(Object.entries(state.timetableTimeDraft.routines).map(([key, routine]) => [key, { ...routine }]));
       state.timetableTimeError = "";
       state.currentView = "timetable";
     }
@@ -1307,8 +1403,15 @@ function handleClick(event) {
   if (action === "register-candidates") {
     const selectedCandidates = state.extractionCandidates.filter((candidate) => candidate.selected);
     selectedCandidates.forEach((candidate, index) => {
-      state.events.push({ ...candidate, id: Date.now() + index, shared: false });
+      state.events.push({ ...candidate, id: Date.now() + index, shared: false, temporary: true });
     });
+    const firstRegisteredDate = selectedCandidates[0]?.date;
+    if (firstRegisteredDate) {
+      const [year, month, day] = firstRegisteredDate.split("-").map(Number);
+      state.calendarYear = year;
+      state.calendarMonth = month;
+      state.calendarSelectedDay = day;
+    }
     state.registrationComplete = true;
   }
   if (action === "finish-registration") {
@@ -1436,4 +1539,5 @@ app.addEventListener("dragleave", handleDragLeave);
 app.addEventListener("drop", handleDrop);
 app.addEventListener("submit", handleSubmit);
 app.addEventListener("click", handleClick);
+restoreTemporaryData();
 renderApp();

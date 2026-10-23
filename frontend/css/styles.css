@@ -104,7 +104,7 @@ svg {
 .auth-screen {
   display: flex;
   flex-direction: column;
-  padding: 171px 30px 48px;
+  padding: 112px 30px 38px;
 }
 
 .brand-name {
@@ -409,7 +409,7 @@ svg {
 .home-scroll {
   height: 100%;
   overflow-y: auto;
-  padding: 78px 26px 112px;
+  padding: 44px 26px 112px;
   scrollbar-width: none;
 }
 
@@ -697,10 +697,10 @@ svg {
 
 .feature-header {
   display: flex;
-  height: 112px;
+  height: 88px;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 27px 0;
+  padding: 10px 27px 0;
 }
 
 .feature-header h1 {
@@ -1113,6 +1113,10 @@ svg {
 
 .lunch-setting-row > strong {
   color: var(--primary);
+}
+
+.routine-setting-row {
+  background: #f7f5fa;
 }
 
 .time-settings-error {
@@ -2769,10 +2773,10 @@ svg {
 
 .timetable-header {
   display: flex;
-  height: 145px;
+  height: 98px;
   align-items: flex-end;
   justify-content: space-between;
-  padding: 0 27px 18px;
+  padding: 0 27px 14px;
 }
 
 .timetable-header h1 {
@@ -2807,7 +2811,7 @@ svg {
 }
 
 .timetable-grid-wrap {
-  height: 645px;
+  height: 692px;
   overflow-y: auto;
   padding: 0 26px 28px;
   scrollbar-width: none;
@@ -2839,7 +2843,7 @@ svg {
 
 .timetable-time {
   display: grid;
-  height: 78px;
+  height: 68px;
   align-content: center;
   justify-items: center;
   gap: 8px;
@@ -2856,23 +2860,30 @@ svg {
 
 .timetable-cell {
   display: grid;
-  height: 78px;
+  height: 68px;
   align-content: center;
   justify-items: center;
   gap: 9px;
   min-width: 0;
   padding: 7px 3px;
+  border-top: 3px solid currentColor;
   border-radius: 11px;
   background: var(--primary-soft);
   text-align: center;
 }
 
+.timetable-cell.color-violet { background: #eee9fc; }
+.timetable-cell.color-blue { background: #eaf1fd; }
+.timetable-cell.color-green { background: #e7f5ef; }
+.timetable-cell.color-orange { background: #fdf0e5; }
+.timetable-cell.color-pink { background: #faeaf0; }
+.timetable-cell.color-yellow { background: #fbf4d9; }
+
 .timetable-cell strong {
-  overflow: hidden;
   max-width: 100%;
-  font-size: 13px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.3;
+  word-break: keep-all;
 }
 
 .timetable-cell small {
@@ -2885,6 +2896,7 @@ svg {
 }
 
 .timetable-cell.is-empty {
+  border-top-color: transparent;
   color: #b3a7d8;
   background: #f7f5fb;
 }
@@ -2903,6 +2915,28 @@ svg {
   color: var(--muted);
   background: #f2eff6;
   font-size: 10px;
+}
+
+.timetable-routine {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 44px 1fr;
+  min-height: 28px;
+  align-items: center;
+  border-radius: 8px;
+  color: var(--muted);
+  background: #f6f4f9;
+  font-size: 10px;
+}
+
+.timetable-routine strong {
+  color: var(--text);
+  text-align: center;
+}
+
+.timetable-routine span {
+  padding-right: 44px;
+  text-align: center;
 }
 
 @media (max-height: 760px) {
