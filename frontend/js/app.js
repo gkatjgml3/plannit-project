@@ -9,6 +9,7 @@ const state = {
   uploadImageUrl: "",
   uploadError: "",
   analysisStatus: "idle",
+  candidateDateConfirmed: false,
 };
 
 const icons = {
@@ -263,7 +264,7 @@ function renderAnalysis() {
         <article class="candidate-card"><div class="candidate-head"><span class="candidate-check">${icon("check")}</span><span class="candidate-title">과학 발표</span><button class="candidate-edit" type="button" data-action="edit-candidate">수정</button></div><div class="candidate-meta"><span>${icon("calendarSmall")}10월 27일 (화)</span><span>${icon("location")}과학실</span></div></article>
         <article class="candidate-card is-invalid"><div class="candidate-head"><span class="candidate-check">${icon("check")}</span><span class="candidate-title">영어 단어 시험</span><button class="candidate-edit" type="button" data-action="edit-candidate">수정</button></div><div class="candidate-meta"><span class="candidate-warning">${icon("calendarSmall")}날짜 확인 필요</span><span>${icon("image")}원문: 11월 첫째 주</span></div><div class="candidate-warning"><span>ⓘ 공지에 정확한 날짜가 없어요</span><button class="text-button" type="button" data-action="edit-candidate">날짜 입력</button></div></article>
       </div>
-      <footer class="analysis-footer"><p>ⓘ 확인이 필요한 일정이 1개 있어요</p><button class="primary-button is-disabled" type="button" disabled>일정 3개 등록</button></footer>
+      <footer class="analysis-footer">${state.candidateDateConfirmed ? "" : "<p>ⓘ 확인이 필요한 일정이 1개 있어요</p>"}<button class="primary-button ${state.candidateDateConfirmed ? "" : "is-disabled"}" type="button" data-action="register-analysis" ${state.candidateDateConfirmed ? "" : "disabled"}>일정 3개 등록</button></footer>
     </section>
   `;
 }
@@ -273,10 +274,34 @@ function renderAnalysis() {
 // 기능: 날짜가 모호한 후보를 사용자가 직접 수정하는 화면을 표시한다.
 function renderCandidateEdit() {
   return `
-    <section class="analysis-page">
-      <header class="screen-header"><button class="back-button" type="button" aria-label="뒤로" data-action="back-analysis">${icon("back")}</button><h1 class="screen-title">분석 결과 확인</h1><button class="text-button" type="button">원본 보기</button></header>
-      <div class="candidate-list" style="margin-top: 28px"><article class="candidate-card is-invalid"><div class="candidate-head"><span class="candidate-check">${icon("check")}</span><span class="candidate-title">영어 단어 시험</span></div><div class="candidate-meta"><span>${icon("image")}원문 · 영어 단어 시험 / 11월 첫째 주</span></div></article></div>
-      <div class="bottom-action"><button class="primary-button" type="button" data-action="save-candidate">수정 저장</button></div>
+    <section class="analysis-page analysis-modal-page">
+      ${renderAnalysis()}
+      <div class="modal-scrim" data-action="back-analysis"></div>
+      <form class="edit-sheet" data-form="candidate-edit">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <header class="modal-header"><h2>추출 일정 수정</h2><button class="back-button" type="button" aria-label="닫기" data-action="back-analysis">×</button></header>
+        <label class="form-field">일정 이름<input name="title" type="text" value="영어 단어 시험" /></label>
+        <div class="form-row"><label class="form-field">날짜<input name="date" type="date" value="2026-11-05" required /></label><label class="form-field">시간<input name="time" type="time" value="09:00" /></label></div>
+        <label class="form-field">장소<input name="location" type="text" placeholder="장소를 입력해 주세요" /></label>
+        <button class="primary-button" type="submit">수정 저장</button>
+      </form>
+    </section>
+  `;
+}
+
+// 입력값: 없음
+// 출력값: 일정 등록 완료 화면 HTML 문자열
+// 기능: 분석한 일정이 등록된 뒤의 피그마 완료 팝업을 표시한다.
+function renderRegistrationComplete() {
+  return `
+    <section class="analysis-page success-page">
+      <div class="success-sheet" role="dialog" aria-labelledby="success-title">
+        <span class="success-icon">${icon("check")}</span>
+        <h1 id="success-title">일정 3개를 등록했어요</h1>
+        <p>확인한 일정이 캘린더에 추가됐어요</p>
+        <div class="success-list"><span>수학 수행평가 · 10월 29일</span><span>과학 발표 · 10월 27일</span><span>영어 단어 시험 · 11월 5일</span></div>
+        <div class="success-actions"><button class="secondary-button" type="button" data-action="back-home">홈으로</button><button class="primary-button" type="button" data-action="open-calendar">캘린더에서 보기</button></div>
+      </div>
     </section>
   `;
 }
@@ -295,10 +320,10 @@ function renderGroups() {
 // 출력값: 없음
 // 기능: 현재 라우트에 해당하는 화면과 하단 네비게이션을 다시 그린다.
 function renderApp() {
-  const views = { home: renderHome, timetable: renderTimetable, timetableSettings: renderTimetableSettings, calendar: renderCalendar, upload: renderUpload, analysisLoading: renderAnalysisLoading, analysis: renderAnalysis, candidateEdit: renderCandidateEdit, groups: renderGroups };
+  const views = { home: renderHome, timetable: renderTimetable, timetableSettings: renderTimetableSettings, calendar: renderCalendar, upload: renderUpload, analysisLoading: renderAnalysisLoading, analysis: renderAnalysis, candidateEdit: renderCandidateEdit, registrationComplete: renderRegistrationComplete, groups: renderGroups };
   app.innerHTML = views[state.currentView]();
   document.querySelectorAll("[data-nav-icon]").forEach((element) => { element.innerHTML = icon(element.dataset.navIcon); });
-  bottomNav.hidden = ["timetableSettings", "upload", "analysisLoading", "analysis", "candidateEdit"].includes(state.currentView);
+  bottomNav.hidden = ["timetableSettings", "upload", "analysisLoading", "analysis", "candidateEdit", "registrationComplete"].includes(state.currentView);
   bottomNav.querySelectorAll("[data-route]").forEach((button) => { button.classList.toggle("is-active", button.dataset.route === state.currentView || (state.currentView === "groups" && button.dataset.route === "groups")); });
 }
 
@@ -358,7 +383,22 @@ function handleAction(event) {
   if (action === "back-upload") state.currentView = "upload";
   if (action === "edit-candidate") state.currentView = "candidateEdit";
   if (action === "back-analysis") state.currentView = "analysis";
-  if (action === "save-candidate") state.currentView = "analysis";
+  if (action === "register-analysis") state.currentView = "registrationComplete";
+  if (action === "open-calendar") state.currentView = "calendar";
+  renderApp();
+}
+
+// 입력값: 일정 수정 폼 제출 이벤트
+// 출력값: 없음
+// 기능: 사용자가 입력한 날짜를 확인하고 분석 결과의 모호한 일정을 확정한다.
+function handleFormSubmit(event) {
+  const form = event.target.closest('[data-form="candidate-edit"]');
+  if (!form) return;
+  event.preventDefault();
+  const date = form.elements.date.value;
+  if (!date) return;
+  state.candidateDateConfirmed = true;
+  state.currentView = "analysis";
   renderApp();
 }
 
@@ -387,4 +427,5 @@ function handleImageChange(event) {
 bottomNav.addEventListener("click", handleNavigation);
 app.addEventListener("click", handleAction);
 app.addEventListener("change", handleImageChange);
+app.addEventListener("submit", handleFormSubmit);
 renderApp();
