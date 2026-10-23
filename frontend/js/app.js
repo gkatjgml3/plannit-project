@@ -31,6 +31,7 @@ const state = {
   timetableSettingsTab: "subjects",
   classEditorOpen: false,
   editingClassId: null,
+  classColorChanged: false,
   classDraft: {
     day: "월",
     period: "1",
@@ -540,10 +541,22 @@ function renderHome() {
 // 기능: 새 수업 또는 기존 수업의 값을 수업 편집 상태에 준비한다.
 function openClassEditor(classItem = null) {
   state.editingClassId = classItem?.id ?? null;
+  state.classColorChanged = false;
   state.classDraft = classItem
     ? { day: classItem.day, period: String(classItem.period), title: classItem.title, teacher: classItem.teacher, room: classItem.room, color: classItem.color }
     : { day: state.selectedWeekday, period: "1", title: "", teacher: "", room: "", color: "violet" };
   state.classEditorOpen = true;
+}
+
+// 입력값: 과목명과 적용할 색상 이름
+// 출력값: 없음
+// 기능: 요일과 교시가 달라도 이름이 같은 모든 과목의 색상을 한 번에 맞춘다.
+function applySubjectColor(subjectTitle, color) {
+  const normalizedTitle = subjectTitle.trim().replace(/\s+/g, " ").toLocaleLowerCase("ko-KR");
+  state.timetable.forEach((classItem) => {
+    const itemTitle = classItem.title.trim().replace(/\s+/g, " ").toLocaleLowerCase("ko-KR");
+    if (itemTitle === normalizedTitle) classItem.color = color;
+  });
 }
 
 // 입력값: 없음
@@ -1153,12 +1166,18 @@ function handleSubmit(event) {
 
 
   if (form.dataset.form === "class" && state.classDraft.title.trim()) {
+    const subjectTitle = state.classDraft.title.trim();
+    const normalizedTitle = subjectTitle.replace(/\s+/g, " ").toLocaleLowerCase("ko-KR");
+    const matchingSubject = state.timetable.find((item) => item.id !== state.editingClassId && item.title.trim().replace(/\s+/g, " ").toLocaleLowerCase("ko-KR") === normalizedTitle);
+    const subjectColor = !state.classColorChanged && matchingSubject ? matchingSubject.color : state.classDraft.color;
+    const classData = { ...state.classDraft, title: subjectTitle, color: subjectColor, period: Number(state.classDraft.period) };
     if (state.editingClassId) {
       const classItem = state.timetable.find((item) => item.id === state.editingClassId);
-      Object.assign(classItem, state.classDraft, { period: Number(state.classDraft.period) });
+      Object.assign(classItem, classData);
     } else {
-      state.timetable.push({ id: Date.now(), ...state.classDraft, period: Number(state.classDraft.period) });
+      state.timetable.push({ id: Date.now(), ...classData });
     }
+    if (state.classColorChanged) applySubjectColor(subjectTitle, subjectColor);
     state.selectedWeekday = state.classDraft.day;
     state.classEditorOpen = false;
     renderApp();
@@ -1318,7 +1337,10 @@ function handleClick(event) {
     state.timetable = state.timetable.filter((item) => item.id !== Number(target.dataset.classId));
   }
   if (action === "close-class-editor") state.classEditorOpen = false;
-  if (action === "choose-class-color") state.classDraft.color = target.dataset.color;
+  if (action === "choose-class-color") {
+    state.classDraft.color = target.dataset.color;
+    state.classColorChanged = true;
+  }
 
   if (action === "change-month") {
     const nextDate = new Date(state.calendarYear, state.calendarMonth - 1 + Number(target.dataset.offset), 1);
