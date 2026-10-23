@@ -14,4 +14,6 @@ public interface EventUserSettingRepository extends JpaRepository<EventUserSetti
 
 	List<EventUserSetting> findByIdUserIdAndIdEventIdIn(Long userId, Collection<Long> eventIds);
 
+	List<EventUserSetting> findByIdEventIdAndReminderAtIsNotNull(Long eventId);
+
 }

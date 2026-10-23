@@ -1189,6 +1189,7 @@ function handleSubmit(event) {
     state.calendarYear = year;
     state.calendarMonth = month;
     state.calendarSelectedDay = day;
+    if (year === 2026 && month === 10 && day >= 18 && day <= 24) state.selectedDate = String(day);
     if (state.eventReturnView !== "eventDetail") state.eventDetailReturnView = state.eventReturnView;
     state.currentView = "eventDetail";
     renderApp();
@@ -1411,6 +1412,7 @@ function handleClick(event) {
       state.calendarYear = year;
       state.calendarMonth = month;
       state.calendarSelectedDay = day;
+      if (year === 2026 && month === 10 && day >= 18 && day <= 24) state.selectedDate = String(day);
     }
     state.registrationComplete = true;
   }
@@ -1424,6 +1426,7 @@ function handleClick(event) {
   if (action === "logout") {
     state.currentView = "login";
     state.login.password = "";
+    window.sessionStorage.removeItem(temporaryStorageKey);
   }
   if (action === "open-group-modal") {
     state.groupModalOpen = true;

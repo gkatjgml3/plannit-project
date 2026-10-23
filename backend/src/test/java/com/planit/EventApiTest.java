@@ -166,7 +166,9 @@ class EventApiTest extends ApiTestSupport {
 		mvc.perform(put("/api/events/{id}", id).header("Authorization", user.bearer())
 				.contentType(MediaType.APPLICATION_JSON).content(update))
 				.andExpect(status().isConflict())
-				.andExpect(jsonPath("$.code").value("VERSION_CONFLICT"));
+				.andExpect(jsonPath("$.code").value("EVENT_VERSION_CONFLICT"))
+				.andExpect(jsonPath("$.current.version").value(1))
+				.andExpect(jsonPath("$.current.title").value("수정"));
 	}
 
 	@Test

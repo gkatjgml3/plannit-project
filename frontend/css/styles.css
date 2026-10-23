@@ -79,6 +79,26 @@ svg {
   background: var(--white);
 }
 
+/* 스크롤 영역이 있는 화면은 세로로 쌓아, 기기 높이에서 남은 공간만 스크롤 영역이 차지하게 한다. */
+.timetable-screen,
+.settings-screen,
+.calendar-screen,
+.event-detail-screen,
+.event-form-screen,
+.upload-screen,
+.extraction-screen,
+.my-screen,
+.terms-info-screen,
+.groups-screen,
+.group-detail-screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.screen > * {
+  flex-shrink: 0;
+}
+
 .primary-button {
   display: flex;
   width: 100%;
@@ -991,7 +1011,8 @@ svg {
 }
 
 .settings-content {
-  height: 700px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 20px 26px 70px;
   scrollbar-width: none;
@@ -1245,7 +1266,8 @@ svg {
 }
 
 .calendar-agenda {
-  height: 315px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 18px 26px 115px;
   scrollbar-width: none;
@@ -1343,7 +1365,8 @@ svg {
 }
 
 .event-detail-scroll {
-  height: 682px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 18px 26px 110px;
   scrollbar-width: none;
@@ -1521,7 +1544,8 @@ svg {
 
 .event-form {
   display: grid;
-  height: 762px;
+  flex: 1;
+  min-height: 0;
   gap: 19px;
   overflow-y: auto;
   padding: 18px 26px 100px;
@@ -1687,7 +1711,8 @@ svg {
 }
 
 .upload-content {
-  height: 762px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 16px 26px 34px;
   scrollbar-width: none;
@@ -1954,7 +1979,8 @@ svg {
 }
 
 .result-scroll {
-  height: 680px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 13px 26px 125px;
   scrollbar-width: none;
@@ -2146,7 +2172,7 @@ svg {
 }
 
 .candidate-editor-sheet {
-  max-height: 770px;
+  max-height: min(770px, calc(100% - 40px));
   overflow-y: auto;
 }
 
@@ -2213,7 +2239,8 @@ svg {
 }
 
 .my-scroll {
-  height: 678px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 10px 26px 105px;
   scrollbar-width: none;
@@ -2351,7 +2378,8 @@ svg {
 }
 
 .terms-info-scroll {
-  height: 762px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 13px 26px 60px;
 }
@@ -2376,7 +2404,8 @@ svg {
 }
 
 .groups-scroll {
-  height: 762px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 12px 26px 60px;
   scrollbar-width: none;
@@ -2518,7 +2547,8 @@ svg {
 }
 
 .group-detail-scroll {
-  height: 762px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 9px 26px 60px;
   scrollbar-width: none;
@@ -2694,7 +2724,8 @@ svg {
 }
 
 .share-groups-sheet {
-  max-height: 680px;
+  max-height: min(680px, calc(100% - 40px));
+  overflow-y: auto;
 }
 
 .share-help {
@@ -2811,9 +2842,10 @@ svg {
 }
 
 .timetable-grid-wrap {
-  height: 692px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 0 26px 28px;
+  padding: 0 26px 112px;
   scrollbar-width: none;
 }
 

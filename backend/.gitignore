@@ -34,3 +34,6 @@ build/
 
 ### Gradle ###
 .gradle/
+
+### 로컬 이미지 저장소 ###
+data/
