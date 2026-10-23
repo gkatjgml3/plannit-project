@@ -40,22 +40,26 @@ public class EventService {
 
 	/**
 	 * teamId가 null이면 개인 일정을 만든다. 팀 일정의 팀원 여부는 호출하는 쪽(TeamController)에서 확인한다.
-	 * 같은 Idempotency-Key로 다시 요청하면 새로 만들지 않고 처음 만든 일정을 돌려준다.
+	 * 같은 Idempotency-Key와 같은 내용으로 다시 요청하면 새로 만들지 않고 처음 만든 일정을 돌려준다.
+	 * 같은 키를 다른 내용에 재사용하면 409로 거절한다.
 	 * 중복 키 충돌을 잡아야 하므로 이 메서드 전체를 하나의 트랜잭션으로 묶지 않는다.
 	 */
 	public CreateResult create(Long userId, Long teamId, EventRequest request, String idempotencyKey) {
 		ValidTimes times = validate(request);
 		String requestId = normalizeRequestId(idempotencyKey);
+		String title = request.title().trim();
+		String fingerprint = RequestFingerprint.of(teamId, title, times.startsAt(), times.endsAt(),
+				request.timezone(), request.description(), request.location());
 
 		if (requestId != null) {
 			Optional<Event> existing = events.findByCreatedByAndRequestId(userId, requestId);
 			if (existing.isPresent()) {
-				return new CreateResult(toResponse(existing.get(), userId), false);
+				return replay(existing.get(), userId, fingerprint);
 			}
 		}
 
-		Event event = new Event(teamId, userId, requestId);
-		event.update(request.title().trim(), times.startsAt(), times.endsAt(), request.timezone(),
+		Event event = new Event(teamId, userId, requestId, requestId == null ? null : fingerprint);
+		event.update(title, times.startsAt(), times.endsAt(), request.timezone(),
 				request.description(), request.location());
 		try {
 			return new CreateResult(EventResponse.of(events.saveAndFlush(event), null), true);
@@ -66,8 +70,19 @@ public class EventService {
 				throw e;
 			}
 			Event saved = events.findByCreatedByAndRequestId(userId, requestId).orElseThrow(() -> e);
-			return new CreateResult(toResponse(saved, userId), false);
+			return replay(saved, userId, fingerprint);
 		}
+	}
+
+	/** 처음 요청과 내용이 같을 때만 저장된 일정을 돌려준다. */
+	private CreateResult replay(Event existing, Long userId, String fingerprint) {
+		String stored = existing.getRequestFingerprint() != null ? existing.getRequestFingerprint()
+				: RequestFingerprint.of(existing);
+		if (!stored.equals(fingerprint)) {
+			throw ApiException.conflict("IDEMPOTENCY_KEY_REUSED",
+					"같은 Idempotency-Key가 다른 내용의 요청에 이미 사용되었습니다. 새 요청에는 새 키를 사용하세요.");
+		}
+		return new CreateResult(toResponse(existing, userId), false);
 	}
 
 	@Transactional(readOnly = true)

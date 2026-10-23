@@ -61,13 +61,22 @@ public class Event {
 	@Column(name = "request_id", length = 100)
 	private String requestId;
 
+	/** 처음 요청한 내용의 SHA-256 값. 같은 Idempotency-Key를 다른 내용에 재사용했는지 판단한다. */
+	@Column(name = "request_fingerprint", length = 64)
+	private String requestFingerprint;
+
 	protected Event() {
 	}
 
 	public Event(Long teamId, Long createdBy, String requestId) {
+		this(teamId, createdBy, requestId, null);
+	}
+
+	public Event(Long teamId, Long createdBy, String requestId, String requestFingerprint) {
 		this.teamId = teamId;
 		this.createdBy = createdBy;
 		this.requestId = requestId;
+		this.requestFingerprint = requestFingerprint;
 	}
 
 	@PrePersist
@@ -149,6 +158,10 @@ public class Event {
 
 	public Instant getDeletedAt() {
 		return deletedAt;
+	}
+
+	public String getRequestFingerprint() {
+		return requestFingerprint;
 	}
 
 }
