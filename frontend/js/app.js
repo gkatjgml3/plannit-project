@@ -101,6 +101,19 @@ const state = {
   editingCandidateId: null,
   candidateDraft: null,
   registrationComplete: false,
+  groupModalOpen: false,
+  groupModalTab: "create",
+  groupDraft: { name: "", code: "" },
+  groupError: "",
+  selectedGroupId: 1,
+  groupShareOpen: false,
+  selectedShareGroupIds: [],
+  notificationEnabled: true,
+  groups: [
+    { id: 1, name: "2학년 3반", description: "우리 반 일정 공유", code: "PLN-23CLASS", color: "violet", members: ["김플래닛", "이하늘", "박민준", "최서윤", "정도윤"], eventIds: [103] },
+    { id: 2, name: "과학 조별 과제", description: "과학 발표 준비 모임", code: "PLN-SCIENCE", color: "green", members: ["김플래닛", "이하늘", "박민준", "최서윤"], eventIds: [103] },
+    { id: 3, name: "방송부", description: "방송부 공지와 활동 일정", code: "PLN-ON-AIR", color: "blue", members: ["김플래닛", "정도윤", "한유진"], eventIds: [105] },
+  ],
 };
 
 const homeContentByDate = {
@@ -194,6 +207,9 @@ const icons = {
   upload: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M8 9l4-4 4 4M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   warning: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3.5 19h17L12 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9v4M12 16.5v.1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
   refresh: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 8a8 8 0 1 0 .3 7M19 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  users: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 20c.6-3.6 2.6-5.5 6-5.5s5.4 1.9 6 5.5M15 15c3.3 0 5.2 1.5 5.8 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+  logout: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  link: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 14 4-4M8.5 16.5l-1 1a3.5 3.5 0 0 1-5-5l3-3a3.5 3.5 0 0 1 5 0M15.5 7.5l1-1a3.5 3.5 0 0 1 5 5l-3 3a3.5 3.5 0 0 1-5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
 };
 
 // 입력값: 아이콘 이름
@@ -664,6 +680,7 @@ function renderEventDetail() {
       </div>
       <div class="detail-actions"><button type="button" data-action="edit-event">수정하기</button></div>
       ${renderDeleteEventDialog()}
+      ${renderShareGroupDialog()}
     </section>`;
 }
 
@@ -784,6 +801,77 @@ function renderExtractionResults() {
   return `<section class="screen extraction-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="upload" aria-label="업로드로 돌아가기">${icon("back")}</button><h1>분석 결과 확인</h1><span></span></header><div class="result-scroll"><div class="result-summary"><div><strong>${state.extractionCandidates.length}개의 일정을 찾았어요</strong><p>잘못 읽은 내용이 없는지 확인해 주세요.</p></div><span>부분 추출</span></div><div class="source-preview"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="원본 안내문" /><div><strong>원본 이미지</strong><small>${state.upload.fileName}</small></div></div><div class="candidate-list">${state.extractionCandidates.map(renderCandidateCard).join("")}</div></div><div class="result-actions"><p><strong>${selectedCount}</strong>개 일정 선택</p><button class="primary-button" type="button" data-action="register-candidates" ${selectedCount ? "" : "disabled"}>선택 일정 등록</button></div>${renderCandidateEditor()}${renderRegistrationComplete()}</section>`;
 }
 
+// 입력값: 아이콘 이름, 제목, 보조 설명, 실행 이름
+// 출력값: 마이 화면의 메뉴 행 HTML 문자열
+// 기능: 계정 관련 메뉴를 일관된 카드 형태로 표시한다.
+function renderMyMenuRow(iconName, title, description, action) {
+  return `<button class="my-menu-row" type="button" data-action="${action}"><span>${icon(iconName)}</span><span><strong>${title}</strong><small>${description}</small></span>${icon("chevron")}</button>`;
+}
+
+// 입력값: 없음
+// 출력값: 마이 화면 HTML 문자열
+// 기능: 사용자 정보, 그룹 관리, 알림 설정과 로그아웃 기능을 표시한다.
+function renderMy() {
+  const userName = state.signup.name.trim() || "김플래닛";
+  const userEmail = state.signup.email.trim() || state.login.email.trim() || "student@planit.kr";
+  return `<section class="screen my-screen"><header class="feature-header"><h1>마이</h1><span></span></header><div class="my-scroll"><section class="profile-card"><span class="profile-avatar">${userName.slice(0, 1)}</span><div><h2>${userName}</h2><p>${userEmail}</p><small>고등학생 · 2학년</small></div></section><section class="my-menu-card">${renderMyMenuRow("users", "내 그룹", `${state.groups.length}개 그룹에 참여 중`, "open-groups")}<label class="notification-row"><span class="my-menu-icon">${icon("bell")}</span><span><strong>일정 알림</strong><small>마감과 시작 전에 알려드려요</small></span><input type="checkbox" data-action="toggle-notification" ${state.notificationEnabled ? "checked" : ""} /></label>${renderMyMenuRow("note", "이용약관 및 개인정보", "PLANIT 서비스 정책 확인", "open-terms-info")}</section><button class="logout-button" type="button" data-action="logout">${icon("logout")} 로그아웃</button><p class="app-version">PLANIT v1.0.0</p></div>${renderBottomNav("my")}</section>`;
+}
+
+// 입력값: 없음
+// 출력값: 서비스 약관 안내 화면 HTML 문자열
+// 기능: 가입 시 동의한 서비스 이용 및 개인정보 안내를 다시 확인하게 한다.
+function renderTermsInfo() {
+  return `<section class="screen terms-info-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="my" aria-label="마이로 돌아가기">${icon("back")}</button><h1>이용약관 및 개인정보</h1><span></span></header><div class="terms-info-scroll"><section><h2>서비스 이용약관</h2><p>PLANIT은 안내문에서 추출한 일정 정보를 사용자가 확인하고 관리할 수 있도록 돕는 서비스입니다. 분석 결과는 자동 확정되지 않으며 등록 전에 사용자가 확인해야 합니다.</p></section><section><h2>개인정보 수집·이용 안내</h2><p>계정과 일정 제공에 필요한 최소 정보만 사용합니다. 이미지 원문과 민감 정보는 불필요하게 노출하거나 기록하지 않습니다.</p></section><section><h2>일정 알림 안내</h2><p>선택한 알림 시간에 따라 일정 시작 또는 마감 전에 안내합니다. 마이 화면에서 언제든 알림을 끌 수 있습니다.</p></section></div></section>`;
+}
+
+// 입력값: 그룹 객체
+// 출력값: 그룹 목록 카드 HTML 문자열
+// 기능: 참여 중인 그룹의 이름, 설명, 인원과 공유 일정 수를 보여 준다.
+function renderGroupCard(group) {
+  return `<button class="group-card" type="button" data-action="open-group" data-group-id="${group.id}"><span class="group-symbol color-${group.color}">${group.name.slice(0, 1)}</span><span class="group-card-main"><strong>${group.name}</strong><small>${group.description}</small><em>${icon("users")} ${group.members.length}명 · 공유 일정 ${group.eventIds.length}개</em></span>${icon("chevron")}</button>`;
+}
+
+// 입력값: 없음
+// 출력값: 그룹 생성·참여 바텀시트 HTML 문자열
+// 기능: 새 그룹 이름을 등록하거나 초대 코드로 기존 그룹에 참여한다.
+function renderGroupModal() {
+  if (!state.groupModalOpen) return "";
+  const isCreate = state.groupModalTab === "create";
+  return `<div class="sheet-scrim" data-action="close-group-modal"></div><section class="bottom-sheet group-modal-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>그룹 추가</h2><button type="button" data-action="close-group-modal">${icon("close")}</button></div><div class="segment-control group-segments"><button class="${isCreate ? "is-active" : ""}" type="button" data-action="set-group-tab" data-tab="create">그룹 만들기</button><button class="${!isCreate ? "is-active" : ""}" type="button" data-action="set-group-tab" data-tab="join">코드로 참여</button></div><form class="group-form" data-form="group"><div class="group-modal-icon">${icon(isCreate ? "users" : "link")}</div><h3>${isCreate ? "새 그룹을 만들어 보세요" : "초대 코드를 입력해 주세요"}</h3><p>${isCreate ? "반, 동아리, 스터디 일정을 함께 관리할 수 있어요." : "그룹 관리자에게 받은 코드를 입력하면 바로 참여해요."}</p>${isCreate ? `<label class="compact-field"><span>그룹 이름</span><input name="name" value="${escapeAttribute(state.groupDraft.name)}" placeholder="예: 2학년 3반" /></label>` : `<label class="compact-field"><span>초대 코드</span><input name="code" value="${escapeAttribute(state.groupDraft.code)}" placeholder="PLN-XXXX" /></label>`}${state.groupError ? `<small class="group-error">${state.groupError}</small>` : ""}<button class="primary-button" type="submit" ${(isCreate ? state.groupDraft.name.trim() : state.groupDraft.code.trim()) ? "" : "disabled"}>${isCreate ? "그룹 만들기" : "그룹 참여"}</button></form></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 그룹 목록 화면 HTML 문자열
+// 기능: 참여 그룹을 확인하고 그룹 생성 또는 코드 참여를 시작한다.
+function renderGroups() {
+  return `<section class="screen groups-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="my" aria-label="마이로 돌아가기">${icon("back")}</button><h1>내 그룹</h1><button type="button" data-action="open-group-modal" aria-label="그룹 추가">${icon("plus")}</button></header><div class="groups-scroll"><div class="groups-heading"><h2>함께하는 그룹</h2><p>그룹 일정을 내 캘린더에서 한눈에 확인해요.</p></div><div class="group-list">${state.groups.map(renderGroupCard).join("")}</div></div>${renderGroupModal()}</section>`;
+}
+
+// 입력값: 그룹에서 공유 중인 일정 ID 목록
+// 출력값: 공유 일정 카드 HTML 문자열
+// 기능: 그룹 상세 화면에서 구성원이 함께 보는 일정을 보여 준다.
+function renderGroupEvents(eventIds) {
+  const events = state.events.filter((item) => eventIds.includes(item.id));
+  if (!events.length) return `<p class="group-empty">아직 공유된 일정이 없어요.</p>`;
+  return events.map((item) => `<button class="group-event-row" type="button" data-action="open-event" data-event-id="${item.id}"><span>${item.date.slice(5).replace("-", "/")}</span><div><strong>${item.title}</strong><small>${item.start} · ${item.location || "장소 없음"}</small></div>${icon("chevron")}</button>`).join("");
+}
+
+// 입력값: 없음
+// 출력값: 선택한 그룹 상세 화면 HTML 문자열
+// 기능: 그룹 구성원, 초대 코드와 공유 일정을 확인하고 새 그룹 일정을 등록한다.
+function renderGroupDetail() {
+  const group = state.groups.find((item) => item.id === state.selectedGroupId) ?? state.groups[0];
+  return `<section class="screen group-detail-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="groups" aria-label="그룹 목록으로 돌아가기">${icon("back")}</button><h1>그룹 상세</h1><span></span></header><div class="group-detail-scroll"><section class="group-hero color-${group.color}"><span>${group.name.slice(0, 1)}</span><div><h2>${group.name}</h2><p>${group.description}</p></div></section><section class="invite-code-card"><div><small>초대 코드</small><strong>${group.code}</strong></div><button type="button" data-action="copy-group-code" data-code="${group.code}">${icon("link")} 복사</button></section><section class="group-section"><div class="group-section-heading"><h3>구성원</h3><span>${group.members.length}명</span></div><div class="member-stack">${group.members.slice(0, 5).map((member, index) => `<span title="${member}" style="--member-index:${index}">${member.slice(0, 1)}</span>`).join("")}</div><p class="member-names">${group.members.join(" · ")}</p></section><section class="group-section"><div class="group-section-heading"><h3>공유 일정</h3><button type="button" data-action="new-group-event">+ 일정 추가</button></div><div class="group-event-list">${renderGroupEvents(group.eventIds)}</div></section></div></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 그룹 공유 선택 팝업 HTML 문자열
+// 기능: 현재 일정을 공유할 그룹을 복수 선택하고 적용한다.
+function renderShareGroupDialog() {
+  if (!state.groupShareOpen) return "";
+  return `<div class="sheet-scrim" data-action="close-share-groups"></div><section class="bottom-sheet share-groups-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>그룹에 공유</h2><button type="button" data-action="close-share-groups">${icon("close")}</button></div><p class="share-help">이 일정을 함께 볼 그룹을 선택해 주세요.</p><div class="share-group-list">${state.groups.map((group) => { const selected = state.selectedShareGroupIds.includes(group.id); return `<button class="${selected ? "is-selected" : ""}" type="button" data-action="toggle-share-group" data-group-id="${group.id}"><span class="group-symbol color-${group.color}">${group.name.slice(0, 1)}</span><span><strong>${group.name}</strong><small>${group.members.length}명</small></span><i>${selected ? icon("check") : ""}</i></button>`; }).join("")}</div><button class="primary-button" type="button" data-action="confirm-share-groups" ${state.selectedShareGroupIds.length ? "" : "disabled"}>선택 그룹에 공유</button></section>`;
+}
+
 // 입력값: 없음
 // 출력값: 회원가입 입력값의 유효 여부
 // 기능: 이름, 이메일, 비밀번호 규칙과 비밀번호 일치 여부를 검사한다.
@@ -809,6 +897,10 @@ function renderApp() {
     eventForm: renderEventForm,
     upload: renderUpload,
     extractionResults: renderExtractionResults,
+    my: renderMy,
+    termsInfo: renderTermsInfo,
+    groups: renderGroups,
+    groupDetail: renderGroupDetail,
   };
   app.innerHTML = (views[state.currentView] ?? renderHome)();
 }
@@ -879,6 +971,12 @@ function handleInput(event) {
   if (form.dataset.form === "candidate" && state.candidateDraft) {
     state.candidateDraft[input.name] = input.value;
   }
+  if (form.dataset.form === "group") {
+    state.groupDraft[input.name] = input.value;
+    state.groupError = "";
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) submitButton.disabled = !input.value.trim();
+  }
 }
 
 // 입력값: 폼 제출 이벤트
@@ -924,9 +1022,14 @@ function handleSubmit(event) {
       const eventItem = state.events.find((item) => item.id === state.selectedEventId);
       Object.assign(eventItem, state.eventDraft);
     } else {
-      const newEvent = { id: Date.now(), ...state.eventDraft, shared: false };
+      const isGroupEvent = state.eventReturnView === "groupDetail";
+      const newEvent = { id: Date.now(), ...state.eventDraft, shared: isGroupEvent };
       state.events.push(newEvent);
       state.selectedEventId = newEvent.id;
+      if (isGroupEvent) {
+        const group = state.groups.find((item) => item.id === state.selectedGroupId);
+        if (group) group.eventIds.push(newEvent.id);
+      }
     }
     const [year, month, day] = state.eventDraft.date.split("-").map(Number);
     state.calendarYear = year;
@@ -943,6 +1046,31 @@ function handleSubmit(event) {
     state.candidateDraft = null;
     state.editingCandidateId = null;
     renderApp();
+  }
+
+
+  if (form.dataset.form === "group") {
+    if (state.groupModalTab === "create" && state.groupDraft.name.trim()) {
+      const group = { id: Date.now(), name: state.groupDraft.name.trim(), description: "새로운 일정 공유 그룹", code: `PLN-${String(Date.now()).slice(-6)}`, color: "violet", members: [state.signup.name.trim() || "김플래닛"], eventIds: [] };
+      state.groups.push(group);
+      state.selectedGroupId = group.id;
+      state.groupModalOpen = false;
+      state.groupDraft = { name: "", code: "" };
+      state.currentView = "groupDetail";
+      renderApp();
+    }
+    if (state.groupModalTab === "join" && state.groupDraft.code.trim()) {
+      const group = state.groups.find((item) => item.code.toLowerCase() === state.groupDraft.code.trim().toLowerCase());
+      if (!group) {
+        state.groupError = "초대 코드를 다시 확인해 주세요.";
+      } else {
+        state.selectedGroupId = group.id;
+        state.groupModalOpen = false;
+        state.groupDraft = { name: "", code: "" };
+        state.currentView = "groupDetail";
+      }
+      renderApp();
+    }
   }
 }
 
@@ -1097,6 +1225,56 @@ function handleClick(event) {
   if (action === "finish-registration") {
     state.registrationComplete = false;
     state.currentView = "calendar";
+  }
+  if (action === "open-groups") state.currentView = "groups";
+  if (action === "open-terms-info") state.currentView = "termsInfo";
+  if (action === "toggle-notification") state.notificationEnabled = !state.notificationEnabled;
+  if (action === "logout") {
+    state.currentView = "login";
+    state.login.password = "";
+  }
+  if (action === "open-group-modal") {
+    state.groupModalOpen = true;
+    state.groupModalTab = "create";
+    state.groupError = "";
+  }
+  if (action === "close-group-modal") state.groupModalOpen = false;
+  if (action === "set-group-tab") {
+    state.groupModalTab = target.dataset.tab;
+    state.groupError = "";
+  }
+  if (action === "open-group") {
+    state.selectedGroupId = Number(target.dataset.groupId);
+    state.currentView = "groupDetail";
+  }
+  if (action === "copy-group-code") {
+    navigator.clipboard?.writeText(target.dataset.code).catch(() => {});
+    target.textContent = "복사됨";
+    return;
+  }
+  if (action === "new-group-event") {
+    openEventForm(null, "groupDetail");
+    state.eventDraft.category = "그룹";
+  }
+  if (action === "open-share-groups") {
+    state.groupShareOpen = true;
+    state.selectedShareGroupIds = state.groups.filter((group) => group.eventIds.includes(state.selectedEventId)).map((group) => group.id);
+  }
+  if (action === "close-share-groups") state.groupShareOpen = false;
+  if (action === "toggle-share-group") {
+    const groupId = Number(target.dataset.groupId);
+    state.selectedShareGroupIds = state.selectedShareGroupIds.includes(groupId) ? state.selectedShareGroupIds.filter((id) => id !== groupId) : [...state.selectedShareGroupIds, groupId];
+  }
+  if (action === "confirm-share-groups") {
+    state.groups.forEach((group) => {
+      const shouldShare = state.selectedShareGroupIds.includes(group.id);
+      const hasEvent = group.eventIds.includes(state.selectedEventId);
+      if (shouldShare && !hasEvent) group.eventIds.push(state.selectedEventId);
+      if (!shouldShare && hasEvent) group.eventIds = group.eventIds.filter((id) => id !== state.selectedEventId);
+    });
+    const eventItem = state.events.find((item) => item.id === state.selectedEventId);
+    if (eventItem) eventItem.shared = state.selectedShareGroupIds.length > 0;
+    state.groupShareOpen = false;
   }
 
   renderApp();

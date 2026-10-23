@@ -2100,6 +2100,568 @@ svg {
   font-size: 12px;
 }
 
+.my-screen,
+.groups-screen,
+.group-detail-screen,
+.terms-info-screen {
+  background: #fbfaff;
+}
+
+.my-scroll {
+  height: 678px;
+  overflow-y: auto;
+  padding: 10px 26px 105px;
+  scrollbar-width: none;
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 21px 18px;
+  border-radius: 19px;
+  background: var(--white);
+  box-shadow: 0 5px 18px rgba(55, 41, 99, 0.05);
+}
+
+.profile-avatar {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--white);
+  background: linear-gradient(135deg, #8c70ea, #6745dc);
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.profile-card h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.profile-card p {
+  margin: 6px 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.profile-card small {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.my-menu-card {
+  margin-top: 17px;
+  padding: 3px 17px;
+  border-radius: 19px;
+  background: var(--white);
+}
+
+.my-menu-row,
+.notification-row {
+  display: grid;
+  grid-template-columns: 38px 1fr 21px;
+  width: 100%;
+  min-height: 78px;
+  align-items: center;
+  gap: 11px;
+  text-align: left;
+}
+
+.my-menu-row + .my-menu-row,
+.notification-row + .my-menu-row,
+.my-menu-row + .notification-row {
+  border-top: 1px solid #eeeaf4;
+}
+
+.my-menu-row > span:first-child,
+.my-menu-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.my-menu-row > span:first-child svg,
+.my-menu-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.my-menu-row > span:nth-child(2),
+.notification-row > span:nth-child(2) {
+  display: grid;
+  gap: 5px;
+}
+
+.my-menu-row strong,
+.notification-row strong {
+  font-size: 14px;
+}
+
+.my-menu-row small,
+.notification-row small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.my-menu-row > svg {
+  width: 19px;
+  height: 19px;
+  color: var(--muted);
+}
+
+.notification-row input {
+  width: 40px;
+  height: 23px;
+  accent-color: var(--primary);
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 25px auto 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.logout-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.app-version {
+  margin: 16px 0 0;
+  color: #b5aebf;
+  font-size: 10px;
+  text-align: center;
+}
+
+.terms-info-scroll {
+  height: 762px;
+  overflow-y: auto;
+  padding: 13px 26px 60px;
+}
+
+.terms-info-scroll section {
+  margin-bottom: 13px;
+  padding: 20px;
+  border-radius: 17px;
+  background: var(--white);
+}
+
+.terms-info-scroll h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.terms-info-scroll p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.groups-scroll {
+  height: 762px;
+  overflow-y: auto;
+  padding: 12px 26px 60px;
+  scrollbar-width: none;
+}
+
+.groups-heading h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.groups-heading p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.group-list {
+  display: grid;
+  gap: 11px;
+  margin-top: 21px;
+}
+
+.group-card {
+  display: grid;
+  grid-template-columns: 52px 1fr 20px;
+  min-height: 100px;
+  align-items: center;
+  gap: 13px;
+  padding: 15px;
+  border-radius: 18px;
+  background: var(--white);
+  box-shadow: 0 4px 15px rgba(55, 41, 99, 0.05);
+  text-align: left;
+}
+
+.group-symbol {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 16px;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.group-card-main {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.group-card-main strong {
+  font-size: 15px;
+}
+
+.group-card-main small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.group-card-main em {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.group-card-main em svg {
+  width: 13px;
+  height: 13px;
+}
+
+.group-card > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.group-modal-sheet {
+  min-height: 520px;
+}
+
+.group-segments {
+  margin: 20px 0 0;
+}
+
+.group-form {
+  display: grid;
+  justify-items: center;
+  margin-top: 25px;
+  text-align: center;
+}
+
+.group-modal-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 18px;
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.group-modal-icon svg {
+  width: 29px;
+  height: 29px;
+}
+
+.group-form h3 {
+  margin: 15px 0 0;
+  font-size: 17px;
+}
+
+.group-form > p {
+  margin: 8px 0 22px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.group-form .compact-field,
+.group-form .primary-button {
+  width: 100%;
+  text-align: left;
+}
+
+.group-form .primary-button {
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.group-error {
+  justify-self: start;
+  margin-top: 8px;
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.group-detail-scroll {
+  height: 762px;
+  overflow-y: auto;
+  padding: 9px 26px 60px;
+  scrollbar-width: none;
+}
+
+.group-hero {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  border-radius: 19px;
+}
+
+.group-hero > span {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 18px;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.group-hero h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 19px;
+}
+
+.group-hero p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.invite-code-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 13px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--white);
+}
+
+.invite-code-card > div {
+  display: grid;
+  gap: 5px;
+}
+
+.invite-code-card small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.invite-code-card strong {
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+
+.invite-code-card button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.invite-code-card svg {
+  width: 16px;
+  height: 16px;
+}
+
+.group-section {
+  margin-top: 24px;
+}
+
+.group-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.group-section-heading h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.group-section-heading span,
+.group-section-heading button {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.member-stack {
+  display: flex;
+  padding-left: 8px;
+}
+
+.member-stack span {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  margin-left: -8px;
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  color: var(--white);
+  background: hsl(calc(255 + var(--member-index) * 24), 58%, 60%);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.member-names {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.group-event-list {
+  display: grid;
+  gap: 8px;
+}
+
+.group-event-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 19px;
+  min-height: 69px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: var(--white);
+  text-align: left;
+}
+
+.group-event-row > span {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.group-event-row > div {
+  display: grid;
+  gap: 6px;
+}
+
+.group-event-row strong {
+  font-size: 13px;
+}
+
+.group-event-row small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.group-event-row > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+.group-empty {
+  padding: 25px 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.share-groups-sheet {
+  max-height: 680px;
+}
+
+.share-help {
+  margin: 10px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.share-group-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.share-group-list > button {
+  display: grid;
+  grid-template-columns: 46px 1fr 24px;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-align: left;
+}
+
+.share-group-list > button.is-selected {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.share-group-list .group-symbol {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+.share-group-list > button > span:nth-child(2) {
+  display: grid;
+  gap: 5px;
+}
+
+.share-group-list strong {
+  font-size: 13px;
+}
+
+.share-group-list small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.share-group-list i {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid #cfc6de;
+  border-radius: 7px;
+  color: var(--white);
+  background: var(--white);
+}
+
+.share-group-list .is-selected i {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.share-group-list i svg {
+  width: 15px;
+  height: 15px;
+}
+
 @media (max-height: 760px) {
   .auth-screen {
     padding-top: 110px;
