@@ -7,3 +7,5 @@ spring:
 planit:
   jwt:
     secret: test-secret-for-unit-tests-0123456789abcdef
+  storage:
+    type: memory

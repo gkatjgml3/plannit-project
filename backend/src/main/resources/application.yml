@@ -10,9 +10,23 @@ spring:
     hibernate:
       # 테이블은 Flyway가 만들고, JPA는 엔티티와 테이블이 맞는지만 확인한다.
       ddl-auto: validate
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
 
 planit:
   jwt:
     # 로컬 개발용 기본값. 배포할 때는 반드시 JWT_SECRET 환경변수로 32자 이상 값을 넣는다.
     secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789}
     expiration: 24h
+  ai:
+    # 사용할 ScheduleAnalyzer 구현. 지금은 fake(개발·테스트용 가짜 분석기)만 있다.
+    analyzer: ${AI_ANALYZER:fake}
+  storage:
+    # 사용할 ImageStorage 구현: local(서버 폴더) 또는 memory(테스트용).
+    type: ${IMAGE_STORAGE_TYPE:local}
+    local:
+      directory: ${IMAGE_STORAGE_DIR:data/images}
+  analysis:
+    max-image-bytes: 10485760

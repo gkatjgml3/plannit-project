@@ -12,6 +12,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 /** 모든 오류 응답을 {code, message} 형태로 통일한다. */
 @RestControllerAdvice
@@ -37,9 +39,15 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler({ MissingServletRequestParameterException.class, MissingRequestHeaderException.class,
-			MethodArgumentTypeMismatchException.class })
+			MethodArgumentTypeMismatchException.class, MissingServletRequestPartException.class })
 	public ResponseEntity<ErrorResponse> handleBadParameter(Exception e) {
 		return badRequest("INVALID_PARAMETER", "요청 값이 없거나 형식이 잘못되었습니다.");
+	}
+
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<ErrorResponse> handleTooLarge(MaxUploadSizeExceededException e) {
+		return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
+				.body(new ErrorResponse("IMAGE_TOO_LARGE", "업로드한 파일이 너무 큽니다."));
 	}
 
 	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
