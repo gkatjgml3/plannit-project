@@ -39,21 +39,36 @@ const state = {
     color: "violet",
   },
   timetable: [
-    { id: 1, day: "월", period: 1, title: "국어", teacher: "김선생님", room: "2학년 3반", color: "violet" },
-    { id: 2, day: "월", period: 2, title: "수학", teacher: "박선생님", room: "2학년 3반", color: "blue" },
-    { id: 3, day: "월", period: 3, title: "영어", teacher: "이선생님", room: "영어전용실", color: "green" },
-    { id: 4, day: "월", period: 4, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 5, day: "화", period: 1, title: "수학", teacher: "박선생님", room: "2학년 3반", color: "blue" },
-    { id: 6, day: "화", period: 2, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 7, day: "화", period: 3, title: "한국사", teacher: "정선생님", room: "2학년 3반", color: "pink" },
-    { id: 8, day: "화", period: 5, title: "영어", teacher: "이선생님", room: "영어전용실", color: "green" },
-    { id: 9, day: "수", period: 1, title: "영어", teacher: "이선생님", room: "영어전용실", color: "green" },
-    { id: 10, day: "수", period: 2, title: "국어", teacher: "김선생님", room: "2학년 3반", color: "violet" },
-    { id: 11, day: "수", period: 3, title: "수학", teacher: "박선생님", room: "2학년 3반", color: "blue" },
-    { id: 12, day: "목", period: 1, title: "사회", teacher: "한선생님", room: "2학년 3반", color: "yellow" },
-    { id: 13, day: "목", period: 2, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
-    { id: 14, day: "금", period: 1, title: "국어", teacher: "김선생님", room: "2학년 3반", color: "violet" },
-    { id: 15, day: "금", period: 2, title: "수학", teacher: "박선생님", room: "2학년 3반", color: "blue" },
+    { id: 1, day: "월", period: 1, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
+    { id: 2, day: "화", period: 1, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
+    { id: 3, day: "수", period: 1, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
+    { id: 4, day: "목", period: 1, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
+    { id: 5, day: "금", period: 1, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
+    { id: 6, day: "월", period: 2, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
+    { id: 7, day: "화", period: 2, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
+    { id: 8, day: "수", period: 2, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
+    { id: 9, day: "목", period: 2, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
+    { id: 10, day: "금", period: 2, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
+    { id: 11, day: "월", period: 3, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
+    { id: 12, day: "화", period: 3, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
+    { id: 13, day: "수", period: 3, title: "수학", teacher: "박선생님", room: "3반", color: "blue" },
+    { id: 14, day: "목", period: 3, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
+    { id: 15, day: "금", period: 3, title: "영어", teacher: "이선생님", room: "3반", color: "green" },
+    { id: 16, day: "월", period: 4, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
+    { id: 17, day: "화", period: 4, title: "사회", teacher: "한선생님", room: "3반", color: "yellow" },
+    { id: 18, day: "수", period: 4, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
+    { id: 19, day: "목", period: 4, title: "국어", teacher: "김선생님", room: "3반", color: "violet" },
+    { id: 20, day: "금", period: 4, title: "사회", teacher: "한선생님", room: "3반", color: "yellow" },
+    { id: 21, day: "월", period: 5, title: "체육", teacher: "윤선생님", room: "체육관", color: "pink" },
+    { id: 22, day: "화", period: 5, title: "음악", teacher: "오선생님", room: "음악실", color: "pink" },
+    { id: 23, day: "수", period: 5, title: "미술", teacher: "서선생님", room: "미술실", color: "pink" },
+    { id: 24, day: "목", period: 5, title: "사회", teacher: "한선생님", room: "3반", color: "yellow" },
+    { id: 25, day: "금", period: 5, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
+    { id: 26, day: "월", period: 6, title: "한국사", teacher: "정선생님", room: "3반", color: "yellow" },
+    { id: 27, day: "화", period: 6, title: "과학", teacher: "최선생님", room: "과학실", color: "orange" },
+    { id: 28, day: "수", period: 6, title: "창체", teacher: "담임선생님", room: "3반", color: "violet" },
+    { id: 29, day: "목", period: 6, title: "체육", teacher: "윤선생님", room: "체육관", color: "pink" },
+    { id: 30, day: "금", period: 6, title: "한국사", teacher: "정선생님", room: "3반", color: "yellow" },
   ],
   periodTimes: [
     { period: 1, start: "09:00", end: "09:50" },
@@ -62,7 +77,6 @@ const state = {
     { period: 4, start: "12:00", end: "12:50" },
     { period: 5, start: "14:00", end: "14:50" },
     { period: 6, start: "15:00", end: "15:50" },
-    { period: 7, start: "16:00", end: "16:50" },
   ],
   calendarYear: 2026,
   calendarMonth: 10,
@@ -490,31 +504,33 @@ function renderClassEditor() {
 }
 
 // 입력값: 없음
-// 출력값: 선택한 요일의 수업 카드 HTML 문자열
-// 기능: 시간 순서대로 수업을 표시하고 비어 있을 때 안내 문구를 보여 준다.
+// 출력값: 월요일부터 금요일까지의 전체 시간표 격자 HTML 문자열
+// 기능: 1교시부터 6교시까지 모든 요일을 빠짐없이 피그마 구조로 표시한다.
 function renderTimetableClasses() {
-  const classes = state.timetable.filter((item) => item.day === state.selectedWeekday).sort((a, b) => a.period - b.period);
-  if (classes.length === 0) {
-    return `<div class="timetable-empty">${icon("timetable")}<strong>등록된 수업이 없어요</strong><p>상단의 설정에서 시간표를 등록해 주세요</p><button type="button" data-action="open-timetable-settings">시간표 설정</button></div>`;
-  }
-
-  return classes.map((item) => {
-    const period = state.periodTimes.find((entry) => entry.period === item.period);
-    return `<button class="class-row" type="button" data-action="edit-class" data-class-id="${item.id}"><span class="period-label"><strong>${item.period}</strong><small>${period?.start ?? ""}</small></span><span class="class-card color-${item.color}"><strong>${escapeAttribute(item.title)}</strong><small>${escapeAttribute(item.teacher)} · ${escapeAttribute(item.room)}</small></span></button>`;
+  const weekdays = ["월", "화", "수", "목", "금"];
+  const header = `<span class="timetable-corner"></span>${weekdays.map((day) => `<strong class="timetable-weekday">${day}</strong>`).join("")}`;
+  const rows = state.periodTimes.map(({ period, start }) => {
+    const cells = weekdays.map((day) => {
+      const classItem = state.timetable.find((item) => item.day === day && item.period === period);
+      if (!classItem) {
+        return `<button class="timetable-cell is-empty" type="button" data-action="add-class-for-slot" data-day="${day}" data-period="${period}" aria-label="${day}요일 ${period}교시 수업 추가">${icon("plus")}</button>`;
+      }
+      return `<button class="timetable-cell" type="button" data-action="edit-class" data-class-id="${classItem.id}"><strong>${escapeAttribute(classItem.title)}</strong><small>${escapeAttribute(classItem.room)}</small></button>`;
+    }).join("");
+    const lunch = period === 4 ? `<div class="timetable-lunch">점심시간 12:50 – 14:00</div>` : "";
+    return `<div class="timetable-time"><strong>${period}</strong><small>${start}</small></div>${cells}${lunch}`;
   }).join("");
+  return `<div class="timetable-grid">${header}${rows}</div>`;
 }
 
 // 입력값: 없음
 // 출력값: 내 시간표 화면 HTML 문자열
-// 기능: 요일별 수업 목록과 시간표 설정 진입 기능을 표시한다.
+// 기능: 학급의 월~금 전체 시간표와 시간표 편집 진입 기능을 표시한다.
 function renderTimetable() {
-  const weekdays = ["월", "화", "수", "목", "금"];
   return `
     <section class="screen timetable-screen">
-      <header class="feature-header"><h1>내 시간표</h1><button type="button" data-action="open-timetable-settings" aria-label="시간표 설정">${icon("gear")}</button></header>
-      <div class="weekday-tabs">${weekdays.map((day) => `<button class="${state.selectedWeekday === day ? "is-active" : ""}" type="button" data-action="select-weekday" data-day="${day}">${day}</button>`).join("")}</div>
-      <div class="timetable-list">${renderTimetableClasses()}</div>
-      <button class="floating-button timetable-add" type="button" data-action="add-class" aria-label="수업 추가">${icon("plus")}</button>
+      <header class="timetable-header"><div><h1>내 시간표</h1><p>2학년 3반 · 월~금</p></div><button type="button" data-action="open-timetable-settings">${icon("pencil")}<span>편집</span></button></header>
+      <div class="timetable-grid-wrap">${renderTimetableClasses()}</div>
       ${renderBottomNav("timetable")}
       ${renderClassEditor()}
     </section>`;
@@ -1147,6 +1163,11 @@ function handleClick(event) {
   if (action === "open-timetable-settings") state.currentView = "timetableSettings";
   if (action === "set-timetable-tab") state.timetableSettingsTab = target.dataset.tab;
   if (action === "add-class") openClassEditor();
+  if (action === "add-class-for-slot") {
+    state.selectedWeekday = target.dataset.day;
+    openClassEditor();
+    state.classDraft.period = target.dataset.period;
+  }
   if (action === "add-class-for-day") {
     state.selectedWeekday = target.dataset.day;
     openClassEditor();

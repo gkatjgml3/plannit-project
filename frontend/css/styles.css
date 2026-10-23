@@ -2718,6 +2718,148 @@ svg {
   height: 15px;
 }
 
+.timetable-screen {
+  background: var(--white);
+}
+
+.timetable-header {
+  display: flex;
+  height: 145px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 27px 18px;
+}
+
+.timetable-header h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+}
+
+.timetable-header p {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.timetable-header > button {
+  display: flex;
+  height: 38px;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+  padding: 0 14px;
+  border-radius: 19px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.timetable-header > button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.timetable-grid-wrap {
+  height: 645px;
+  overflow-y: auto;
+  padding: 0 26px 28px;
+  scrollbar-width: none;
+}
+
+.timetable-grid-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.timetable-grid {
+  display: grid;
+  grid-template-columns: 31px repeat(5, minmax(0, 1fr));
+  grid-auto-flow: row;
+  align-items: stretch;
+  gap: 5px 4px;
+}
+
+.timetable-corner,
+.timetable-weekday {
+  display: grid;
+  height: 31px;
+  place-items: center;
+}
+
+.timetable-weekday {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.timetable-time {
+  display: grid;
+  height: 78px;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+}
+
+.timetable-time strong {
+  font-size: 16px;
+}
+
+.timetable-time small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.timetable-cell {
+  display: grid;
+  height: 78px;
+  align-content: center;
+  justify-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 7px 3px;
+  border-radius: 11px;
+  background: var(--primary-soft);
+  text-align: center;
+}
+
+.timetable-cell strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timetable-cell small {
+  overflow: hidden;
+  max-width: 100%;
+  color: var(--primary);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timetable-cell.is-empty {
+  color: #b3a7d8;
+  background: #f7f5fb;
+}
+
+.timetable-cell.is-empty svg {
+  width: 18px;
+  height: 18px;
+}
+
+.timetable-lunch {
+  display: grid;
+  grid-column: 1 / -1;
+  height: 29px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--muted);
+  background: #f2eff6;
+  font-size: 10px;
+}
+
 @media (max-height: 760px) {
   .auth-screen {
     padding-top: 110px;
