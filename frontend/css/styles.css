@@ -36,6 +36,17 @@ button {
   cursor: pointer;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .app-shell {
   position: relative;
   width: min(100%, 402px);
@@ -605,6 +616,29 @@ button {
   text-align: center;
 }
 
+.upload-box.has-preview {
+  min-height: 0;
+  padding-top: 20px;
+}
+
+.upload-preview-image {
+  display: grid;
+  width: 100%;
+  min-height: 210px;
+  max-height: 290px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #eeeaf5;
+}
+
+.upload-preview-image img {
+  display: block;
+  width: 100%;
+  max-height: 290px;
+  object-fit: contain;
+}
+
 .upload-box h2 {
   margin: 16px 0 8px;
   font-size: 18px;
@@ -670,6 +704,13 @@ button {
   font-size: 12px;
 }
 
+.upload-error {
+  margin: 12px 0 0;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .bottom-action {
   position: fixed;
   right: max(26px, calc((100vw - 402px) / 2 + 26px));
@@ -684,6 +725,46 @@ button {
 
 .analysis-page {
   min-height: calc(100dvh - 134px);
+}
+
+.analysis-loading {
+  display: grid;
+  align-content: start;
+}
+
+.loading-panel {
+  display: grid;
+  min-height: 420px;
+  place-items: center;
+  align-content: center;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 20px;
+  border: 4px solid #dcd4f7;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.loading-panel h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.loading-panel p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .analysis-count {

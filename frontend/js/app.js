@@ -6,7 +6,9 @@ const state = {
   selectedDate: "23",
   selectedWeekday: "금",
   timetableHasClasses: false,
-  selectedAnalysisCount: 3,
+  uploadImageUrl: "",
+  uploadError: "",
+  analysisStatus: "idle",
 };
 
 const icons = {
@@ -213,6 +215,8 @@ function renderCalendar() {
 // 출력값: 이미지 업로드 화면 HTML 문자열
 // 기능: 공지 이미지 선택·촬영과 분석 시작 전 안내를 표시한다.
 function renderUpload() {
+  const hasPreview = Boolean(state.uploadImageUrl);
+
   return `
     <section class="upload-page">
       <header class="screen-header">
@@ -220,15 +224,27 @@ function renderUpload() {
         <h1 class="screen-title">공지 사진으로 추가</h1>
         <span></span>
       </header>
-      <section class="upload-box">
-        <span class="card-icon">${icon("image")}</span>
-        <h2>공지 사진을 올려 주세요</h2>
-        <p>사진 속 날짜·장소·준비물을 찾아<br />일정 후보로 정리해 드려요</p>
+      <section class="upload-box ${hasPreview ? "has-preview" : ""}">
+        ${hasPreview ? `<div class="upload-preview-image"><img src="${state.uploadImageUrl}" alt="선택한 공지 이미지 미리보기" /></div><h2>사진을 확인해 주세요</h2><p>이 사진에서 일정 후보를 찾아 드려요</p>` : `<span class="card-icon">${icon("image")}</span><h2>공지 사진을 올려 주세요</h2><p>사진 속 날짜·장소·준비물을 찾아<br />일정 후보로 정리해 드려요</p>`}
         <div class="upload-actions"><button class="secondary-button" type="button" data-action="choose-image">${icon("image")} 사진 선택</button><button class="secondary-button" type="button" data-action="choose-camera">${icon("camera")} 촬영하기</button></div>
+        <input id="image-file-input" class="visually-hidden" type="file" accept="image/jpeg,image/png" />
       </section>
+      ${state.uploadError ? `<p class="upload-error" role="alert">${state.uploadError}</p>` : ""}
       <section class="upload-tips"><h2>이렇게 올리면 정확해요</h2><ul><li>글자가 잘 보이게 정면에서 찍어 주세요</li><li>한 장에 일정이 여러 개 있어도 괜찮아요</li><li>JPG, PNG · 최대 10MB</li></ul></section>
       <p class="upload-note">찾은 결과는 바로 등록되지 않아요. 확인 후 등록해요.</p>
-      <div class="bottom-action"><button class="primary-button is-disabled" type="button" disabled>분석 시작</button></div>
+      <div class="bottom-action"><button class="primary-button ${hasPreview ? "" : "is-disabled"}" type="button" data-action="start-analysis" ${hasPreview ? "" : "disabled"}>분석 시작</button></div>
+    </section>
+  `;
+}
+
+// 입력값: 없음
+// 출력값: 분석 중 화면 HTML 문자열
+// 기능: 이미지 분석이 진행 중인 상태를 표시한다.
+function renderAnalysisLoading() {
+  return `
+    <section class="analysis-page analysis-loading">
+      <header class="screen-header"><button class="back-button" type="button" aria-label="뒤로" data-action="back-upload">${icon("back")}</button><h1 class="screen-title">일정 분석 중</h1><span></span></header>
+      <div class="loading-panel"><span class="loading-spinner" aria-hidden="true"></span><h2>공지에서 일정을 찾고 있어요</h2><p>날짜·시간·장소·준비물을 확인하고 있어요</p></div>
     </section>
   `;
 }
@@ -279,10 +295,10 @@ function renderGroups() {
 // 출력값: 없음
 // 기능: 현재 라우트에 해당하는 화면과 하단 네비게이션을 다시 그린다.
 function renderApp() {
-  const views = { home: renderHome, timetable: renderTimetable, timetableSettings: renderTimetableSettings, calendar: renderCalendar, upload: renderUpload, analysis: renderAnalysis, candidateEdit: renderCandidateEdit, groups: renderGroups };
+  const views = { home: renderHome, timetable: renderTimetable, timetableSettings: renderTimetableSettings, calendar: renderCalendar, upload: renderUpload, analysisLoading: renderAnalysisLoading, analysis: renderAnalysis, candidateEdit: renderCandidateEdit, groups: renderGroups };
   app.innerHTML = views[state.currentView]();
   document.querySelectorAll("[data-nav-icon]").forEach((element) => { element.innerHTML = icon(element.dataset.navIcon); });
-  bottomNav.hidden = ["timetableSettings", "upload", "analysis", "candidateEdit"].includes(state.currentView);
+  bottomNav.hidden = ["timetableSettings", "upload", "analysisLoading", "analysis", "candidateEdit"].includes(state.currentView);
   bottomNav.querySelectorAll("[data-route]").forEach((button) => { button.classList.toggle("is-active", button.dataset.route === state.currentView || (state.currentView === "groups" && button.dataset.route === "groups")); });
 }
 
@@ -318,9 +334,27 @@ function handleAction(event) {
   if (action === "open-timetable" || action === "open-timetable-settings") state.currentView = action === "open-timetable" ? "timetable" : "timetableSettings";
   if (action === "back-timetable") state.currentView = "timetable";
   if (action === "save-timetable") { state.timetableHasClasses = true; state.currentView = "timetable"; }
-  if (action === "open-upload" || action === "choose-image" || action === "choose-camera") state.currentView = "upload";
+  if (action === "open-upload") state.currentView = "upload";
+  if (action === "choose-image" || action === "choose-camera") {
+    const fileInput = document.querySelector("#image-file-input");
+    if (fileInput) {
+      fileInput.toggleAttribute("capture", action === "choose-camera");
+      fileInput.click();
+    }
+    return;
+  }
   if (action === "back-home") state.currentView = "home";
-  if (action === "open-analysis") state.currentView = "analysis";
+  if (action === "start-analysis") {
+    state.currentView = "analysisLoading";
+    state.analysisStatus = "loading";
+    renderApp();
+    window.setTimeout(() => {
+      state.analysisStatus = "ready";
+      state.currentView = "analysis";
+      renderApp();
+    }, 900);
+    return;
+  }
   if (action === "back-upload") state.currentView = "upload";
   if (action === "edit-candidate") state.currentView = "candidateEdit";
   if (action === "back-analysis") state.currentView = "analysis";
@@ -328,6 +362,29 @@ function handleAction(event) {
   renderApp();
 }
 
+// 입력값: 파일 선택 이벤트
+// 출력값: 없음
+// 기능: 이미지 형식과 크기를 확인한 뒤 선택한 파일을 업로드 화면에 미리 표시한다.
+function handleImageChange(event) {
+  const [file] = event.target.files;
+  if (!file) return;
+
+  if (!["image/jpeg", "image/png"].includes(file.type)) {
+    state.uploadError = "JPG 또는 PNG 이미지만 올릴 수 있어요.";
+    state.uploadImageUrl = "";
+  } else if (file.size > 10 * 1024 * 1024) {
+    state.uploadError = "이미지는 10MB 이하로 올려 주세요.";
+    state.uploadImageUrl = "";
+  } else {
+    if (state.uploadImageUrl) URL.revokeObjectURL(state.uploadImageUrl);
+    state.uploadError = "";
+    state.uploadImageUrl = URL.createObjectURL(file);
+  }
+
+  renderApp();
+}
+
 bottomNav.addEventListener("click", handleNavigation);
 app.addEventListener("click", handleAction);
+app.addEventListener("change", handleImageChange);
 renderApp();
