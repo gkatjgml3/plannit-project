@@ -78,6 +78,9 @@ const state = {
     { period: 5, start: "14:00", end: "14:50" },
     { period: 6, start: "15:00", end: "15:50" },
   ],
+  lunchTime: { start: "12:50", end: "14:00" },
+  timetableTimeDraft: null,
+  timetableTimeError: "",
   calendarYear: 2026,
   calendarMonth: 10,
   calendarSelectedDay: 23,
@@ -517,7 +520,7 @@ function renderTimetableClasses() {
       }
       return `<button class="timetable-cell" type="button" data-action="edit-class" data-class-id="${classItem.id}"><strong>${escapeAttribute(classItem.title)}</strong><small>${escapeAttribute(classItem.room)}</small></button>`;
     }).join("");
-    const lunch = period === 4 ? `<div class="timetable-lunch">점심시간 12:50 – 14:00</div>` : "";
+    const lunch = period === 4 ? `<div class="timetable-lunch">점심시간 ${state.lunchTime.start} – ${state.lunchTime.end}</div>` : "";
     return `<div class="timetable-time"><strong>${period}</strong><small>${start}</small></div>${cells}${lunch}`;
   }).join("");
   return `<div class="timetable-grid">${header}${rows}</div>`;
@@ -548,10 +551,29 @@ function renderSubjectSettings() {
 }
 
 // 입력값: 없음
+// 출력값: 없음
+// 기능: 저장된 교시·점심시간을 사용자가 수정할 임시 상태로 복사한다.
+function prepareTimetableTimeDraft() {
+  state.timetableTimeDraft = {
+    periods: state.periodTimes.map((period) => ({ ...period })),
+    lunch: { ...state.lunchTime },
+  };
+  state.timetableTimeError = "";
+}
+
+// 입력값: 교시 및 점심시간 임시 설정
+// 출력값: 모든 종료 시간이 시작 시간보다 늦은지 여부
+// 기능: 잘못된 시간 범위가 시간표에 적용되지 않도록 검증한다.
+function isTimetableTimeDraftValid(draft) {
+  return draft.periods.every((period) => period.start < period.end) && draft.lunch.start < draft.lunch.end;
+}
+
+// 입력값: 없음
 // 출력값: 교시 시간 설정 HTML 문자열
-// 기능: 각 교시의 시작·종료 시간을 수정 가능한 입력란으로 표시한다.
+// 기능: 각 교시와 점심시간을 사용자가 직접 입력하고 시간표에 적용하게 한다.
 function renderPeriodSettings() {
-  return `<div class="settings-content period-settings">${state.periodTimes.map(({ period, start, end }) => `<div class="period-setting-row"><strong>${period}교시</strong><label><span>시작</span><input type="time" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-period="${period}" data-time-field="end" value="${end}" /></label></div>`).join("")}<p class="settings-note">수정한 시간은 시간표와 오늘 일정에 바로 반영돼요.</p></div>`;
+  const draft = state.timetableTimeDraft ?? { periods: state.periodTimes, lunch: state.lunchTime };
+  return `<div class="settings-content period-settings"><div class="time-settings-guide"><strong>수업 시간을 설정해 주세요</strong><p>각 교시와 점심시간을 학교 시간에 맞게 직접 바꿀 수 있어요.</p></div>${draft.periods.map(({ period, start, end }) => `<div class="period-setting-row"><strong>${period}교시</strong><label><span>시작</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="end" value="${end}" /></label></div>`).join("")}<div class="period-setting-row lunch-setting-row"><strong>점심</strong><label><span>시작</span><input type="time" data-time-kind="lunch" data-time-field="start" value="${draft.lunch.start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="lunch" data-time-field="end" value="${draft.lunch.end}" /></label></div>${state.timetableTimeError ? `<p class="time-settings-error">${icon("warning")}${state.timetableTimeError}</p>` : ""}<button class="primary-button time-settings-submit" type="button" data-action="apply-timetable-times">시간표에 적용</button></div>`;
 }
 
 // 입력값: 없음
@@ -967,9 +989,15 @@ function handleInput(event) {
   const form = event.target.closest("form");
   if (!input) return;
 
-  if (input.dataset.timeField) {
-    const period = state.periodTimes.find((entry) => entry.period === Number(input.dataset.period));
-    if (period) period[input.dataset.timeField] = input.value;
+  if (input.dataset.timeField && input.dataset.timeKind) {
+    if (!state.timetableTimeDraft) prepareTimetableTimeDraft();
+    if (input.dataset.timeKind === "lunch") {
+      state.timetableTimeDraft.lunch[input.dataset.timeField] = input.value;
+    } else {
+      const period = state.timetableTimeDraft.periods.find((entry) => entry.period === Number(input.dataset.period));
+      if (period) period[input.dataset.timeField] = input.value;
+    }
+    state.timetableTimeError = "";
     return;
   }
 
@@ -1160,8 +1188,21 @@ function handleClick(event) {
     state.classEditorOpen = false;
   }
   if (action === "select-weekday") state.selectedWeekday = target.dataset.day;
-  if (action === "open-timetable-settings") state.currentView = "timetableSettings";
+  if (action === "open-timetable-settings") {
+    prepareTimetableTimeDraft();
+    state.currentView = "timetableSettings";
+  }
   if (action === "set-timetable-tab") state.timetableSettingsTab = target.dataset.tab;
+  if (action === "apply-timetable-times" && state.timetableTimeDraft) {
+    if (!isTimetableTimeDraftValid(state.timetableTimeDraft)) {
+      state.timetableTimeError = "종료 시간은 시작 시간보다 늦어야 해요.";
+    } else {
+      state.periodTimes = state.timetableTimeDraft.periods.map((period) => ({ ...period }));
+      state.lunchTime = { ...state.timetableTimeDraft.lunch };
+      state.timetableTimeError = "";
+      state.currentView = "timetable";
+    }
+  }
   if (action === "add-class") openClassEditor();
   if (action === "add-class-for-slot") {
     state.selectedWeekday = target.dataset.day;

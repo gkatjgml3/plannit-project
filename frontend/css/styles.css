@@ -1054,6 +1054,24 @@ svg {
   gap: 10px;
 }
 
+.time-settings-guide {
+  margin-bottom: 5px;
+  padding: 17px;
+  border-radius: 15px;
+  background: var(--primary-soft);
+}
+
+.time-settings-guide strong {
+  font-size: 14px;
+}
+
+.time-settings-guide p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .period-setting-row {
   display: grid;
   grid-template-columns: 48px 1fr 12px 1fr;
@@ -1086,6 +1104,33 @@ svg {
   align-self: center;
   color: var(--muted);
   font-style: normal;
+}
+
+.lunch-setting-row {
+  border: 1px solid #ded5f6;
+  background: #f8f5ff;
+}
+
+.lunch-setting-row > strong {
+  color: var(--primary);
+}
+
+.time-settings-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 2px;
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.time-settings-error svg {
+  width: 15px;
+  height: 15px;
+}
+
+.time-settings-submit {
+  margin-top: 8px;
 }
 
 .settings-note {
