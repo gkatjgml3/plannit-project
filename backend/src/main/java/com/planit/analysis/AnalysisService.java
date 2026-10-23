@@ -15,25 +15,20 @@ import com.planit.analysis.AnalysisDtos.CandidateError;
 import com.planit.analysis.AnalysisDtos.CandidateResponse;
 import com.planit.analysis.AnalysisDtos.CandidateUpdateRequest;
 import com.planit.analysis.AnalysisDtos.ConfirmResponse;
-import com.planit.analysis.CandidateRules.EventFields;
-import com.planit.analysis.CandidateRules.SanitizedCandidate;
-import com.planit.analysis.analyzer.AnalysisInput;
-import com.planit.analysis.analyzer.AnalyzerResult;
-import com.planit.analysis.analyzer.ScheduleAnalysisException;
-import com.planit.analysis.analyzer.ScheduleAnalyzer;
 import com.planit.analysis.storage.ImageStorage;
 import com.planit.common.ApiException;
-import com.planit.event.Event;
-import com.planit.event.EventRepository;
+import com.planit.event.EventDtos.RecurrenceRequest;
+import com.planit.event.EventService;
+import com.planit.event.EventService.NewEventData;
 import com.planit.team.TeamService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -44,37 +39,37 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class AnalysisService {
 
-	private static final Logger log = LoggerFactory.getLogger(AnalysisService.class);
 	static final int MAX_ATTEMPTS = 5;
 
 	private final ImageAnalysisRepository analyses;
 	private final AnalysisCandidateRepository candidates;
-	private final EventRepository events;
+	private final EventService eventService;
 	private final TeamService teamService;
-	private final ScheduleAnalyzer analyzer;
 	private final ImageStorage storage;
+	private final AnalysisWorker worker;
 	private final TransactionTemplate tx;
+	private final ImageRetentionService imageRetention;
 	private final long maxImageBytes;
 
 	public AnalysisService(ImageAnalysisRepository analyses, AnalysisCandidateRepository candidates,
-			EventRepository events, TeamService teamService, ScheduleAnalyzer analyzer, ImageStorage storage,
-			PlatformTransactionManager transactionManager,
+			EventService eventService, TeamService teamService, ImageStorage storage, AnalysisWorker worker,
+			PlatformTransactionManager transactionManager, ImageRetentionService imageRetention,
 			@Value("${planit.analysis.max-image-bytes:10485760}") long maxImageBytes) {
 		this.analyses = analyses;
 		this.candidates = candidates;
-		this.events = events;
+		this.eventService = eventService;
 		this.teamService = teamService;
-		this.analyzer = analyzer;
 		this.storage = storage;
+		this.worker = worker;
 		this.tx = new TransactionTemplate(transactionManager);
+		this.imageRetention = imageRetention;
 		this.maxImageBytes = maxImageBytes;
 	}
 
 	/**
 	 * 입력값: 요청한 사용자, 팀 id(개인 분석이면 null), 이미지 바이트, 후보의 기본 시간대
-	 * 출력값: 분석 결과(성공하면 needs_review, 분석기가 실패하면 failed)
-	 * 기능: 이미지를 검사·저장하고 분석을 실행한다. 팀 분석은 팀원만 만들 수 있다.
-	 * 지금은 요청 안에서 바로 분석한다(임시). 오래 걸리는 실제 AI를 붙이면 비동기 실행으로 바꾼다.
+	 * 출력값: 저장한 분석(pending). 분석은 실행기가 따로 처리하므로 상태를 조회해서 결과를 확인한다.
+	 * 기능: 이미지를 검사·저장하고 분석 요청을 실행기에 넘긴다. 팀 분석은 팀원만 만들 수 있다.
 	 */
 	public AnalysisResponse create(Long userId, Long teamId, byte[] image, String timezone) {
 		if (timezone == null || !CandidateRules.isValidZone(timezone)) {
@@ -96,8 +91,8 @@ public class AnalysisService {
 		String imageKey = storage.store(image, contentType);
 		ImageAnalysis analysis = analyses
 				.save(new ImageAnalysis(userId, teamId, imageKey, contentType, image.length, timezone));
-		runAnalysis(analysis.getId(), image, AnalysisStatus.PENDING);
-		return load(analysis.getId());
+		worker.submit(analysis.getId());
+		return AnalysisResponse.of(analysis, List.of());
 	}
 
 	/** 입력값: 사용자, 분석 id / 출력값: 분석 상태와 후보 목록 / 기능: 소유자만 조회할 수 있다. */
@@ -135,7 +130,8 @@ public class AnalysisService {
 				blankToNull(request.startTime()), blankToNull(request.endDate()), blankToNull(request.endTime()),
 				request.timezone().trim(), blankToNull(request.location()),
 				request.materials() == null ? List.of() : request.materials().stream().map(String::trim).toList(),
-				blankToNull(request.description()), request.recurring(), blankToNull(request.recurrenceNote()));
+				blankToNull(request.description()), request.recurring(), blankToNull(request.recurrenceNote()),
+				toCandidateRecurrence(request.recurrence()));
 
 		Set<String> settled = new HashSet<>(changedFields(before, after));
 		settled.addAll(resolved);
@@ -169,14 +165,14 @@ public class AnalysisService {
 				.collect(Collectors.toMap(AnalysisCandidate::getId, Function.identity()));
 		List<CandidateError> errors = new ArrayList<>();
 		List<AnalysisCandidate> selected = new ArrayList<>();
-		List<EventFields> validated = new ArrayList<>();
+		List<NewEventData> validated = new ArrayList<>();
 		for (Long id : candidateIds) {
 			AnalysisCandidate candidate = byId.get(id);
 			if (candidate == null) {
 				errors.add(new CandidateError(id, "CANDIDATE_NOT_FOUND", "이 분석의 후보가 아닙니다."));
 				continue;
 			}
-			EventFields fields = CandidateRules.toEventFields(candidate, errors);
+			NewEventData fields = CandidateRules.toEventData(candidate, errors);
 			if (fields != null) {
 				selected.add(candidate);
 				validated.add(fields);
@@ -188,109 +184,49 @@ public class AnalysisService {
 
 		List<Long> createdEventIds = new ArrayList<>();
 		for (int i = 0; i < selected.size(); i++) {
-			EventFields f = validated.get(i);
-			Event event = new Event(analysis.getTeamId(), userId, null);
-			event.update(f.title(), f.startsAt(), f.endsAt(), f.timezone(), f.description(), f.location());
-			Long eventId = events.save(event).getId();
+			Long eventId = eventService.createWithinTransaction(userId, analysis.getTeamId(), validated.get(i));
 			selected.get(i).markConfirmed(eventId);
 			createdEventIds.add(eventId);
 		}
 		analysis.markConfirmed();
 		analyses.flush();
+		// 확정이 커밋된 뒤 원본 이미지를 바로 지운다. 실패하면 정리 작업이 다시 시도한다.
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCommit() {
+				imageRetention.deleteImage(analysisId);
+			}
+		});
 		return new ConfirmResponse(AnalysisResponse.of(analysis, candidates.findByAnalysisIdOrderByPosition(analysisId)),
 				createdEventIds);
 	}
 
 	/**
 	 * 입력값: 사용자, 분석 id
-	 * 출력값: 다시 분석한 결과
-	 * 기능: failed 상태인 분석만 저장해 둔 이미지로 다시 분석한다. 최대 5번까지 시도할 수 있다.
+	 * 출력값: 다시 대기 상태가 된 분석(pending)
+	 * 기능: failed 상태인 분석만 저장해 둔 이미지로 다시 분석하도록 실행기에 넘긴다. 최대 5번까지 시도할 수 있다.
 	 */
 	public AnalysisResponse retry(Long userId, Long analysisId) {
 		ImageAnalysis analysis = loadOwned(userId, analysisId);
 		if (analysis.getStatus() != AnalysisStatus.FAILED) {
 			throw ApiException.conflict("ANALYSIS_NOT_FAILED", "실패한 분석만 다시 시도할 수 있습니다.");
 		}
+		if (analysis.getImageDeletedAt() != null) {
+			throw ApiException.conflict("IMAGE_DELETED", "보관 기간이 지나 원본 이미지가 삭제되어 다시 분석할 수 없습니다. 이미지를 새로 올려 주세요.");
+		}
 		if (analysis.getAttemptCount() >= MAX_ATTEMPTS) {
 			throw ApiException.conflict("RETRY_LIMIT_EXCEEDED", "재시도 횟수를 모두 사용했습니다. 이미지를 새로 올려 주세요.");
 		}
-		byte[] image;
-		try {
-			image = storage.load(analysis.getImageKey());
-		}
-		catch (ImageStorage.ImageNotFoundException e) {
-			throw ApiException.conflict("IMAGE_MISSING", "저장된 이미지가 없어 다시 분석할 수 없습니다. 이미지를 새로 올려 주세요.");
-		}
-		runAnalysis(analysisId, image, AnalysisStatus.FAILED);
-		return load(analysisId);
-	}
-
-	/**
-	 * 상태를 processing으로 바꾸고(이때 expected 상태인지 다시 확인), 트랜잭션 밖에서 분석기를 호출한 뒤
-	 * 결과를 저장한다. 분석기가 오래 걸려도 DB 트랜잭션을 붙잡고 있지 않는다.
-	 */
-	private void runAnalysis(Long analysisId, byte[] image, AnalysisStatus expected) {
-		ImageAnalysis analysis = tx.execute(status -> {
-			ImageAnalysis a = analyses.findById(analysisId).orElseThrow();
-			if (a.getStatus() != expected) {
+		tx.executeWithoutResult(status -> {
+			ImageAnalysis current = analyses.findById(analysisId).orElseThrow();
+			if (current.getStatus() != AnalysisStatus.FAILED) {
 				throw ApiException.conflict("ANALYSIS_STATE_CHANGED", "분석 상태가 바뀌었습니다. 다시 조회하세요.");
 			}
-			a.markProcessing();
-			return analyses.saveAndFlush(a);
+			current.markPending();
+			analyses.saveAndFlush(current);
 		});
-
-		AnalyzerResult result;
-		try {
-			result = analyzer.analyze(new AnalysisInput(image, analysis.getImageContentType(), analysis.getTimezone()));
-		}
-		catch (ScheduleAnalysisException e) {
-			log.warn("이미지 분석 실패: analysisId={}, code={}", analysisId, e.getCode());
-			markFailed(analysisId, e.getCode(), e.getMessage());
-			return;
-		}
-		catch (RuntimeException e) {
-			log.warn("이미지 분석 중 예상하지 못한 오류: analysisId={}, error={}", analysisId, e.getClass().getSimpleName());
-			markFailed(analysisId, "AI_UNEXPECTED_ERROR", "AI 분석 중 오류가 발생했습니다. 다시 시도하세요.");
-			return;
-		}
-		if (result == null || result.candidates() == null || result.candidates().stream().anyMatch(Objects::isNull)) {
-			log.warn("이미지 분석 응답 형식 오류: analysisId={}", analysisId);
-			markFailed(analysisId, "AI_INVALID_RESPONSE", "AI 응답을 해석하지 못했습니다. 다시 시도하세요.");
-			return;
-		}
-		saveResult(analysisId, result);
-	}
-
-	private void saveResult(Long analysisId, AnalyzerResult result) {
-		tx.executeWithoutResult(status -> {
-			ImageAnalysis analysis = analyses.findById(analysisId).orElseThrow();
-			List<String> warnings = new ArrayList<>(result.warnings() == null ? List.of() : result.warnings());
-			List<AnalyzerResult.CandidateDraft> drafts = result.candidates();
-			if (drafts.isEmpty()) {
-				warnings.add("이미지에서 일정을 찾지 못했습니다.");
-			}
-			if (drafts.size() > CandidateRules.MAX_CANDIDATES) {
-				warnings.add("후보가 너무 많아 앞의 " + CandidateRules.MAX_CANDIDATES + "개만 저장했습니다.");
-				drafts = drafts.subList(0, CandidateRules.MAX_CANDIDATES);
-			}
-			candidates.deleteByAnalysisId(analysisId);
-			int position = 0;
-			for (AnalyzerResult.CandidateDraft draft : drafts) {
-				SanitizedCandidate sanitized = CandidateRules.sanitize(draft, analysis.getTimezone());
-				candidates.save(new AnalysisCandidate(analysisId, position++, sanitized.fields(),
-						sanitized.uncertainFields(), sanitized.warnings()));
-			}
-			analysis.markNeedsReview(CandidateRules.limitWarnings(warnings));
-		});
-	}
-
-	private void markFailed(Long analysisId, String code, String message) {
-		String safeCode = code == null ? "AI_ERROR" : code.substring(0, Math.min(code.length(), 50));
-		String safeMessage = message == null ? "AI 분석에 실패했습니다." : message.substring(0, Math.min(message.length(), 500));
-		tx.executeWithoutResult(status -> {
-			ImageAnalysis analysis = analyses.findById(analysisId).orElseThrow();
-			analysis.markFailed(safeCode, safeMessage);
-		});
+		worker.submit(analysisId);
+		return load(analysisId);
 	}
 
 	private AnalysisResponse load(Long analysisId) {
@@ -322,8 +258,20 @@ public class AnalysisService {
 		addIfChanged(changed, "location", a.location(), b.location());
 		addIfChanged(changed, "materials", a.materials(), b.materials());
 		addIfChanged(changed, "description", a.description(), b.description());
-		addIfChanged(changed, "recurring", a.recurring(), b.recurring());
+		if (!Objects.equals(a.recurring(), b.recurring()) || !Objects.equals(a.recurrence(), b.recurrence())) {
+			changed.add("recurring");
+		}
 		return changed;
+	}
+
+	private static AnalysisCandidate.CandidateRecurrence toCandidateRecurrence(RecurrenceRequest request) {
+		if (request == null) {
+			return null;
+		}
+		List<String> byDays = request.byDays() == null ? List.of()
+				: request.byDays().stream().filter(Objects::nonNull).map(String::trim).toList();
+		return new AnalysisCandidate.CandidateRecurrence(blankToNull(request.frequency()), request.interval(),
+				blankToNull(request.until()), request.count(), byDays);
 	}
 
 	private static void addIfChanged(List<String> changed, String field, Object before, Object after) {

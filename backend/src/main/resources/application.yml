@@ -1,10 +1,11 @@
+# 기본(운영) 설정. 비밀값에는 기본값을 두지 않는다. 로컬 개발 기본값은 application-local.yml에 있다.
 spring:
   application:
     name: planit-backend
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/planit}
-    username: ${DB_USERNAME:planit}
-    password: ${DB_PASSWORD:planit}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     open-in-view: false
     hibernate:
@@ -15,14 +16,28 @@ spring:
       max-file-size: 10MB
       max-request-size: 11MB
 
+# API 문서(/swagger-ui, /v3/api-docs)는 운영(기본 프로필)에서 닫는다. local·dev 프로필에서만 연다.
+springdoc:
+  api-docs:
+    enabled: false
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: false
+    path: /swagger-ui
+
 planit:
   jwt:
-    # 로컬 개발용 기본값. 배포할 때는 반드시 JWT_SECRET 환경변수로 32자 이상 값을 넣는다.
-    secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789}
-    expiration: 24h
+    # 값이 없으면 서버가 시작되지 않는다(SecurityConfig에서 검사).
+    secret: ${JWT_SECRET:}
+    access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:30m}
+    refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:14d}
   ai:
     # 사용할 ScheduleAnalyzer 구현. 지금은 fake(개발·테스트용 가짜 분석기)만 있다.
     analyzer: ${AI_ANALYZER:fake}
+    fake:
+      # 가짜 분석기 확인용: 분석마다 기다릴 시간, 처음 N번 실패시키기
+      delay: ${AI_FAKE_DELAY:0s}
+      fail-first: ${AI_FAKE_FAIL_FIRST:0}
   storage:
     # 사용할 ImageStorage 구현: local(서버 폴더) 또는 memory(테스트용).
     type: ${IMAGE_STORAGE_TYPE:local}
@@ -30,3 +45,19 @@ planit:
       directory: ${IMAGE_STORAGE_DIR:data/images}
   analysis:
     max-image-bytes: 10485760
+    worker-threads: ${ANALYSIS_WORKER_THREADS:2}
+    # 이 시간보다 오래 processing에 머문 분석은 다시 대기로 돌리거나 실패 처리한다.
+    processing-timeout: ${ANALYSIS_PROCESSING_TIMEOUT:5m}
+    poll-interval: 10s
+  images:
+    # 확정되지 않은 분석의 원본 이미지를 보관하는 기간
+    retention: ${IMAGE_RETENTION:7d}
+    cleanup-interval: 1h
+  notifications:
+    sender: log
+    max-attempts: 5
+    retry-backoff: 1m
+    batch-size: 50
+    dispatch-interval: 30s
+  scheduling:
+    enabled: true

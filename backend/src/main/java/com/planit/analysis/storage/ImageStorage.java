@@ -13,6 +13,9 @@ public interface ImageStorage {
 	/** 입력값: store가 돌려준 키 / 출력값: 이미지 바이트 / 기능: 저장한 이미지를 읽는다. 없으면 ImageNotFoundException. */
 	byte[] load(String key);
 
+	/** 입력값: 키 / 출력값: 없음 / 기능: 이미지를 지운다. 이미 없으면 아무 일도 하지 않는다. 실패하면 예외를 던진다. */
+	void delete(String key);
+
 	/** 저장소에 이미지가 없을 때. */
 	class ImageNotFoundException extends RuntimeException {
 

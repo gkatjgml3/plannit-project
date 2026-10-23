@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-resource-server'
 	implementation 'org.flywaydb:flyway-database-postgresql'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1'
 	runtimeOnly 'org.postgresql:postgresql'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
@@ -40,4 +41,10 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// gradlew bootRun은 개발용이므로 따로 지정하지 않으면 local 프로필로 실행한다.
+// 운영은 빌드한 jar를 SPRING_PROFILES_ACTIVE 없이(기본 프로필) 환경변수와 함께 실행한다.
+tasks.named('bootRun') {
+	systemProperty 'spring.profiles.active', System.getenv('SPRING_PROFILES_ACTIVE') ?: 'local'
 }

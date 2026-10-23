@@ -53,12 +53,14 @@ class AnalysisConfirmRollbackTest extends ApiTestSupport {
 		MvcResult created = mvc.perform(multipart("/api/analyses")
 				.file(new MockMultipartFile("image", "n.png", "image/png", PNG))
 				.header("Authorization", user.bearer()))
-				.andExpect(status().isCreated())
+				.andExpect(status().isAccepted())
 				.andReturn();
 		long analysisId = idOf(created);
+		AnalysisWait.untilFinished(mvc, user.bearer(), analysisId);
+		created = mvc.perform(get("/api/analyses/{id}", analysisId).header("Authorization", user.bearer())).andReturn();
 		List<Number> ids = JsonPath.read(created.getResponse().getContentAsString(), "$.candidates[*].id");
 
-		// 첫 번째 저장은 실제 저장소로 넘기고, 두 번째 저장에서 DB 오류를 낸다.
+		// 첫 번째 일정 저장은 실제 저장소로 넘기고, 두 번째 저장에서 DB 오류를 낸다.
 		// 스파이의 기본 동작(실제 저장소로 위임)을 꺼내 첫 번째 호출에 쓴다.
 		Answer<?> realCall = Mockito.mockingDetails(events).getMockCreationSettings().getDefaultAnswer();
 		AtomicInteger saves = new AtomicInteger();
@@ -67,7 +69,7 @@ class AnalysisConfirmRollbackTest extends ApiTestSupport {
 				return realCall.answer(invocation);
 			}
 			throw new DataIntegrityViolationException("테스트용 저장 실패");
-		}).when(events).save(any(Event.class));
+		}).when(events).saveAndFlush(any(Event.class));
 		Exception thrown = null;
 		try {
 			mvc.perform(post("/api/analyses/{id}/confirm", analysisId).header("Authorization", user.bearer())

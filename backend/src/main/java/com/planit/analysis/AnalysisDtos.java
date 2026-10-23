@@ -3,6 +3,8 @@ package com.planit.analysis;
 import java.time.Instant;
 import java.util.List;
 
+import com.planit.event.EventDtos.RecurrenceRequest;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +18,7 @@ public final class AnalysisDtos {
 	/**
 	 * 후보 전체를 고친 값으로 바꾼다. 빈 문자열은 값 없음으로 본다.
 	 * 값이 바뀐 필드는 모호한 필드 목록에서 빠지고, 그대로 두되 확인했다는 필드는 resolvedFields에 넣는다.
+	 * recurrence는 반복 규칙(검증 전 값도 받음, 확정할 때 검사), 반복하지 않으면 null.
 	 */
 	public record CandidateUpdateRequest(
 			@Size(max = 200) String title,
@@ -29,7 +32,8 @@ public final class AnalysisDtos {
 			@Size(max = 2000) String description,
 			boolean recurring,
 			@Size(max = 255) String recurrenceNote,
-			List<String> resolvedFields) {
+			List<String> resolvedFields,
+			RecurrenceRequest recurrence) {
 	}
 
 	public record ConfirmRequest(@NotEmpty @Size(max = 50) List<@NotNull Long> candidateIds) {
@@ -51,14 +55,17 @@ public final class AnalysisDtos {
 			String recurrenceNote,
 			List<String> uncertainFields,
 			List<String> warnings,
-			Long eventId) {
+			Long eventId,
+			RecurrenceRequest recurrence) {
 
 		static CandidateResponse of(AnalysisCandidate candidate) {
 			AnalysisCandidate.CandidateFields f = candidate.fields();
+			AnalysisCandidate.CandidateRecurrence r = f.recurrence();
 			return new CandidateResponse(candidate.getId(), candidate.getPosition(), f.title(), f.startDate(),
 					f.startTime(), f.endDate(), f.endTime(), f.timezone(), f.location(), f.materials(),
 					f.description(), f.recurring(), f.recurrenceNote(), candidate.getUncertainFields(),
-					candidate.getWarnings(), candidate.getEventId());
+					candidate.getWarnings(), candidate.getEventId(),
+					r == null ? null : new RecurrenceRequest(r.frequency(), r.interval(), r.until(), r.count(), r.byDays()));
 		}
 
 	}
@@ -76,14 +83,16 @@ public final class AnalysisDtos {
 			Instant createdAt,
 			Instant updatedAt,
 			Instant confirmedAt,
+			boolean imageDeleted,
+			Instant imageDeletedAt,
 			List<CandidateResponse> candidates) {
 
 		static AnalysisResponse of(ImageAnalysis analysis, List<AnalysisCandidate> candidates) {
 			return new AnalysisResponse(analysis.getId(), analysis.getStatus().value(), analysis.getTeamId(),
 					analysis.getTimezone(), analysis.getWarnings(), analysis.getFailureCode(),
 					analysis.getFailureMessage(), analysis.getAttemptCount(), analysis.getCreatedAt(),
-					analysis.getUpdatedAt(), analysis.getConfirmedAt(),
-					candidates.stream().map(CandidateResponse::of).toList());
+					analysis.getUpdatedAt(), analysis.getConfirmedAt(), analysis.getImageDeletedAt() != null,
+					analysis.getImageDeletedAt(), candidates.stream().map(CandidateResponse::of).toList());
 		}
 
 	}

@@ -71,6 +71,14 @@ public class ImageAnalysis {
 	@Column(name = "confirmed_at")
 	private Instant confirmedAt;
 
+	/** 실행기가 분석을 가져간 시각(V7). 오래된 processing을 찾아 복구하는 데 쓴다. */
+	@Column(name = "processing_started_at")
+	private Instant processingStartedAt;
+
+	/** 원본 이미지를 저장소에서 지운 시각(V6). null이면 아직 저장소에 있다. */
+	@Column(name = "image_deleted_at")
+	private Instant imageDeletedAt;
+
 	protected ImageAnalysis() {
 	}
 
@@ -96,9 +104,18 @@ public class ImageAnalysis {
 		updatedAt = Instant.now();
 	}
 
-	void markProcessing() {
+	void markProcessing(Instant now) {
 		status = AnalysisStatus.PROCESSING;
+		processingStartedAt = now;
 		attemptCount++;
+		failureCode = null;
+		failureMessage = null;
+	}
+
+	/** 재시도나 멈춘 작업 복구로 다시 대기 상태로 돌린다. */
+	void markPending() {
+		status = AnalysisStatus.PENDING;
+		processingStartedAt = null;
 		failureCode = null;
 		failureMessage = null;
 	}
@@ -117,6 +134,10 @@ public class ImageAnalysis {
 	void markConfirmed() {
 		status = AnalysisStatus.CONFIRMED;
 		confirmedAt = Instant.now();
+	}
+
+	void markImageDeleted(Instant now) {
+		imageDeletedAt = now;
 	}
 
 	/** 후보를 고쳤을 때 버전을 올려, 동시에 진행 중인 확정 요청이 오래된 후보로 저장되지 않게 한다. */
@@ -178,6 +199,14 @@ public class ImageAnalysis {
 
 	public Instant getConfirmedAt() {
 		return confirmedAt;
+	}
+
+	public Instant getProcessingStartedAt() {
+		return processingStartedAt;
+	}
+
+	public Instant getImageDeletedAt() {
+		return imageDeletedAt;
 	}
 
 }

@@ -70,9 +70,16 @@ class AnalysisApiTest extends ApiTestSupport {
 		return mvc.perform(request);
 	}
 
+	/** 분석이 끝날 때까지 기다린 뒤 조회한 결과. 업로드는 202로 바로 끝나고 분석은 따로 실행된다. */
+	private ResultActions finished(TestUser by, long analysisId) throws Exception {
+		AnalysisWait.untilFinished(mvc, by.bearer(), analysisId);
+		return mvc.perform(get("/api/analyses/{id}", analysisId).header("Authorization", by.bearer()));
+	}
+
 	private MvcResult analyze(AnalyzerResult scripted) throws Exception {
 		analyzer.enqueue(scripted);
-		return upload(user, null).andExpect(status().isCreated()).andReturn();
+		long id = idOf(upload(user, null).andExpect(status().isAccepted()).andReturn());
+		return finished(user, id).andReturn();
 	}
 
 	private static List<Long> candidateIds(MvcResult result) throws Exception {
@@ -288,18 +295,17 @@ class AnalysisApiTest extends ApiTestSupport {
 	@Test
 	void failedAnalysisCanBeRetried() throws Exception {
 		analyzer.enqueueFailure("AI_TIMEOUT");
-		MvcResult created = upload(user, null)
-				.andExpect(status().isCreated())
+		long analysisId = idOf(upload(user, null).andExpect(status().isAccepted()).andReturn());
+		finished(user, analysisId)
 				.andExpect(jsonPath("$.status").value("failed"))
 				.andExpect(jsonPath("$.failureCode").value("AI_TIMEOUT"))
 				.andExpect(jsonPath("$.attemptCount").value(1))
-				.andExpect(jsonPath("$.candidates", hasSize(0)))
-				.andReturn();
-		long analysisId = idOf(created);
+				.andExpect(jsonPath("$.candidates", hasSize(0)));
 
 		analyzer.enqueue(result(draft("다시 읽은 일정", "2026-12-01", "09:00", "10:00")));
 		mvc.perform(post("/api/analyses/{id}/retry", analysisId).header("Authorization", user.bearer()))
-				.andExpect(status().isOk())
+				.andExpect(status().isAccepted());
+		finished(user, analysisId)
 				.andExpect(jsonPath("$.status").value("needs_review"))
 				.andExpect(jsonPath("$.failureCode").doesNotExist())
 				.andExpect(jsonPath("$.attemptCount").value(2))
@@ -317,9 +323,11 @@ class AnalysisApiTest extends ApiTestSupport {
 			analyzer.enqueueFailure("AI_PROVIDER_ERROR");
 		}
 		long analysisId = idOf(upload(user, null).andReturn());
+		finished(user, analysisId).andExpect(jsonPath("$.status").value("failed"));
 		for (int attempt = 2; attempt <= 5; attempt++) {
 			mvc.perform(post("/api/analyses/{id}/retry", analysisId).header("Authorization", user.bearer()))
-					.andExpect(jsonPath("$.attemptCount").value(attempt));
+					.andExpect(status().isAccepted());
+			finished(user, analysisId).andExpect(jsonPath("$.attemptCount").value(attempt));
 		}
 		mvc.perform(post("/api/analyses/{id}/retry", analysisId).header("Authorization", user.bearer()))
 				.andExpect(status().isConflict())
@@ -342,12 +350,66 @@ class AnalysisApiTest extends ApiTestSupport {
 				.andExpect(jsonPath("$[0].startsAt").value("2026-12-15T08:30:00+09:00"))
 				.andExpect(jsonPath("$[0].endsAt").value("2026-12-15T16:00:00+09:00"))
 				.andExpect(jsonPath("$[0].location").value("국립과학관"))
-				.andExpect(jsonPath("$[0].description").value("학년 전체\n준비물: 도시락, 물"))
+				// 준비물은 설명에 덧붙이지 않고 일정의 준비물 목록으로 저장된다.
+				.andExpect(jsonPath("$[0].description").value("학년 전체"))
+				.andExpect(jsonPath("$[0].checklist[0].content").value("도시락"))
+				.andExpect(jsonPath("$[0].checklist[1].content").value("물"))
+				.andExpect(jsonPath("$[0].recurrence").doesNotExist())
 				.andExpect(jsonPath("$[0].teamId").doesNotExist())
 				// 시간이 없는 후보는 종일 일정으로 저장된다.
 				.andExpect(jsonPath("$[1].title").value("방학식"))
 				.andExpect(jsonPath("$[1].startsAt").value("2026-12-24T00:00:00+09:00"))
 				.andExpect(jsonPath("$[1].endsAt").value("2026-12-25T00:00:00+09:00"));
+	}
+
+	@Test
+	void recurringCandidateIsSavedAsRecurrenceRuleNotDescription() throws Exception {
+		MvcResult created = analyze(result(new CandidateDraft("영어 단어 시험", "2026-12-04", "08:30", null, "08:50",
+				null, null, List.of("단어장"), null, true, "매주 금요일",
+				List.of(), List.of(), new AnalyzerResult.RecurrenceDraft("weekly", 1, null, 3, List.of("fr")))));
+
+		mvc.perform(get("/api/analyses/{id}", idOf(created)).header("Authorization", user.bearer()))
+				.andExpect(jsonPath("$.candidates[0].recurrence.frequency").value("WEEKLY"))
+				.andExpect(jsonPath("$.candidates[0].recurrence.byDays[0]").value("FR"));
+		confirm(user, idOf(created), candidateIds(created)).andExpect(status().isOk());
+
+		mvc.perform(get("/api/events").param("from", "2026-12-01").param("to", "2026-12-31")
+				.header("Authorization", user.bearer()))
+				.andExpect(jsonPath("$", hasSize(3)))
+				.andExpect(jsonPath("$[0].startsAt").value("2026-12-04T08:30:00+09:00"))
+				.andExpect(jsonPath("$[2].startsAt").value("2026-12-18T08:30:00+09:00"))
+				.andExpect(jsonPath("$[0].description").doesNotExist())
+				.andExpect(jsonPath("$[0].recurrence.count").value(3))
+				.andExpect(jsonPath("$[0].checklist[0].content").value("단어장"));
+		assertThat(countEvents(user)).isEqualTo(1);
+	}
+
+	@Test
+	void recurringCandidateNeedsValidRule() throws Exception {
+		MvcResult noRule = analyze(result(new CandidateDraft("매주 회의", "2026-12-07", "15:00", null, "16:00", null,
+				null, List.of(), null, true, "매주", List.of(), List.of())));
+		confirm(user, idOf(noRule), candidateIds(noRule))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors[0].code").value("CANDIDATE_RECURRENCE_MISSING"));
+
+		MvcResult badRule = analyze(result(new CandidateDraft("잘못된 반복", "2026-12-07", "15:00", null, "16:00", null,
+				null, List.of(), null, true, null, List.of(), List.of(),
+				new AnalyzerResult.RecurrenceDraft("WEEKLY", 1, "2026-12-31", 5, List.of()))));
+		confirm(user, idOf(badRule), candidateIds(badRule))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.errors[0].code").value("CANDIDATE_RECURRENCE_INVALID"));
+
+		// 사용자가 규칙을 넣으면 확정할 수 있다.
+		long candidateId = candidateIds(noRule).get(0);
+		mvc.perform(put("/api/analyses/{id}/candidates/{cid}", idOf(noRule), candidateId)
+				.header("Authorization", user.bearer()).contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{"title":"매주 회의","startDate":"2026-12-07","startTime":"15:00","endTime":"16:00",
+						 "timezone":"Asia/Seoul","recurring":true,"recurrence":{"frequency":"WEEKLY","until":"2026-12-21"}}
+						"""))
+				.andExpect(status().isOk());
+		confirm(user, idOf(noRule), List.of(candidateId)).andExpect(status().isOk());
+		assertThat(countEvents(user)).isEqualTo(1);
 	}
 
 	@Test
@@ -376,10 +438,11 @@ class AnalysisApiTest extends ApiTestSupport {
 				.andExpect(jsonPath("$.code").value("NOT_TEAM_MEMBER"));
 
 		analyzer.enqueue(result(draft("조별 발표", "2026-12-04", "13:00", "14:00")));
-		MvcResult created = upload(user, teamId)
-				.andExpect(status().isCreated())
+		long teamAnalysisId = idOf(upload(user, teamId)
+				.andExpect(status().isAccepted())
 				.andExpect(jsonPath("$.teamId").value(teamId))
-				.andReturn();
+				.andReturn());
+		MvcResult created = finished(user, teamAnalysisId).andReturn();
 
 		// 같은 팀원이라도 분석 결과는 분석을 만든 사람만 본다.
 		mvc.perform(get("/api/analyses/{id}", idOf(created)).header("Authorization", teammate.bearer()))
@@ -448,8 +511,8 @@ class AnalysisApiTest extends ApiTestSupport {
 
 	@Test
 	void defaultFakeResultIsMarkedAsSample() throws Exception {
-		upload(user, null)
-				.andExpect(status().isCreated())
+		long analysisId = idOf(upload(user, null).andExpect(status().isAccepted()).andReturn());
+		finished(user, analysisId)
 				.andExpect(jsonPath("$.warnings[0]", containsString("가짜 분석기")))
 				.andExpect(jsonPath("$.candidates[0].title", containsString("[예시]")))
 				.andExpect(jsonPath("$.candidates[1].startDate").doesNotExist())

@@ -1,7 +1,6 @@
 package com.planit.analysis;
 
 import java.time.DateTimeException;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -12,16 +11,21 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import com.planit.analysis.AnalysisCandidate.CandidateFields;
+import com.planit.analysis.AnalysisCandidate.CandidateRecurrence;
 import com.planit.analysis.AnalysisDtos.CandidateError;
 import com.planit.analysis.analyzer.AnalyzerResult.CandidateDraft;
+import com.planit.analysis.analyzer.AnalyzerResult.RecurrenceDraft;
+import com.planit.event.EventService.NewEventData;
+import com.planit.event.RecurrenceRule;
 
 /**
  * 후보에 대한 규칙 모음.
  * - sanitize: 분석기 결과를 저장 가능한 후보로 정리한다. 값을 새로 지어내지 않고, 길이를 맞추거나 알 수 없는 값을 버린다.
- * - toEventFields: 확정 직전에 실제 달력·시간 규칙을 검사해 일정으로 저장할 값을 만든다.
+ * - toEventData: 확정 직전에 실제 달력·시간·반복 규칙을 검사해 일정으로 저장할 값을 만든다.
  */
 final class CandidateRules {
 
@@ -31,6 +35,7 @@ final class CandidateRules {
 	private static final int MAX_MATERIALS = 20;
 	private static final int MAX_MATERIAL_LENGTH = 80;
 	private static final int MAX_DESCRIPTION = 2000;
+	private static final int MAX_BY_DAYS = 7;
 
 	/** 2026-02-30처럼 달력에 없는 날짜를 거부하도록 STRICT로 해석한다. */
 	private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd")
@@ -43,11 +48,6 @@ final class CandidateRules {
 
 	/** 분석기 결과 하나를 정리한 값. */
 	record SanitizedCandidate(CandidateFields fields, List<String> uncertainFields, List<String> warnings) {
-	}
-
-	/** 확정해서 일정으로 저장할 값. */
-	record EventFields(String title, Instant startsAt, Instant endsAt, String timezone, String description,
-			String location) {
 	}
 
 	/**
@@ -98,11 +98,32 @@ final class CandidateRules {
 				materials,
 				clean(draft.description(), MAX_DESCRIPTION, "description", warnings),
 				draft.recurring(),
-				clean(draft.recurrenceNote(), 255, "recurrenceNote", warnings));
+				clean(draft.recurrenceNote(), 255, "recurrenceNote", warnings),
+				sanitizeRecurrence(draft.recurrence(), warnings));
 		if (draft.warnings() != null) {
 			warnings.addAll(0, draft.warnings());
 		}
 		return new SanitizedCandidate(fields, List.copyOf(uncertain), limitWarnings(warnings));
+	}
+
+	/** 입력값: 분석기가 읽은 반복 규칙 / 출력값: 열 크기에 맞춘 값, 없으면 null / 기능: 값을 고치지 않고 길이만 맞춘다. */
+	static CandidateRecurrence sanitizeRecurrence(RecurrenceDraft draft, List<String> warnings) {
+		if (draft == null) {
+			return null;
+		}
+		String frequency = clean(draft.frequency(), 16, "recurrence.frequency", warnings);
+		List<String> byDays = new ArrayList<>();
+		if (draft.byDays() != null) {
+			for (String day : draft.byDays()) {
+				String cleaned = clean(day, 2, "recurrence.byDays", warnings);
+				if (cleaned != null && byDays.size() < MAX_BY_DAYS) {
+					byDays.add(cleaned.toUpperCase(Locale.ROOT));
+				}
+			}
+		}
+		return new CandidateRecurrence(frequency == null ? null : frequency.toUpperCase(Locale.ROOT),
+				draft.interval(), clean(draft.until(), 32, "recurrence.until", warnings), draft.count(),
+				List.copyOf(byDays));
 	}
 
 	/** 입력값: 경고 목록 / 출력값: 개수·길이를 제한한 목록 / 기능: DB 열 크기를 넘지 않게 자른다. */
@@ -120,9 +141,10 @@ final class CandidateRules {
 	/**
 	 * 입력값: 확정하려는 후보, 오류를 모을 목록
 	 * 출력값: 저장할 일정 값. 규칙을 어기면 null을 돌려주고 errors에 이유를 추가한다.
-	 * 기능: 제목·날짜 필수, 모호한 필드 없음, 실제 달력 날짜, 시작 < 종료를 검사한다.
+	 * 기능: 제목·날짜 필수, 모호한 필드 없음, 실제 달력 날짜, 시작 < 종료, 반복 규칙을 검사한다.
+	 * 준비물은 일정의 준비물(checklist)로, 반복 규칙은 일정의 반복 규칙으로 저장한다.
 	 */
-	static EventFields toEventFields(AnalysisCandidate candidate, List<CandidateError> errors) {
+	static NewEventData toEventData(AnalysisCandidate candidate, List<CandidateError> errors) {
 		Long id = candidate.getId();
 		CandidateFields f = candidate.fields();
 
@@ -178,30 +200,22 @@ final class CandidateRules {
 			return reject(errors, id, "INVALID_TIME_RANGE", "종료 시간은 시작 시간보다 늦어야 합니다.");
 		}
 
-		String description = describe(f);
-		if (description != null && description.length() > MAX_DESCRIPTION) {
-			return reject(errors, id, "DESCRIPTION_TOO_LONG", "상세 내용·준비물·반복 정보를 합쳐 2000자 이하로 줄이세요.");
+		RecurrenceRule rule = null;
+		CandidateRecurrence r = f.recurrence();
+		if (r != null) {
+			try {
+				rule = RecurrenceRule.parse(r.frequency(), r.interval(), r.until(), r.count(), r.byDays(), startDate);
+			}
+			catch (RecurrenceRule.InvalidRecurrenceException e) {
+				return reject(errors, id, "CANDIDATE_RECURRENCE_INVALID", "반복 규칙이 올바르지 않습니다: " + e.getMessage());
+			}
 		}
-		return new EventFields(f.title().trim(), start.toInstant(), end.toInstant(), f.timezone(), description,
-				f.location());
-	}
-
-	/**
-	 * 일정 테이블에는 준비물·반복 열이 아직 없어서 상세 내용 뒤에 덧붙인다. (임시 방식)
-	 * 반복 일정은 지금은 한 번만 저장되고 반복 규칙은 내용으로만 남는다.
-	 */
-	private static String describe(CandidateFields f) {
-		List<String> parts = new ArrayList<>();
-		if (f.description() != null) {
-			parts.add(f.description());
+		else if (f.recurring()) {
+			return reject(errors, id, "CANDIDATE_RECURRENCE_MISSING",
+					"반복 일정이지만 반복 규칙이 없습니다. 규칙을 입력하거나 반복하지 않는 일정으로 바꾸세요.");
 		}
-		if (!f.materials().isEmpty()) {
-			parts.add("준비물: " + String.join(", ", f.materials()));
-		}
-		if (f.recurring()) {
-			parts.add("반복: " + (f.recurrenceNote() == null ? "있음" : f.recurrenceNote()));
-		}
-		return parts.isEmpty() ? null : String.join("\n", parts);
+		return new NewEventData(f.title().trim(), start.toInstant(), end.toInstant(), f.timezone(), f.description(),
+				f.location(), f.materials(), rule);
 	}
 
 	static boolean isValidZone(String timezone) {
@@ -251,7 +265,7 @@ final class CandidateRules {
 		}
 	}
 
-	private static EventFields reject(List<CandidateError> errors, Long candidateId, String code, String message) {
+	private static NewEventData reject(List<CandidateError> errors, Long candidateId, String code, String message) {
 		errors.add(new CandidateError(candidateId, code, message));
 		return null;
 	}

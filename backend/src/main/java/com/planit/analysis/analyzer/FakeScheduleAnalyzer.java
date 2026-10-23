@@ -1,14 +1,17 @@
 package com.planit.analysis.analyzer;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import com.planit.analysis.analyzer.AnalyzerResult.CandidateDraft;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +19,8 @@ import org.springframework.stereotype.Component;
  * 개발·테스트용 가짜 분석기. 실제 AI를 호출하지 않는다.
  * 테스트는 {@link #enqueue}·{@link #enqueueFailure}로 다음 분석 결과를 정해 둘 수 있고,
  * 정해 둔 결과가 없으면 "개발용 예시"라고 표시한 고정 결과를 돌려준다.
+ * 실제 DB에서 비동기 처리·실패·재시도를 확인할 수 있도록 지연(planit.ai.fake.delay, AI_FAKE_DELAY)과
+ * 처음 N번 실패(planit.ai.fake.fail-first, AI_FAKE_FAIL_FIRST)를 설정할 수 있다. 정해 둔 결과에는 적용하지 않는다.
  * planit.ai.analyzer=fake(기본값)일 때만 등록된다.
  */
 @Component
@@ -25,11 +30,46 @@ public class FakeScheduleAnalyzer implements ScheduleAnalyzer {
 	static final String SAMPLE_WARNING = "개발용 가짜 분석기가 만든 예시 결과입니다. 실제 이미지 내용이 아닙니다.";
 
 	private final Deque<Function<AnalysisInput, AnalyzerResult>> scripted = new ConcurrentLinkedDeque<>();
+	private final Duration delay;
+	private final AtomicInteger failuresLeft;
+
+	public FakeScheduleAnalyzer(@Value("${planit.ai.fake.delay:0s}") Duration delay,
+			@Value("${planit.ai.fake.fail-first:0}") int failFirst) {
+		this.delay = delay;
+		this.failuresLeft = new AtomicInteger(Math.max(failFirst, 0));
+	}
 
 	@Override
 	public AnalyzerResult analyze(AnalysisInput input) {
 		Function<AnalysisInput, AnalyzerResult> next = scripted.pollFirst();
-		return next != null ? next.apply(input) : sample(input);
+		if (next != null) {
+			return next.apply(input);
+		}
+		sleep(delay);
+		if (failuresLeft.getAndUpdate(n -> Math.max(n - 1, 0)) > 0) {
+			throw new ScheduleAnalysisException("AI_PROVIDER_ERROR", "AI 분석에 실패했습니다. 잠시 후 다시 시도하세요.");
+		}
+		return sample(input);
+	}
+
+	/** 입력값: 기다릴 시간, 그 뒤 돌려줄 결과 / 출력값: 없음 / 기능: 오래 걸리는 분석을 흉내 낸다. */
+	public void enqueue(Duration wait, AnalyzerResult result) {
+		scripted.addLast(input -> {
+			sleep(wait);
+			return result;
+		});
+	}
+
+	private static void sleep(Duration duration) {
+		if (duration.isZero() || duration.isNegative()) {
+			return;
+		}
+		try {
+			Thread.sleep(duration.toMillis());
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	/** 입력값: 다음 분석에서 돌려줄 결과 / 출력값: 없음 / 기능: 결과를 순서대로 쌓아 둔다. */

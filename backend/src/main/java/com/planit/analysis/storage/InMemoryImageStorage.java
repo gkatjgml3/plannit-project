@@ -30,4 +30,14 @@ public class InMemoryImageStorage implements ImageStorage {
 		return data.clone();
 	}
 
+	@Override
+	public void delete(String key) {
+		images.remove(key);
+	}
+
+	/** 입력값: 키 / 출력값: 저장되어 있으면 true / 기능: 테스트에서 삭제 여부를 확인할 때 쓴다. */
+	public boolean contains(String key) {
+		return images.containsKey(key);
+	}
+
 }

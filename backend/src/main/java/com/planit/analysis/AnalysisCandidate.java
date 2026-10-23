@@ -83,6 +83,22 @@ public class AnalysisCandidate {
 	@Column(name = "event_id")
 	private Long eventId;
 
+	/** 반복 규칙(V4). 분석기·사용자가 넣은 값 그대로이며 확정할 때 검증한다. */
+	@Column(name = "recurrence_frequency", length = 16)
+	private String recurrenceFrequency;
+
+	@Column(name = "recurrence_interval")
+	private Integer recurrenceInterval;
+
+	@Column(name = "recurrence_until", length = 32)
+	private String recurrenceUntil;
+
+	@Column(name = "recurrence_count")
+	private Integer recurrenceCount;
+
+	@Column(name = "recurrence_by_days", length = 64)
+	private String recurrenceByDays;
+
 	@Column(name = "created_at", nullable = false)
 	private Instant createdAt;
 
@@ -123,8 +139,13 @@ public class AnalysisCandidate {
 	}
 
 	CandidateFields fields() {
+		CandidateRecurrence recurrence = recurrenceFrequency == null && recurrenceInterval == null
+				&& recurrenceUntil == null && recurrenceCount == null && recurrenceByDays == null ? null
+						: new CandidateRecurrence(recurrenceFrequency, recurrenceInterval, recurrenceUntil,
+								recurrenceCount, recurrenceByDays == null ? List.of()
+										: List.of(recurrenceByDays.split(",")));
 		return new CandidateFields(title, startDate, startTime, endDate, endTime, timezone, location, materials,
-				description, recurring, recurrenceNote);
+				description, recurring, recurrenceNote, recurrence);
 	}
 
 	private void apply(CandidateFields fields) {
@@ -139,6 +160,12 @@ public class AnalysisCandidate {
 		this.description = fields.description();
 		this.recurring = fields.recurring();
 		this.recurrenceNote = fields.recurrenceNote();
+		CandidateRecurrence r = fields.recurrence();
+		this.recurrenceFrequency = r == null ? null : r.frequency();
+		this.recurrenceInterval = r == null ? null : r.interval();
+		this.recurrenceUntil = r == null ? null : r.until();
+		this.recurrenceCount = r == null ? null : r.count();
+		this.recurrenceByDays = r == null || r.byDays().isEmpty() ? null : String.join(",", r.byDays());
 	}
 
 	public Long getId() {
@@ -165,7 +192,7 @@ public class AnalysisCandidate {
 		return eventId;
 	}
 
-	/** 후보의 편집 가능한 값 묶음. */
+	/** 후보의 편집 가능한 값 묶음. recurrence는 반복 규칙(검증 전), 없으면 null. */
 	record CandidateFields(
 			String title,
 			String startDate,
@@ -177,7 +204,13 @@ public class AnalysisCandidate {
 			List<String> materials,
 			String description,
 			boolean recurring,
-			String recurrenceNote) {
+			String recurrenceNote,
+			CandidateRecurrence recurrence) {
+	}
+
+	/** 후보의 반복 규칙(검증 전 값). byDays는 MO..SU 코드 목록. */
+	record CandidateRecurrence(String frequency, Integer interval, String until, Integer count,
+			List<String> byDays) {
 	}
 
 }

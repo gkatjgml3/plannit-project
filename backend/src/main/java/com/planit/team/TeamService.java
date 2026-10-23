@@ -7,6 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.planit.common.ApiException;
+import com.planit.notification.NotificationService;
 import com.planit.team.TeamDtos.MemberResponse;
 import com.planit.team.TeamDtos.TeamResponse;
 import com.planit.user.User;
@@ -21,11 +22,14 @@ public class TeamService {
 	private final TeamRepository teams;
 	private final TeamMemberRepository members;
 	private final UserRepository users;
+	private final NotificationService notifications;
 
-	public TeamService(TeamRepository teams, TeamMemberRepository members, UserRepository users) {
+	public TeamService(TeamRepository teams, TeamMemberRepository members, UserRepository users,
+			NotificationService notifications) {
 		this.teams = teams;
 		this.members = members;
 		this.users = users;
+		this.notifications = notifications;
 	}
 
 	@Transactional
@@ -75,6 +79,27 @@ public class TeamService {
 					return new MemberResponse(user.getId(), user.getEmail(), user.getName(), m.getRole(), m.getJoinedAt());
 				})
 				.toList();
+	}
+
+	/**
+	 * 입력값: 요청한 사용자, 팀 id, 내보낼 사용자 id
+	 * 출력값: 없음
+	 * 기능: 본인이면 팀을 떠나고, 다른 사람이면 팀장만 내보낼 수 있다. 팀장은 떠나거나 내보낼 수 없다.
+	 * 떠난 사람에게 남아 있던 그 팀 일정의 대기 알림은 취소한다.
+	 */
+	@Transactional
+	public void removeMember(Long requesterId, Long teamId, Long targetUserId) {
+		TeamMember requester = requireMember(teamId, requesterId);
+		if (!requesterId.equals(targetUserId) && requester.getRole() != TeamMember.Role.OWNER) {
+			throw ApiException.forbidden("NOT_TEAM_OWNER", "팀장만 다른 팀원을 내보낼 수 있습니다.");
+		}
+		TeamMember target = members.findMembership(teamId, targetUserId)
+				.orElseThrow(() -> ApiException.notFound("MEMBER_NOT_FOUND", "이 팀의 구성원이 아닙니다."));
+		if (target.getRole() == TeamMember.Role.OWNER) {
+			throw ApiException.conflict("OWNER_CANNOT_LEAVE", "팀장은 팀을 떠나거나 내보낼 수 없습니다.");
+		}
+		members.delete(target);
+		notifications.memberLeft(teamId, targetUserId);
 	}
 
 	/** 모든 팀 API는 이 검사를 먼저 통과해야 한다. */

@@ -1,0 +1,6 @@
+# 공용 개발 서버용 프로필. 비밀값 기본값은 두지 않고(기본 프로필과 같이 환경변수 필수), API 문서만 연다.
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

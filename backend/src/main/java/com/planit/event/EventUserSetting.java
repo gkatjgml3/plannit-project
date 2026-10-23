@@ -38,6 +38,15 @@ public class EventUserSetting {
 		this.id = new Id(eventId, userId);
 	}
 
+	/** 입력값: 새 알림 시각 / 출력값: 없음 / 기능: 일정 시간이 바뀌어 알림 시각만 옮길 때 쓴다. */
+	void moveReminder(Instant reminderAt) {
+		this.reminderAt = reminderAt;
+	}
+
+	public Long getUserId() {
+		return id.userId();
+	}
+
 	public void update(boolean hidden, Instant reminderAt, String personalMemo) {
 		this.hidden = hidden;
 		this.reminderAt = reminderAt;

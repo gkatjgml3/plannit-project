@@ -54,6 +54,19 @@ public class LocalFileImageStorage implements ImageStorage {
 		}
 	}
 
+	@Override
+	public void delete(String key) {
+		try {
+			Files.deleteIfExists(pathOf(key));
+		}
+		catch (ImageNotFoundException e) {
+			// 형식이 틀린 키는 처음부터 저장된 적이 없으므로 지울 것이 없다.
+		}
+		catch (IOException e) {
+			throw new UncheckedIOException("이미지를 지우지 못했습니다.", e);
+		}
+	}
+
 	private Path pathOf(String key) {
 		if (!KEY_PATTERN.matcher(key).matches()) {
 			throw new ImageNotFoundException();

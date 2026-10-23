@@ -1,6 +1,7 @@
 package com.planit.event;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -65,6 +66,22 @@ public class Event {
 	@Column(name = "request_fingerprint", length = 64)
 	private String requestFingerprint;
 
+	/** 반복 규칙(V4). 값이 없으면 반복하지 않는 일정이다. 회차는 조회할 때 펼치며 행으로 저장하지 않는다. */
+	@Column(name = "recurrence_frequency", length = 10)
+	private String recurrenceFrequency;
+
+	@Column(name = "recurrence_interval")
+	private Integer recurrenceInterval;
+
+	@Column(name = "recurrence_until")
+	private LocalDate recurrenceUntil;
+
+	@Column(name = "recurrence_count")
+	private Integer recurrenceCount;
+
+	@Column(name = "recurrence_by_days", length = 27)
+	private String recurrenceByDays;
+
 	protected Event() {
 	}
 
@@ -98,6 +115,26 @@ public class Event {
 		this.timezone = timezone;
 		this.description = description;
 		this.location = location;
+	}
+
+	/** 입력값: 반복 규칙(없으면 null) / 출력값: 없음 / 기능: 반복 규칙을 바꾸거나 지운다. */
+	public void setRecurrence(RecurrenceRule rule) {
+		this.recurrenceFrequency = rule == null ? null : rule.frequency().name();
+		this.recurrenceInterval = rule == null ? null : rule.interval();
+		this.recurrenceUntil = rule == null ? null : rule.until();
+		this.recurrenceCount = rule == null ? null : rule.count();
+		this.recurrenceByDays = rule == null ? null : rule.byDaysColumn();
+	}
+
+	/** 입력값: 없음 / 출력값: 반복 규칙, 반복하지 않으면 null / 기능: 저장된 열에서 규칙을 만든다. */
+	public RecurrenceRule getRecurrence() {
+		return RecurrenceRule.fromColumns(recurrenceFrequency, recurrenceInterval, recurrenceUntil, recurrenceCount,
+				recurrenceByDays);
+	}
+
+	/** 입력값: 없음 / 출력값: 없음 / 기능: 준비물만 바뀌어도 version이 올라가도록 수정 시각을 바꾼다. */
+	void touch() {
+		updatedAt = Instant.now();
 	}
 
 	public void markDeleted() {

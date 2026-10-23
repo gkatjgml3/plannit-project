@@ -1,0 +1,17 @@
+# 로컬 개발용 프로필. `gradlew bootRun`은 기본으로 이 프로필을 켠다(build.gradle).
+# 여기 값은 내 컴퓨터에서만 쓰는 개발용이며 운영에 쓰면 안 된다.
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/planit}
+    username: ${DB_USERNAME:planit}
+    password: ${DB_PASSWORD:planit}
+
+planit:
+  jwt:
+    secret: ${JWT_SECRET:local-dev-only-secret-change-me-0123456789}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
