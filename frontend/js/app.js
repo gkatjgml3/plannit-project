@@ -22,6 +22,7 @@ const state = {
     privacy: false,
     notification: false,
   },
+  termsDetail: null,
   selectedDate: "23",
   homeFilter: "all",
   addMenuOpen: false,
@@ -69,6 +70,8 @@ const state = {
   selectedEventId: null,
   eventFormMode: "create",
   eventReturnView: "calendar",
+  eventDetailReturnView: "calendar",
+  eventFormError: "",
   eventDeleteOpen: false,
   dateTimePickerOpen: false,
   alarmPickerOpen: false,
@@ -313,6 +316,15 @@ function renderTermCheckbox(isChecked, isPartial = false) {
 }
 
 // 입력값: 없음
+// 출력값: 선택한 약관의 상세 팝업 HTML 문자열
+// 기능: 서비스 또는 개인정보 필수 약관의 주요 내용을 가입 전에 확인하게 한다.
+function renderTermsDetailDialog() {
+  if (!state.termsDetail) return "";
+  const isService = state.termsDetail === "service";
+  return `<div class="sheet-scrim" data-action="close-terms-detail"></div><section class="terms-detail-dialog" role="dialog" aria-modal="true"><div class="sheet-title-row"><h2>${isService ? "서비스 이용약관" : "개인정보 수집·이용 동의"}</h2><button type="button" data-action="close-terms-detail">${icon("close")}</button></div><div class="terms-detail-copy">${isService ? `<h3>PLANIT 서비스 이용</h3><p>PLANIT은 이미지 속 일정 정보를 분석해 사용자가 확인·수정하고 캘린더에 등록하도록 돕습니다.</p><h3>분석 결과 확인</h3><p>이미지 분석 결과는 자동으로 확정되지 않으며, 등록 전 사용자가 내용과 날짜를 확인해야 합니다.</p>` : `<h3>수집 항목</h3><p>계정 식별과 일정 관리에 필요한 이름, 이메일 및 사용자가 입력한 일정 정보를 사용합니다.</p><h3>이용 목적</h3><p>회원 기능, 일정 관리, 알림과 그룹 공유 기능 제공을 위해 사용합니다.</p>`}</div><button class="primary-button" type="button" data-action="agree-detail-term" data-term="${state.termsDetail}">확인하고 동의</button></section>`;
+}
+
+// 입력값: 없음
 // 출력값: 약관 동의 화면 HTML 문자열
 // 기능: 필수 및 선택 약관을 확인하고 가입을 완료하는 화면을 표시한다.
 function renderTerms() {
@@ -336,11 +348,11 @@ function renderTerms() {
 
         <div class="term-row">
           <button class="term-main" type="button" data-action="toggle-term" data-term="service">${renderTermCheckbox(state.terms.service)}<span><strong>[필수]</strong> 서비스 이용약관</span></button>
-          <button class="term-detail" type="button" aria-label="서비스 이용약관 상세">${icon("chevron")}</button>
+          <button class="term-detail" type="button" data-action="open-terms-detail" data-term="service" aria-label="서비스 이용약관 상세">${icon("chevron")}</button>
         </div>
         <div class="term-row">
           <button class="term-main" type="button" data-action="toggle-term" data-term="privacy">${renderTermCheckbox(state.terms.privacy)}<span><strong>[필수]</strong> 개인정보 수집·이용 동의</span></button>
-          <button class="term-detail" type="button" aria-label="개인정보 수집 이용 동의 상세">${icon("chevron")}</button>
+          <button class="term-detail" type="button" data-action="open-terms-detail" data-term="privacy" aria-label="개인정보 수집 이용 동의 상세">${icon("chevron")}</button>
         </div>
         <div class="term-row">
           <button class="term-main" type="button" data-action="toggle-term" data-term="notification">${renderTermCheckbox(state.terms.notification)}<span><b>[선택]</b> 일정 알림 수신 동의</span></button>
@@ -348,6 +360,7 @@ function renderTerms() {
       </div>
 
       <button class="primary-button terms-submit" type="button" data-action="complete-signup" ${requiredChecked ? "" : "disabled"}>가입 완료</button>
+      ${renderTermsDetailDialog()}
     </section>
   `;
 }
@@ -487,7 +500,7 @@ function renderTimetableClasses() {
 
   return classes.map((item) => {
     const period = state.periodTimes.find((entry) => entry.period === item.period);
-    return `<button class="class-row" type="button" data-action="edit-class" data-class-id="${item.id}"><span class="period-label"><strong>${item.period}</strong><small>${period?.start ?? ""}</small></span><span class="class-card color-${item.color}"><strong>${item.title}</strong><small>${item.teacher} · ${item.room}</small></span></button>`;
+    return `<button class="class-row" type="button" data-action="edit-class" data-class-id="${item.id}"><span class="period-label"><strong>${item.period}</strong><small>${period?.start ?? ""}</small></span><span class="class-card color-${item.color}"><strong>${escapeAttribute(item.title)}</strong><small>${escapeAttribute(item.teacher)} · ${escapeAttribute(item.room)}</small></span></button>`;
   }).join("");
 }
 
@@ -514,7 +527,7 @@ function renderSubjectSettings() {
   const weekdays = ["월", "화", "수", "목", "금"];
   return `<div class="settings-content">${weekdays.map((day) => {
     const classes = state.timetable.filter((item) => item.day === day).sort((a, b) => a.period - b.period);
-    return `<section class="settings-day"><h3>${day}요일</h3>${classes.length ? classes.map((item) => `<div class="settings-class color-${item.color}"><button type="button" data-action="edit-class" data-class-id="${item.id}"><strong>${item.period}교시 · ${item.title}</strong><small>${item.teacher} · ${item.room}</small></button><button class="row-delete" type="button" data-action="delete-class" data-class-id="${item.id}" aria-label="${item.title} 삭제">${icon("trash")}</button></div>`).join("") : `<p class="settings-empty">등록된 수업이 없어요</p>`}<button class="inline-add" type="button" data-action="add-class-for-day" data-day="${day}">${icon("plus")} 과목 추가</button></section>`;
+    return `<section class="settings-day"><h3>${day}요일</h3>${classes.length ? classes.map((item) => `<div class="settings-class color-${item.color}"><button type="button" data-action="edit-class" data-class-id="${item.id}"><strong>${item.period}교시 · ${escapeAttribute(item.title)}</strong><small>${escapeAttribute(item.teacher)} · ${escapeAttribute(item.room)}</small></button><button class="row-delete" type="button" data-action="delete-class" data-class-id="${item.id}" aria-label="${escapeAttribute(item.title)} 삭제">${icon("trash")}</button></div>`).join("") : `<p class="settings-empty">등록된 수업이 없어요</p>`}<button class="inline-add" type="button" data-action="add-class-for-day" data-day="${day}">${icon("plus")} 과목 추가</button></section>`;
   }).join("")}</div>`;
 }
 
@@ -560,6 +573,7 @@ function formatKoreanDate(dateKey) {
 function openEventForm(eventItem = null, returnView = "calendar") {
   state.eventFormMode = eventItem ? "edit" : "create";
   state.eventReturnView = returnView;
+  state.eventFormError = "";
   state.eventDraft = eventItem
     ? { title: eventItem.title, category: eventItem.category, date: eventItem.date, start: eventItem.start, end: eventItem.end, allDay: eventItem.allDay, location: eventItem.location, memo: eventItem.memo, alarm: eventItem.alarm }
     : { title: "", category: "개인", date: toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay), start: "14:00", end: "15:00", allDay: false, location: "", memo: "", alarm: "10분 전" };
@@ -617,7 +631,7 @@ function renderCalendarEvents(events) {
   }
   return events
     .sort((a, b) => a.start.localeCompare(b.start))
-    .map((item) => `<button class="calendar-event color-${getEventTone(item.category)}" type="button" data-action="open-event" data-event-id="${item.id}"><span class="event-time">${item.allDay ? "종일" : item.start}</span><span class="event-summary"><strong>${item.title}</strong><small>${item.location || item.category}${item.shared ? " · 공유 일정" : ""}</small></span>${icon("chevron")}</button>`)
+    .map((item) => `<button class="calendar-event color-${getEventTone(item.category)}" type="button" data-action="open-event" data-event-id="${item.id}"><span class="event-time">${item.allDay ? "종일" : item.start}</span><span class="event-summary"><strong>${escapeAttribute(item.title)}</strong><small>${escapeAttribute(item.location || item.category)}${item.shared ? " · 공유 일정" : ""}</small></span>${icon("chevron")}</button>`)
     .join("");
 }
 
@@ -643,7 +657,7 @@ function renderCalendar() {
 // 출력값: 일정 상세 정보 행 HTML 문자열
 // 기능: 날짜·장소·메모·알림 정보를 같은 형식으로 표시한다.
 function renderEventInfoRow(iconName, label, value) {
-  return `<div class="event-info-row"><span class="event-info-icon">${icon(iconName)}</span><div><small>${label}</small><p>${value || "없음"}</p></div></div>`;
+  return `<div class="event-info-row"><span class="event-info-icon">${icon(iconName)}</span><div><small>${label}</small><p>${escapeAttribute(value || "없음")}</p></div></div>`;
 }
 
 // 입력값: 없음
@@ -666,9 +680,9 @@ function renderEventDetail() {
   const timeText = eventItem.allDay ? "종일" : `${eventItem.start} - ${eventItem.end}`;
   return `
     <section class="screen event-detail-screen">
-      <header class="feature-header centered"><button type="button" data-action="navigate" data-view="calendar" aria-label="캘린더로 돌아가기">${icon("back")}</button><h1>일정 상세</h1><button type="button" data-action="open-delete-event" aria-label="일정 삭제">${icon("trash")}</button></header>
+      <header class="feature-header centered"><button type="button" data-action="navigate" data-view="${state.eventDetailReturnView}" aria-label="이전 화면으로 돌아가기">${icon("back")}</button><h1>일정 상세</h1><button type="button" data-action="open-delete-event" aria-label="일정 삭제">${icon("trash")}</button></header>
       <div class="event-detail-scroll">
-        <div class="event-title-block"><span class="event-category color-${getEventTone(eventItem.category)}">${eventItem.category}</span><h2>${eventItem.title}</h2>${eventItem.shared ? `<p>그룹과 공유 중인 일정이에요</p>` : ""}</div>
+        <div class="event-title-block"><span class="event-category color-${getEventTone(eventItem.category)}">${eventItem.category}</span><h2>${escapeAttribute(eventItem.title)}</h2>${eventItem.shared ? `<p>그룹과 공유 중인 일정이에요</p>` : ""}</div>
         <div class="event-info-card">
           ${renderEventInfoRow("calendar", "날짜", formatKoreanDate(eventItem.date))}
           ${renderEventInfoRow("clock", "시간", timeText)}
@@ -714,8 +728,9 @@ function renderEventForm() {
         <label class="compact-field event-title-field"><span>일정 제목 <b>*</b></span><input name="title" value="${escapeAttribute(state.eventDraft.title)}" placeholder="일정 제목을 입력해 주세요" /></label>
         <fieldset class="category-field"><legend>일정 종류</legend><div>${["개인", "과제", "학교", "그룹"].map((category) => `<button class="${state.eventDraft.category === category ? "is-selected" : ""}" type="button" data-action="select-event-category" data-category="${category}">${category}</button>`).join("")}</div></fieldset>
         <button class="form-navigation-row" type="button" data-action="open-date-time-picker"><span class="event-info-icon">${icon("calendar")}</span><span><small>날짜 및 시간</small><strong>${timeText}</strong></span>${icon("chevron")}</button>
+        ${state.eventFormError ? `<p class="event-form-error">${icon("warning")}${state.eventFormError}</p>` : ""}
         <label class="compact-field"><span>장소</span><input name="location" value="${escapeAttribute(state.eventDraft.location)}" placeholder="장소를 입력해 주세요" /></label>
-        <label class="compact-field"><span>메모</span><textarea name="memo" placeholder="일정에 필요한 내용을 입력해 주세요">${state.eventDraft.memo}</textarea></label>
+        <label class="compact-field"><span>메모</span><textarea name="memo" placeholder="일정에 필요한 내용을 입력해 주세요">${escapeAttribute(state.eventDraft.memo)}</textarea></label>
         <button class="form-navigation-row" type="button" data-action="open-alarm-picker"><span class="event-info-icon">${icon("bell")}</span><span><small>알림</small><strong>${state.eventDraft.alarm}</strong></span>${icon("chevron")}</button>
         <button class="primary-button event-submit" type="submit" ${state.eventDraft.title.trim() ? "" : "disabled"}>${isEditing ? "수정 완료" : "일정 등록"}</button>
       </form>
@@ -774,7 +789,7 @@ function renderUpload() {
 // 기능: AI가 추출한 각 일정과 확인이 필요한 필드를 구분해 표시한다.
 function renderCandidateCard(candidate) {
   const timeText = candidate.allDay ? "종일" : `${candidate.start} - ${candidate.end}`;
-  return `<article class="candidate-card ${candidate.selected ? "is-selected" : ""}"><button class="candidate-check" type="button" data-action="toggle-candidate" data-candidate-id="${candidate.id}" aria-label="${candidate.title} 선택">${candidate.selected ? icon("check") : ""}</button><div class="candidate-main"><div class="candidate-title-row"><span class="event-category color-${getEventTone(candidate.category)}">${candidate.category}</span><em class="${candidate.uncertain.length ? "needs-check" : ""}">${candidate.confidence}</em></div><h3>${candidate.title}</h3><p>${formatKoreanDate(candidate.date)}</p><p>${timeText}${candidate.location ? ` · ${candidate.location}` : ""}</p>${candidate.uncertain.length ? `<small>${icon("warning")} ${candidate.uncertain.join(", ")}을 확인해 주세요</small>` : ""}</div><button class="candidate-edit" type="button" data-action="edit-candidate" data-candidate-id="${candidate.id}" aria-label="${candidate.title} 수정">${icon("pencil")}</button></article>`;
+  return `<article class="candidate-card ${candidate.selected ? "is-selected" : ""}"><button class="candidate-check" type="button" data-action="toggle-candidate" data-candidate-id="${candidate.id}" aria-label="${escapeAttribute(candidate.title)} 선택">${candidate.selected ? icon("check") : ""}</button><div class="candidate-main"><div class="candidate-title-row"><span class="event-category color-${getEventTone(candidate.category)}">${candidate.category}</span><em class="${candidate.uncertain.length ? "needs-check" : ""}">${candidate.confidence}</em></div><h3>${escapeAttribute(candidate.title)}</h3><p>${formatKoreanDate(candidate.date)}</p><p>${timeText}${candidate.location ? ` · ${escapeAttribute(candidate.location)}` : ""}</p>${candidate.uncertain.length ? `<small>${icon("warning")} ${candidate.uncertain.join(", ")}을 확인해 주세요</small>` : ""}</div><button class="candidate-edit" type="button" data-action="edit-candidate" data-candidate-id="${candidate.id}" aria-label="${escapeAttribute(candidate.title)} 수정">${icon("pencil")}</button></article>`;
 }
 
 // 입력값: 없음
@@ -782,7 +797,7 @@ function renderCandidateCard(candidate) {
 // 기능: 분석 후보의 모호하거나 잘못된 정보를 등록 전에 직접 수정한다.
 function renderCandidateEditor() {
   if (!state.candidateDraft) return "";
-  return `<div class="sheet-scrim" data-action="close-candidate-editor"></div><section class="bottom-sheet candidate-editor-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>추출 일정 수정</h2><button type="button" data-action="close-candidate-editor">${icon("close")}</button></div><form class="candidate-form" data-form="candidate"><label class="compact-field"><span>일정 제목</span><input name="title" value="${escapeAttribute(state.candidateDraft.title)}" /></label><div class="field-pair"><label class="compact-field"><span>날짜</span><input type="date" name="date" value="${state.candidateDraft.date}" /></label><label class="compact-field"><span>종류</span><select name="category">${["개인", "과제", "학교", "그룹"].map((category) => `<option ${category === state.candidateDraft.category ? "selected" : ""}>${category}</option>`).join("")}</select></label></div><div class="field-pair"><label class="compact-field"><span>시작</span><input type="time" name="start" value="${state.candidateDraft.start}" /></label><label class="compact-field"><span>종료</span><input type="time" name="end" value="${state.candidateDraft.end}" /></label></div><label class="compact-field"><span>장소</span><input name="location" value="${escapeAttribute(state.candidateDraft.location)}" /></label><label class="compact-field"><span>메모</span><textarea name="memo">${state.candidateDraft.memo}</textarea></label><button class="primary-button" type="submit">수정 완료</button></form></section>`;
+  return `<div class="sheet-scrim" data-action="close-candidate-editor"></div><section class="bottom-sheet candidate-editor-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>추출 일정 수정</h2><button type="button" data-action="close-candidate-editor">${icon("close")}</button></div><form class="candidate-form" data-form="candidate"><label class="compact-field"><span>일정 제목</span><input name="title" value="${escapeAttribute(state.candidateDraft.title)}" /></label><div class="field-pair"><label class="compact-field"><span>날짜</span><input type="date" name="date" value="${state.candidateDraft.date}" /></label><label class="compact-field"><span>종류</span><select name="category">${["개인", "과제", "학교", "그룹"].map((category) => `<option ${category === state.candidateDraft.category ? "selected" : ""}>${category}</option>`).join("")}</select></label></div><div class="field-pair"><label class="compact-field"><span>시작</span><input type="time" name="start" value="${state.candidateDraft.start}" /></label><label class="compact-field"><span>종료</span><input type="time" name="end" value="${state.candidateDraft.end}" /></label></div><label class="compact-field"><span>장소</span><input name="location" value="${escapeAttribute(state.candidateDraft.location)}" /></label><label class="compact-field"><span>메모</span><textarea name="memo">${escapeAttribute(state.candidateDraft.memo)}</textarea></label><button class="primary-button" type="submit">수정 완료</button></form></section>`;
 }
 
 // 입력값: 없음
@@ -814,7 +829,7 @@ function renderMyMenuRow(iconName, title, description, action) {
 function renderMy() {
   const userName = state.signup.name.trim() || "김플래닛";
   const userEmail = state.signup.email.trim() || state.login.email.trim() || "student@planit.kr";
-  return `<section class="screen my-screen"><header class="feature-header"><h1>마이</h1><span></span></header><div class="my-scroll"><section class="profile-card"><span class="profile-avatar">${userName.slice(0, 1)}</span><div><h2>${userName}</h2><p>${userEmail}</p><small>고등학생 · 2학년</small></div></section><section class="my-menu-card">${renderMyMenuRow("users", "내 그룹", `${state.groups.length}개 그룹에 참여 중`, "open-groups")}<label class="notification-row"><span class="my-menu-icon">${icon("bell")}</span><span><strong>일정 알림</strong><small>마감과 시작 전에 알려드려요</small></span><input type="checkbox" data-action="toggle-notification" ${state.notificationEnabled ? "checked" : ""} /></label>${renderMyMenuRow("note", "이용약관 및 개인정보", "PLANIT 서비스 정책 확인", "open-terms-info")}</section><button class="logout-button" type="button" data-action="logout">${icon("logout")} 로그아웃</button><p class="app-version">PLANIT v1.0.0</p></div>${renderBottomNav("my")}</section>`;
+  return `<section class="screen my-screen"><header class="feature-header"><h1>마이</h1><span></span></header><div class="my-scroll"><section class="profile-card"><span class="profile-avatar">${escapeAttribute(userName.slice(0, 1))}</span><div><h2>${escapeAttribute(userName)}</h2><p>${escapeAttribute(userEmail)}</p><small>고등학생 · 2학년</small></div></section><section class="my-menu-card">${renderMyMenuRow("users", "내 그룹", `${state.groups.length}개 그룹에 참여 중`, "open-groups")}<label class="notification-row"><span class="my-menu-icon">${icon("bell")}</span><span><strong>일정 알림</strong><small>마감과 시작 전에 알려드려요</small></span><input type="checkbox" data-action="toggle-notification" ${state.notificationEnabled ? "checked" : ""} /></label>${renderMyMenuRow("note", "이용약관 및 개인정보", "PLANIT 서비스 정책 확인", "open-terms-info")}</section><button class="logout-button" type="button" data-action="logout">${icon("logout")} 로그아웃</button><p class="app-version">PLANIT v1.0.0</p></div>${renderBottomNav("my")}</section>`;
 }
 
 // 입력값: 없음
@@ -828,7 +843,7 @@ function renderTermsInfo() {
 // 출력값: 그룹 목록 카드 HTML 문자열
 // 기능: 참여 중인 그룹의 이름, 설명, 인원과 공유 일정 수를 보여 준다.
 function renderGroupCard(group) {
-  return `<button class="group-card" type="button" data-action="open-group" data-group-id="${group.id}"><span class="group-symbol color-${group.color}">${group.name.slice(0, 1)}</span><span class="group-card-main"><strong>${group.name}</strong><small>${group.description}</small><em>${icon("users")} ${group.members.length}명 · 공유 일정 ${group.eventIds.length}개</em></span>${icon("chevron")}</button>`;
+  return `<button class="group-card" type="button" data-action="open-group" data-group-id="${group.id}"><span class="group-symbol color-${group.color}">${escapeAttribute(group.name.slice(0, 1))}</span><span class="group-card-main"><strong>${escapeAttribute(group.name)}</strong><small>${escapeAttribute(group.description)}</small><em>${icon("users")} ${group.members.length}명 · 공유 일정 ${group.eventIds.length}개</em></span>${icon("chevron")}</button>`;
 }
 
 // 입력값: 없음
@@ -853,7 +868,7 @@ function renderGroups() {
 function renderGroupEvents(eventIds) {
   const events = state.events.filter((item) => eventIds.includes(item.id));
   if (!events.length) return `<p class="group-empty">아직 공유된 일정이 없어요.</p>`;
-  return events.map((item) => `<button class="group-event-row" type="button" data-action="open-event" data-event-id="${item.id}"><span>${item.date.slice(5).replace("-", "/")}</span><div><strong>${item.title}</strong><small>${item.start} · ${item.location || "장소 없음"}</small></div>${icon("chevron")}</button>`).join("");
+  return events.map((item) => `<button class="group-event-row" type="button" data-action="open-event" data-event-id="${item.id}"><span>${item.date.slice(5).replace("-", "/")}</span><div><strong>${escapeAttribute(item.title)}</strong><small>${item.start} · ${escapeAttribute(item.location || "장소 없음")}</small></div>${icon("chevron")}</button>`).join("");
 }
 
 // 입력값: 없음
@@ -861,7 +876,7 @@ function renderGroupEvents(eventIds) {
 // 기능: 그룹 구성원, 초대 코드와 공유 일정을 확인하고 새 그룹 일정을 등록한다.
 function renderGroupDetail() {
   const group = state.groups.find((item) => item.id === state.selectedGroupId) ?? state.groups[0];
-  return `<section class="screen group-detail-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="groups" aria-label="그룹 목록으로 돌아가기">${icon("back")}</button><h1>그룹 상세</h1><span></span></header><div class="group-detail-scroll"><section class="group-hero color-${group.color}"><span>${group.name.slice(0, 1)}</span><div><h2>${group.name}</h2><p>${group.description}</p></div></section><section class="invite-code-card"><div><small>초대 코드</small><strong>${group.code}</strong></div><button type="button" data-action="copy-group-code" data-code="${group.code}">${icon("link")} 복사</button></section><section class="group-section"><div class="group-section-heading"><h3>구성원</h3><span>${group.members.length}명</span></div><div class="member-stack">${group.members.slice(0, 5).map((member, index) => `<span title="${member}" style="--member-index:${index}">${member.slice(0, 1)}</span>`).join("")}</div><p class="member-names">${group.members.join(" · ")}</p></section><section class="group-section"><div class="group-section-heading"><h3>공유 일정</h3><button type="button" data-action="new-group-event">+ 일정 추가</button></div><div class="group-event-list">${renderGroupEvents(group.eventIds)}</div></section></div></section>`;
+  return `<section class="screen group-detail-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="groups" aria-label="그룹 목록으로 돌아가기">${icon("back")}</button><h1>그룹 상세</h1><span></span></header><div class="group-detail-scroll"><section class="group-hero color-${group.color}"><span>${escapeAttribute(group.name.slice(0, 1))}</span><div><h2>${escapeAttribute(group.name)}</h2><p>${escapeAttribute(group.description)}</p></div></section><section class="invite-code-card"><div><small>초대 코드</small><strong>${escapeAttribute(group.code)}</strong></div><button type="button" data-action="copy-group-code" data-code="${escapeAttribute(group.code)}">${icon("link")} 복사</button></section><section class="group-section"><div class="group-section-heading"><h3>구성원</h3><span>${group.members.length}명</span></div><div class="member-stack">${group.members.slice(0, 5).map((member, index) => `<span title="${escapeAttribute(member)}" style="--member-index:${index}">${escapeAttribute(member.slice(0, 1))}</span>`).join("")}</div><p class="member-names">${group.members.map(escapeAttribute).join(" · ")}</p></section><section class="group-section"><div class="group-section-heading"><h3>공유 일정</h3><button type="button" data-action="new-group-event">+ 일정 추가</button></div><div class="group-event-list">${renderGroupEvents(group.eventIds)}</div></section></div></section>`;
 }
 
 // 입력값: 없음
@@ -869,7 +884,7 @@ function renderGroupDetail() {
 // 기능: 현재 일정을 공유할 그룹을 복수 선택하고 적용한다.
 function renderShareGroupDialog() {
   if (!state.groupShareOpen) return "";
-  return `<div class="sheet-scrim" data-action="close-share-groups"></div><section class="bottom-sheet share-groups-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>그룹에 공유</h2><button type="button" data-action="close-share-groups">${icon("close")}</button></div><p class="share-help">이 일정을 함께 볼 그룹을 선택해 주세요.</p><div class="share-group-list">${state.groups.map((group) => { const selected = state.selectedShareGroupIds.includes(group.id); return `<button class="${selected ? "is-selected" : ""}" type="button" data-action="toggle-share-group" data-group-id="${group.id}"><span class="group-symbol color-${group.color}">${group.name.slice(0, 1)}</span><span><strong>${group.name}</strong><small>${group.members.length}명</small></span><i>${selected ? icon("check") : ""}</i></button>`; }).join("")}</div><button class="primary-button" type="button" data-action="confirm-share-groups" ${state.selectedShareGroupIds.length ? "" : "disabled"}>선택 그룹에 공유</button></section>`;
+  return `<div class="sheet-scrim" data-action="close-share-groups"></div><section class="bottom-sheet share-groups-sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div><div class="sheet-title-row"><h2>그룹에 공유</h2><button type="button" data-action="close-share-groups">${icon("close")}</button></div><p class="share-help">이 일정을 함께 볼 그룹을 선택해 주세요.</p><div class="share-group-list">${state.groups.map((group) => { const selected = state.selectedShareGroupIds.includes(group.id); return `<button class="${selected ? "is-selected" : ""}" type="button" data-action="toggle-share-group" data-group-id="${group.id}"><span class="group-symbol color-${group.color}">${escapeAttribute(group.name.slice(0, 1))}</span><span><strong>${escapeAttribute(group.name)}</strong><small>${group.members.length}명</small></span><i>${selected ? icon("check") : ""}</i></button>`; }).join("")}</div><button class="primary-button" type="button" data-action="confirm-share-groups" ${state.selectedShareGroupIds.length ? "" : "disabled"}>선택 그룹에 공유</button></section>`;
 }
 
 // 입력값: 없음
@@ -1013,11 +1028,11 @@ function handleSubmit(event) {
 
   if (form.dataset.form === "event" && state.eventDraft.title.trim()) {
     if (!state.eventDraft.allDay && state.eventDraft.end <= state.eventDraft.start) {
-      state.eventDraft.end = state.eventDraft.start;
-      state.alarmPickerOpen = false;
+      state.eventFormError = "종료 시간은 시작 시간보다 늦어야 해요.";
       renderApp();
       return;
     }
+    state.eventFormError = "";
     if (state.eventFormMode === "edit") {
       const eventItem = state.events.find((item) => item.id === state.selectedEventId);
       Object.assign(eventItem, state.eventDraft);
@@ -1035,6 +1050,7 @@ function handleSubmit(event) {
     state.calendarYear = year;
     state.calendarMonth = month;
     state.calendarSelectedDay = day;
+    if (state.eventReturnView !== "eventDetail") state.eventDetailReturnView = state.eventReturnView;
     state.currentView = "eventDetail";
     renderApp();
   }
@@ -1103,6 +1119,13 @@ function handleClick(event) {
     });
   }
 
+  if (action === "open-terms-detail") state.termsDetail = target.dataset.term;
+  if (action === "close-terms-detail") state.termsDetail = null;
+  if (action === "agree-detail-term") {
+    state.terms[target.dataset.term] = true;
+    state.termsDetail = null;
+  }
+
   if (action === "complete-signup" && state.terms.service && state.terms.privacy) {
     state.currentView = "home";
   }
@@ -1151,6 +1174,7 @@ function handleClick(event) {
     state.calendarSelectedDay = day;
   }
   if (action === "open-event") {
+    state.eventDetailReturnView = state.currentView === "groupDetail" ? "groupDetail" : "calendar";
     state.selectedEventId = Number(target.dataset.eventId);
     state.currentView = "eventDetail";
   }
@@ -1167,9 +1191,12 @@ function handleClick(event) {
   if (action === "cancel-delete-event") state.eventDeleteOpen = false;
   if (action === "confirm-delete-event") {
     state.events = state.events.filter((item) => item.id !== state.selectedEventId);
+    state.groups.forEach((group) => {
+      group.eventIds = group.eventIds.filter((id) => id !== state.selectedEventId);
+    });
     state.selectedEventId = null;
     state.eventDeleteOpen = false;
-    state.currentView = "calendar";
+    state.currentView = state.eventDetailReturnView;
   }
   if (action === "select-event-category") state.eventDraft.category = target.dataset.category;
   if (action === "open-date-time-picker") state.dateTimePickerOpen = true;
@@ -1280,14 +1307,10 @@ function handleClick(event) {
   renderApp();
 }
 
-// 입력값: 파일 선택 변경 이벤트
+// 입력값: 사용자가 선택하거나 드래그한 이미지 파일
 // 출력값: 없음
 // 기능: 이미지 형식과 용량을 검증하고 안전한 로컬 미리보기 주소를 만든다.
-function handleFileChange(event) {
-  const input = event.target.closest('input[type="file"]');
-  if (!input) return;
-  const [file] = input.files;
-  if (!file) return;
+function processImageFile(file) {
   const allowedTypes = ["image/jpeg", "image/png"];
   if (!allowedTypes.includes(file.type)) {
     state.upload = { status: "error", fileName: file.name, fileSize: file.size, previewUrl: "", error: "JPEG 또는 PNG 형식의 이미지만 올릴 수 있어요." };
@@ -1304,8 +1327,51 @@ function handleFileChange(event) {
   renderApp();
 }
 
+// 입력값: 파일 선택 변경 이벤트
+// 출력값: 없음
+// 기능: 파일 선택창에서 고른 첫 이미지를 공통 검증 함수로 전달한다.
+function handleFileChange(event) {
+  const input = event.target.closest('input[type="file"]');
+  if (!input) return;
+  const [file] = input.files;
+  if (file) processImageFile(file);
+}
+
+// 입력값: 파일 드래그 이벤트
+// 출력값: 없음
+// 기능: 업로드 영역의 브라우저 기본 동작을 막고 드래그 상태를 강조한다.
+function handleDragOver(event) {
+  const dropzone = event.target.closest(".upload-dropzone");
+  if (!dropzone) return;
+  event.preventDefault();
+  dropzone.classList.add("is-dragging");
+}
+
+// 입력값: 파일 드래그 종료 이벤트
+// 출력값: 없음
+// 기능: 파일이 업로드 영역을 벗어나면 강조 상태를 해제한다.
+function handleDragLeave(event) {
+  const dropzone = event.target.closest(".upload-dropzone");
+  if (dropzone) dropzone.classList.remove("is-dragging");
+}
+
+// 입력값: 파일 드롭 이벤트
+// 출력값: 없음
+// 기능: 업로드 영역에 놓은 첫 이미지를 공통 검증 함수로 전달한다.
+function handleDrop(event) {
+  const dropzone = event.target.closest(".upload-dropzone");
+  if (!dropzone) return;
+  event.preventDefault();
+  dropzone.classList.remove("is-dragging");
+  const [file] = event.dataTransfer.files;
+  if (file) processImageFile(file);
+}
+
 app.addEventListener("input", handleInput);
 app.addEventListener("change", handleFileChange);
+app.addEventListener("dragover", handleDragOver);
+app.addEventListener("dragleave", handleDragLeave);
+app.addEventListener("drop", handleDrop);
 app.addEventListener("submit", handleSubmit);
 app.addEventListener("click", handleClick);
 renderApp();

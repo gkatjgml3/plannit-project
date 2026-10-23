@@ -360,6 +360,48 @@ svg {
   width: auto;
 }
 
+.terms-detail-dialog {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 52;
+  width: 334px;
+  max-height: 620px;
+  padding: 24px 22px 20px;
+  border-radius: 20px;
+  background: var(--white);
+  transform: translate(-50%, -50%);
+}
+
+.terms-detail-dialog .sheet-title-row h2 {
+  font-size: 18px;
+}
+
+.terms-detail-copy {
+  max-height: 405px;
+  overflow-y: auto;
+  margin: 21px 0;
+  padding: 17px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.terms-detail-copy h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.terms-detail-copy h3:not(:first-child) {
+  margin-top: 22px;
+}
+
+.terms-detail-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
 .home-screen {
   background: var(--white);
 }
@@ -1520,6 +1562,20 @@ svg {
 
 .event-submit {
   margin-top: 3px;
+}
+
+.event-form-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -10px 0 0;
+  color: var(--danger);
+  font-size: 11px;
+}
+
+.event-form-error svg {
+  width: 15px;
+  height: 15px;
 }
 
 .picker-fields {
