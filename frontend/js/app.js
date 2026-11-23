@@ -1,5 +1,7 @@
 const app = document.querySelector("#app");
 const temporaryStorageKey = "planitTemporaryData";
+const deviceToday = new Date();
+const deviceTodayKey = toDateKey(deviceToday.getFullYear(), deviceToday.getMonth() + 1, deviceToday.getDate());
 
 const state = {
   currentView: "login",
@@ -12,6 +14,8 @@ const state = {
     email: "",
     password: "",
     passwordConfirm: "",
+    school: "",
+    grade: "2학년",
   },
   passwordVisibility: {
     login: false,
@@ -24,9 +28,16 @@ const state = {
     notification: false,
   },
   termsDetail: null,
-  selectedDate: "23",
+  selectedDate: deviceTodayKey,
   homeFilter: "all",
   addMenuOpen: false,
+  calendarFilter: "all",
+  notificationFilter: "all",
+  notificationEnabled: true,
+  groupNotificationEnabled: true,
+  deadlineNotificationEnabled: true,
+  searchOpen: false,
+  cameraPermissionSeen: false,
   selectedWeekday: "월",
   timetableSettingsTab: "subjects",
   classEditorOpen: false,
@@ -68,11 +79,11 @@ const state = {
     { id: 25, day: "금", period: 5, title: "성공적인 직업생활", teacher: "", room: "", color: "yellow" },
     { id: 26, day: "월", period: 6, title: "JAVA", teacher: "", room: "", color: "green" },
     { id: 27, day: "화", period: 6, title: "체육", teacher: "", room: "", color: "orange" },
-    { id: 28, day: "수", period: 6, title: "동아리", teacher: "", room: "", color: "violet" },
+    { id: 28, day: "수", period: 6, title: "동아리 멘토링", teacher: "", room: "", color: "violet" },
     { id: 29, day: "목", period: 6, title: "체육", teacher: "", room: "", color: "orange" },
     { id: 30, day: "금", period: 6, title: "한국사", teacher: "", room: "", color: "yellow" },
     { id: 31, day: "화", period: 7, title: "기술가정", teacher: "", room: "", color: "pink" },
-    { id: 32, day: "수", period: 7, title: "멘토링", teacher: "", room: "", color: "violet" },
+    { id: 32, day: "수", period: 7, title: "동아리 멘토링", teacher: "", room: "", color: "violet" },
     { id: 33, day: "목", period: 7, title: "기술가정", teacher: "", room: "", color: "pink" },
   ],
   periodTimes: [
@@ -93,8 +104,8 @@ const state = {
   timetableTimeDraft: null,
   timetableTimeError: "",
   calendarYear: 2026,
-  calendarMonth: 10,
-  calendarSelectedDay: 23,
+  calendarMonth: 11,
+  calendarSelectedDay: 17,
   selectedEventId: null,
   eventFormMode: "create",
   eventReturnView: "calendar",
@@ -106,20 +117,25 @@ const state = {
   eventDraft: {
     title: "",
     category: "개인",
-    date: "2026-10-23",
-    start: "14:00",
-    end: "15:00",
+    date: "2026-11-17",
+    start: "09:00",
+    end: "10:00",
     allDay: false,
     location: "",
+    preparation: "",
     memo: "",
     alarm: "10분 전",
+    repeat: "반복 안 함",
+    sharedGroup: "공유 안 함",
   },
   events: [
-    { id: 101, title: "영어 수행평가 제출", category: "과제", date: "2026-10-23", start: "23:00", end: "23:59", allDay: false, location: "온라인 클래스", memo: "영어 에세이 최종본 제출", alarm: "1시간 전", shared: false },
-    { id: 102, title: "수학 수행 보고서", category: "과제", date: "2026-10-23", start: "08:30", end: "09:00", allDay: false, location: "2학년 3반", memo: "인쇄한 보고서 준비", alarm: "1일 전", shared: false },
-    { id: 103, title: "과학 조별 발표", category: "그룹", date: "2026-10-23", start: "14:00", end: "15:00", allDay: false, location: "과학실", memo: "발표 자료와 실험 결과 준비", alarm: "30분 전", shared: true },
-    { id: 104, title: "중간고사", category: "학교", date: "2026-10-15", start: "09:00", end: "12:00", allDay: false, location: "본교", memo: "국어, 수학 시험", alarm: "1일 전", shared: false },
-    { id: 105, title: "동아리 회의", category: "그룹", date: "2026-10-28", start: "16:00", end: "17:00", allDay: false, location: "동아리실", memo: "축제 준비 회의", alarm: "10분 전", shared: true },
+    { id: 101, title: "JAVA 수행평가", category: "개인", date: "2026-11-17", start: "09:00", end: "10:00", allDay: false, location: "컴퓨터실", preparation: "노트북, 수행평가 자료", memo: "10분 전에 도착하기", alarm: "10분 전", repeat: "반복 안 함", sharedGroup: "공유 안 함", shared: false },
+    { id: 102, title: "동아리 멘토링", category: "그룹", date: "2026-11-17", start: "14:00", end: "15:00", allDay: false, location: "3층 세미나실", preparation: "멘토링 활동지", memo: "프로젝트 진행 상황 공유", alarm: "10분 전", repeat: "매주 화요일", sharedGroup: "코딩 동아리", shared: true },
+    { id: 103, title: "과학 보고서 제출", category: "개인", date: "2026-11-17", start: "16:00", end: "17:00", allDay: false, location: "온라인 제출", preparation: "최종 보고서 PDF", memo: "파일명 확인", alarm: "1시간 전", repeat: "반복 안 함", sharedGroup: "공유 안 함", shared: false },
+    { id: 104, title: "학급 사진 촬영", category: "그룹", date: "2026-11-18", start: "11:20", end: "12:10", allDay: false, location: "운동장", preparation: "교복", memo: "우천 시 체육관", alarm: "30분 전", repeat: "반복 안 함", sharedGroup: "2학년 3반", shared: true },
+    { id: 105, title: "프로젝트 중간 점검", category: "그룹", date: "2026-11-22", start: "14:00", end: "15:00", allDay: false, location: "동아리실", preparation: "발표 자료", memo: "진행률 점검", alarm: "1일 전", repeat: "반복 안 함", sharedGroup: "코딩 동아리", shared: true },
+    { id: 106, title: "발표 자료 합치기", category: "그룹", date: "2026-11-26", start: "18:00", end: "19:00", allDay: false, location: "온라인", preparation: "개인 발표 자료", memo: "공유 문서에서 작업", alarm: "1시간 전", repeat: "반복 안 함", sharedGroup: "코딩 동아리", shared: true },
+    { id: 107, title: "최종 발표", category: "그룹", date: "2026-12-03", start: "15:00", end: "16:00", allDay: false, location: "대강당", preparation: "발표 자료, 노트북", memo: "리허설 30분 전", alarm: "1일 전", repeat: "반복 안 함", sharedGroup: "코딩 동아리", shared: true },
   ],
   upload: {
     status: "idle",
@@ -134,16 +150,17 @@ const state = {
   registrationComplete: false,
   groupModalOpen: false,
   groupModalTab: "create",
-  groupDraft: { name: "", code: "" },
+  groupDetailTab: "events",
+  groupDraft: { name: "", code: "", description: "", type: "동아리", icon: "users" },
   groupError: "",
   selectedGroupId: 1,
   groupShareOpen: false,
   selectedShareGroupIds: [],
-  notificationEnabled: true,
   groups: [
-    { id: 1, name: "2학년 3반", description: "우리 반 일정 공유", code: "PLN-23CLASS", color: "violet", members: ["김플래닛", "이하늘", "박민준", "최서윤", "정도윤"], eventIds: [103] },
-    { id: 2, name: "과학 조별 과제", description: "과학 발표 준비 모임", code: "PLN-SCIENCE", color: "green", members: ["김플래닛", "이하늘", "박민준", "최서윤"], eventIds: [103] },
-    { id: 3, name: "방송부", description: "방송부 공지와 활동 일정", code: "PLN-ON-AIR", color: "blue", members: ["김플래닛", "정도윤", "한유진"], eventIds: [105] },
+    { id: 1, name: "2학년 3반", description: "학급 일정과 공지를 함께 관리해요", code: "PL-23CLASS", color: "pink", members: ["지민", "민서", "수현", "현우", "서윤", "도윤"], eventIds: [104] },
+    { id: 2, name: "코딩 동아리", description: "함께 코딩하고 발표 일정을 공유해요", code: "PL-7K2M-90", color: "pink", members: ["지민", "민서", "수현", "현우", "유진", "서준", "하윤", "도윤", "서윤", "민준", "예은", "준호"], eventIds: [102, 105, 106, 107] },
+    { id: 3, name: "수학 스터디", description: "개념 문제 풀이와 시험 일정을 나눠요", code: "PL-MATH-05", color: "yellow", members: ["지민", "민서", "수현", "현우", "유진"], eventIds: [] },
+    { id: 4, name: "조별 과제 A팀", description: "수행평가 자료와 마감 일정을 공유해요", code: "PL-TEAM-A4", color: "blue", members: ["지민", "민서", "수현", "현우"], eventIds: [103] },
   ],
 };
 
@@ -279,11 +296,17 @@ const icons = {
   users: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="10" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 20c.6-3.6 2.6-5.5 6-5.5s5.4 1.9 6 5.5M15 15c3.3 0 5.2 1.5 5.8 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
   logout: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5H5v14h5M14 8l4 4-4 4M8 12h10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   link: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 14 4-4M8.5 16.5l-1 1a3.5 3.5 0 0 1-5-5l3-3a3.5 3.5 0 0 1 5 0M15.5 7.5l1-1a3.5 3.5 0 0 1 5 5l-3 3a3.5 3.5 0 0 1-5 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15.5 15.5 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  more: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/></svg>`,
+  camera: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6.5 9.4 4h5.2L16 6.5h2.5A2.5 2.5 0 0 1 21 9v8.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5V9a2.5 2.5 0 0 1 2.5-2.5H8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>`,
+  flash: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13.5 2-7 11h5l-1 9 7-12h-5l1-8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+  sun: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+  lock: `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
 };
 
 // 입력값: 아이콘 이름
 // 출력값: 화면에 삽입할 SVG 문자열
-// 기능: 피그마 화면에 사용된 선형 아이콘을 반환한다.
+// 기능: PLANIT 화면에 사용되는 선형 아이콘을 반환한다.
 function icon(name) {
   return icons[name] ?? "";
 }
@@ -301,15 +324,17 @@ function escapeAttribute(value) {
 
 // 입력값: 없음
 // 출력값: 로그인 화면 HTML 문자열
-// 기능: PLANIT 첫 진입 로그인 화면을 피그마 구성에 맞춰 표시한다.
+// 기능: PLANIT 첫 진입 로그인 화면을 모바일 UI 보드 구성에 맞춰 표시한다.
 function renderLogin() {
   const passwordType = state.passwordVisibility.login ? "text" : "password";
 
   return `
     <section class="screen auth-screen login-screen">
       <div class="brand-block">
-        <p class="brand-name">PLANIT</p>
-        <h1>학교 수업부터 내 할 일까지,<br />오늘 하루를 한눈에.</h1>
+        <p class="brand-name">PLAN<span>IT</span></p>
+        <div class="brand-icons"><span>${icon("calendar")}</span><span>${icon("image")}</span></div>
+        <h1>일정을 더 쉽게<br />시작해요</h1>
+        <p>사진 한 장으로 일정을 만들고,<br />캘린더에서 한눈에 확인해요.</p>
       </div>
 
       <form class="auth-form login-form" data-form="login" novalidate>
@@ -325,10 +350,12 @@ function renderLogin() {
           </span>
         </label>
         <button class="primary-button" type="submit" data-submit="login" ${state.login.email && state.login.password ? "" : "disabled"}>로그인</button>
-        <button class="forgot-button" type="button">비밀번호를 잊으셨나요?</button>
+        <button class="forgot-button" type="button">비밀번호 찾기</button>
       </form>
-
-      <p class="auth-footer">아직 계정이 없나요?<button type="button" data-action="open-signup">회원가입</button></p>
+      <div class="social-divider"><span></span><em>또는</em><span></span></div>
+      <div class="social-login"><button type="button">Google 로그인</button><button type="button">카카오 로그인</button></div>
+      <p class="auth-footer">계정이 없나요?<button type="button" data-action="open-signup">회원가입</button></p>
+      <small class="auth-legal">로그인하면 이용약관과 개인정보 처리방침에<br />동의하게 돼요.</small>
     </section>
   `;
 }
@@ -349,8 +376,8 @@ function renderSignup() {
       </header>
 
       <div class="signup-copy">
-        <h2>가입 정보를 입력해 주세요</h2>
-        <p>고등학생 기준으로 시작해요</p>
+        <h2>회원가입</h2>
+        <p>기본 정보를 입력해 주세요.</p>
       </div>
 
       <form class="auth-form signup-form" data-form="signup" novalidate>
@@ -366,6 +393,9 @@ function renderSignup() {
           <span class="input-wrap"><input name="passwordConfirm" type="${confirmType}" autocomplete="new-password" placeholder="비밀번호 다시 입력" value="${escapeAttribute(state.signup.passwordConfirm)}" /><button class="input-icon" type="button" data-action="toggle-password" data-password-field="passwordConfirm" aria-label="비밀번호 확인 표시 전환">${icon("eye")}</button></span>
           <small class="field-error" data-confirm-error hidden>비밀번호가 일치하지 않아요</small>
         </label>
+        <div class="signup-section-label">학교와 학년</div>
+        <label class="form-field"><span>학교</span><input name="school" type="text" placeholder="학교 이름을 검색해 주세요" value="${escapeAttribute(state.signup.school)}" /></label>
+        <div class="grade-segments">${["1학년", "2학년", "3학년"].map((grade) => `<button class="${state.signup.grade === grade ? "is-selected" : ""}" type="button" data-action="select-grade" data-grade="${grade}">${grade}</button>`).join("")}</div>
         <button class="primary-button signup-submit" type="submit" data-submit="signup" ${isSignupValid() ? "" : "disabled"}>다음</button>
       </form>
     </section>
@@ -443,7 +473,7 @@ function renderScheduleItems(schedules, filter) {
   }
 
   return filteredSchedules
-    .map((schedule) => `<article class="schedule-row"><time>${schedule.time}</time><div class="schedule-card"><strong>${schedule.title}</strong><span>${schedule.meta}</span></div></article>`)
+    .map((schedule) => `<button class="board-schedule-row" type="button" data-action="open-event" data-event-id="${schedule.id}"><i class="schedule-accent ${schedule.type === "group" ? "is-group" : ""}"></i><span class="board-schedule-copy"><strong>${escapeAttribute(schedule.title)}</strong><small><em>${schedule.type === "group" ? icon("users") : icon("user")}${schedule.type === "group" ? "그룹" : "개인"}</em>${escapeAttribute(schedule.meta)}</small></span><time>${schedule.time}</time></button>`)
     .join("");
 }
 
@@ -455,28 +485,52 @@ function renderDeadlines(deadlines) {
     return `<div class="deadline-empty">마감 일정이 없어요</div>`;
   }
 
-  return `<div class="deadline-card">${deadlines.map((deadline) => `<p><strong>${deadline.title}</strong><span>${deadline.due}</span></p>`).join("")}</div>`;
+  return `<div class="deadline-card">${deadlines.map((deadline) => `<p><strong>${escapeAttribute(deadline.title)}</strong><span>${deadline.due}</span></p>`).join("")}</div>`;
 }
 
-// 입력값: 홈 날짜 숫자 문자열
+// 입력값: YYYY-MM-DD 형식의 홈 날짜 문자열
 // 출력값: 고정 수업과 사용자가 임시 등록한 일정을 합친 홈 화면 데이터
 // 기능: DB 없이 등록한 일정도 현재 탭을 나가기 전까지 홈에서 바로 확인하게 한다.
-function getHomeContent(date) {
-  const baseContent = homeContentByDate[date];
-  const dateKey = `2026-10-${date.padStart(2, "0")}`;
-  const temporarySchedules = state.events
-    .filter((eventItem) => eventItem.temporary && eventItem.date === dateKey)
+function getHomeContent(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const selectedDate = new Date(year, month - 1, day, 12);
+  const weekday = ["일", "월", "화", "수", "목", "금", "토"][selectedDate.getDay()];
+  const schedules = state.events
+    .filter((eventItem) => eventItem.date === dateKey)
     .map((eventItem) => ({
+      id: eventItem.id,
       time: eventItem.allDay ? "종일" : eventItem.start,
       title: eventItem.title,
       meta: eventItem.location || eventItem.category,
-      type: "personal",
+      type: eventItem.category === "그룹" || eventItem.shared ? "group" : "personal",
     }));
 
   return {
-    ...baseContent,
-    schedules: [...baseContent.schedules, ...temporarySchedules].sort((first, second) => first.time.localeCompare(second.time)),
+    heading: `${month}월 ${day}일 ${weekday}요일`,
+    deadlines: schedules.filter((schedule) => /제출|평가|마감/.test(schedule.title)).map((schedule) => ({ title: schedule.title, due: `${schedule.time}까지` })),
+    schedules: schedules.sort((first, second) => first.time.localeCompare(second.time)),
   };
+}
+
+// 입력값: YYYY-MM-DD 형식의 기준 날짜 문자열
+// 출력값: 기준 날짜가 포함된 일요일부터 토요일까지의 날짜 정보 배열
+// 기능: 사용자의 기기 날짜를 중심으로 메인 화면의 주간 날짜를 자동 생성한다.
+function getHomeWeekDates(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const referenceDate = new Date(year, month - 1, day, 12);
+  const weekStart = new Date(referenceDate);
+  weekStart.setDate(referenceDate.getDate() - referenceDate.getDay());
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const currentDate = new Date(weekStart);
+    currentDate.setDate(weekStart.getDate() + index);
+    return {
+      dateKey: toDateKey(currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDate()),
+      dayNumber: String(currentDate.getDate()),
+      weekday: ["일", "월", "화", "수", "목", "금", "토"][currentDate.getDay()],
+      isSunday: currentDate.getDay() === 0,
+    };
+  });
 }
 
 // 입력값: 현재 활성화할 메뉴 이름
@@ -485,9 +539,10 @@ function getHomeContent(date) {
 function renderBottomNav(activeView) {
   const navItems = [
     ["home", "홈", "home"],
-    ["timetable", "시간표", "timetable"],
     ["calendar", "캘린더", "calendar"],
-    ["my", "마이", "user"],
+    ["upload", "이미지 등록", "image"],
+    ["groups", "그룹", "users"],
+    ["settings", "설정", "gear"],
   ];
 
   return `<nav class="bottom-nav" aria-label="주요 메뉴">${navItems
@@ -497,40 +552,53 @@ function renderBottomNav(activeView) {
 
 // 입력값: 없음
 // 출력값: 메인 홈 화면 HTML 문자열
-// 기능: 마감 일정, 오늘의 시간표, 빠른 추가 메뉴를 피그마 화면대로 표시한다.
+// 기능: 오늘 일정, 주간 날짜, 다가오는 일정과 빠른 메뉴를 표시한다.
 function renderHome() {
   const filters = [
     ["all", "전체"],
-    ["class", "수업"],
     ["personal", "개인"],
+    ["group", "그룹"],
   ];
   const selectedContent = getHomeContent(state.selectedDate);
-  const dates = [["일", "18"], ["월", "19"], ["화", "20"], ["수", "21"], ["목", "22"], ["금", "23"], ["토", "24"]];
+  const todayContent = getHomeContent(deviceTodayKey);
+  const dates = getHomeWeekDates(deviceTodayKey);
+  const nextSchedule = todayContent.schedules[0];
+  const todayDateText = formatKoreanDate(deviceTodayKey).replace(/^\d+년 /, "");
 
   return `
     <section class="screen home-screen ${state.addMenuOpen ? "has-menu" : ""}">
       <div class="home-scroll">
-        <header class="home-header"><h1>${selectedContent.heading}</h1><button class="bell-button" type="button" aria-label="알림">${icon("bell")}</button></header>
+        <header class="board-home-header"><strong class="wordmark">PLANIT</strong><div><button type="button" data-action="toggle-search" aria-label="검색">${icon("search")}</button><button type="button" data-action="navigate" data-view="notifications" aria-label="알림">${icon("bell")}<i></i></button></div></header>
 
-        <div class="date-strip" aria-label="10월 셋째 주">
-          ${dates.map(([day, date]) => `<button class="date-item ${date === state.selectedDate ? "is-selected" : ""} ${day === "일" ? "is-sunday" : ""}" type="button" data-action="select-date" data-date="${date}" aria-pressed="${date === state.selectedDate}"><small>${day}</small><strong>${date}</strong></button>`).join("")}
+        <p class="today-label">오늘 · ${todayDateText}</p>
+        <h1 class="home-greeting">안녕하세요, 서희님!</h1>
+
+        <section class="today-summary-card">
+          <p>${todayContent.heading}</p>
+          <h2>오늘의 일정</h2>
+          <div class="today-count"><strong>${todayContent.schedules.length}</strong><span>개의 일정이 있습니다!</span></div>
+          ${nextSchedule ? `<button type="button" data-action="open-event" data-event-id="${nextSchedule.id}"><span>다음 · ${nextSchedule.time} ${escapeAttribute(nextSchedule.title)}</span>${icon("chevron")}</button>` : `<button type="button" data-action="new-event"><span>첫 일정을 추가해 보세요</span>${icon("plus")}</button>`}
+        </section>
+
+        <div class="date-strip" aria-label="이번 주 날짜">
+          ${dates.map(({ dateKey, dayNumber, weekday, isSunday }) => {
+            const hasEvents = getHomeContent(dateKey).schedules.length > 0;
+            const isToday = dateKey === deviceTodayKey;
+            return `<button class="date-item ${dateKey === state.selectedDate ? "is-selected" : ""} ${isToday ? "is-today" : ""} ${isSunday ? "is-sunday" : ""} ${hasEvents ? "has-events" : ""}" type="button" data-action="select-date" data-date="${dateKey}" aria-pressed="${dateKey === state.selectedDate}" ${isToday ? 'aria-current="date"' : ""}><small>${weekday}</small><strong>${dayNumber}</strong></button>`;
+          }).join("")}
         </div>
 
-        <section class="deadline-section">
-          <h2>${state.selectedDate === "23" ? "오늘 마감" : "마감 일정"} <em>${selectedContent.deadlines.length}</em></h2>
-          ${renderDeadlines(selectedContent.deadlines)}
-        </section>
-
         <section class="schedule-section">
-          <div class="schedule-heading"><h2>${state.selectedDate === "23" ? "오늘의 일정" : "일정"}</h2><div class="schedule-filters">${filters.map(([value, label]) => `<button class="${state.homeFilter === value ? "is-active" : ""}" type="button" data-action="set-filter" data-filter="${value}">${label}</button>`).join("")}</div></div>
+          <div class="schedule-heading"><h2>다가오는 일정</h2><button type="button" data-action="navigate" data-view="calendar">전체 보기</button></div>
+          <div class="schedule-filters">${filters.map(([value, label]) => `<button class="${state.homeFilter === value ? "is-active" : ""}" type="button" data-action="set-filter" data-filter="${value}">${label}</button>`).join("")}</div>
           <div class="schedule-list">${renderScheduleItems(selectedContent.schedules, state.homeFilter)}</div>
         </section>
+
+        <section class="home-shortcuts">
+          <button class="is-salmon" type="button" data-action="navigate" data-view="upload">${icon("image")}<strong>안내문 사진으로<br />일정 만들기</strong><small>사진 속 날짜를 찾아드려요</small></button>
+          <button type="button" data-action="navigate" data-view="timetable">${icon("timetable")}<strong>시간표</strong><small>오늘 6교시</small></button>
+        </section>
       </div>
-
-      <button class="floating-button" type="button" data-action="toggle-add-menu" aria-label="일정 추가 메뉴 ${state.addMenuOpen ? "닫기" : "열기"}">${state.addMenuOpen ? icon("close") : icon("plus")}</button>
-
-      ${state.addMenuOpen ? `<div class="menu-scrim" data-action="close-add-menu"></div><div class="quick-menu"><button type="button" data-action="navigate" data-view="upload">${icon("image")}<span>사진으로 추가</span></button><button type="button" data-action="new-event">${icon("pencil")}<span>직접 입력</span></button></div>` : ""}
-
       ${renderBottomNav("home")}
     </section>
   `;
@@ -625,7 +693,7 @@ function renderTimetableClasses() {
 function renderTimetable() {
   return `
     <section class="screen timetable-screen">
-      <header class="timetable-header"><div><h1>내 시간표</h1><p>2학년 3반 · 월~금</p></div><button type="button" data-action="open-timetable-settings">${icon("pencil")}<span>편집</span></button></header>
+      <header class="timetable-header"><div><h1>시간표</h1><p>과목을 누르면 색상을 바꿀 수 있어요</p></div><span class="timetable-actions"><button type="button" data-action="open-timetable-settings" aria-label="교시 시간 설정">${icon("clock")}</button><button type="button" data-action="add-class" aria-label="과목 추가">${icon("plus")}</button></span></header>
       <div class="timetable-grid-wrap">${renderTimetableClasses()}</div>
       ${renderBottomNav("timetable")}
       ${renderClassEditor()}
@@ -718,8 +786,8 @@ function openEventForm(eventItem = null, returnView = "calendar") {
   state.eventReturnView = returnView;
   state.eventFormError = "";
   state.eventDraft = eventItem
-    ? { title: eventItem.title, category: eventItem.category, date: eventItem.date, start: eventItem.start, end: eventItem.end, allDay: eventItem.allDay, location: eventItem.location, memo: eventItem.memo, alarm: eventItem.alarm }
-    : { title: "", category: "개인", date: toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay), start: "14:00", end: "15:00", allDay: false, location: "", memo: "", alarm: "10분 전" };
+    ? { title: eventItem.title, category: eventItem.category, date: eventItem.date, start: eventItem.start, end: eventItem.end, allDay: eventItem.allDay, location: eventItem.location, preparation: eventItem.preparation || "", memo: eventItem.memo, alarm: eventItem.alarm, repeat: eventItem.repeat || "반복 안 함", sharedGroup: eventItem.sharedGroup || "공유 안 함" }
+    : { title: "", category: "개인", date: toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay), start: "09:00", end: "10:00", allDay: false, location: "", preparation: "", memo: "", alarm: "10분 전", repeat: "반복 안 함", sharedGroup: "공유 안 함" };
   state.dateTimePickerOpen = false;
   state.alarmPickerOpen = false;
   state.currentView = "eventForm";
@@ -729,8 +797,8 @@ function openEventForm(eventItem = null, returnView = "calendar") {
 // 출력값: 카드에 적용할 종류별 클래스 이름
 // 기능: 개인·과제·학교·그룹 일정을 색상으로 구분한다.
 function getEventTone(category) {
-  const tones = { 개인: "violet", 과제: "pink", 학교: "blue", 그룹: "green" };
-  return tones[category] ?? "violet";
+  const tones = { 개인: "pink", 과제: "pink", 학교: "blue", 그룹: "gray" };
+  return tones[category] ?? "pink";
 }
 
 // 입력값: 없음
@@ -742,7 +810,8 @@ function renderCalendarGrid() {
   const daysInPreviousMonth = new Date(state.calendarYear, state.calendarMonth - 1, 0).getDate();
   const cells = [];
 
-  for (let index = 0; index < 42; index += 1) {
+  const cellCount = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for (let index = 0; index < cellCount; index += 1) {
     let day = index - firstDay + 1;
     let monthOffset = 0;
     if (day < 1) {
@@ -784,14 +853,19 @@ function renderCalendarEvents(events) {
 function renderCalendar() {
   const dateKey = toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay);
   const selectedEvents = state.events.filter((item) => item.date === dateKey);
+  const visibleEvents = state.calendarFilter === "all"
+    ? selectedEvents
+    : selectedEvents.filter((item) => state.calendarFilter === "group" ? item.category === "그룹" || item.shared : item.category !== "그룹" && !item.shared);
+  const selectedDateText = formatKoreanDate(dateKey).replace(`${state.calendarYear}년 `, "");
   return `
     <section class="screen calendar-screen">
-      <header class="feature-header"><h1>일정 캘린더</h1><button type="button" data-action="new-event" aria-label="일정 추가">${icon("plus")}</button></header>
-      <div class="month-heading"><button type="button" data-action="change-month" data-offset="-1" aria-label="이전 달">${icon("back")}</button><strong>${state.calendarYear}년 ${state.calendarMonth}월</strong><button class="next-month" type="button" data-action="change-month" data-offset="1" aria-label="다음 달">${icon("chevron")}</button></div>
-      <div class="calendar-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-      <div class="calendar-grid">${renderCalendarGrid()}</div>
-      <section class="calendar-agenda"><div class="agenda-heading"><h2>${state.calendarMonth}월 ${state.calendarSelectedDay}일 일정</h2><em>${selectedEvents.length}</em></div><div class="calendar-event-list">${renderCalendarEvents(selectedEvents)}</div></section>
-      <button class="floating-button calendar-add" type="button" data-action="new-event" aria-label="일정 추가">${icon("plus")}</button>
+      <div class="calendar-scroll">
+        <header class="calendar-board-header"><button class="calendar-year" type="button" data-action="change-month" data-offset="-1">${icon("back")} ${state.calendarYear}년</button><div><button type="button" data-action="toggle-search" aria-label="일정 검색">${icon("search")}</button><button type="button" data-action="new-event" aria-label="일정 추가">${icon("plus")}</button></div></header>
+        <h1 class="calendar-month-title">${state.calendarMonth}월</h1>
+        <div class="calendar-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+        <div class="calendar-grid">${renderCalendarGrid()}</div>
+        <section class="calendar-agenda"><div class="agenda-heading"><h2>${selectedDateText}</h2><em>${selectedEvents.length}개</em></div><div class="segment-control calendar-segments"><button class="${state.calendarFilter === "all" ? "is-active" : ""}" type="button" data-action="set-calendar-filter" data-filter="all">전체</button><button class="${state.calendarFilter === "personal" ? "is-active" : ""}" type="button" data-action="set-calendar-filter" data-filter="personal">개인</button><button class="${state.calendarFilter === "group" ? "is-active" : ""}" type="button" data-action="set-calendar-filter" data-filter="group">그룹</button></div><div class="calendar-event-list">${renderCalendarEvents(visibleEvents)}</div></section>
+      </div>
       ${renderBottomNav("calendar")}
     </section>`;
 }
@@ -823,19 +897,24 @@ function renderEventDetail() {
   const timeText = eventItem.allDay ? "종일" : `${eventItem.start} - ${eventItem.end}`;
   return `
     <section class="screen event-detail-screen">
-      <header class="feature-header centered"><button type="button" data-action="navigate" data-view="${state.eventDetailReturnView}" aria-label="이전 화면으로 돌아가기">${icon("back")}</button><h1>일정 상세</h1><button type="button" data-action="open-delete-event" aria-label="일정 삭제">${icon("trash")}</button></header>
+      <header class="board-page-header"><button type="button" data-action="navigate" data-view="${state.eventDetailReturnView}">${icon("back")}<span>캘린더</span></button><h1>일정 상세</h1><button class="round-more" type="button" data-action="open-delete-event" aria-label="일정 메뉴">${icon("more")}</button></header>
       <div class="event-detail-scroll">
-        <div class="event-title-block"><span class="event-category color-${getEventTone(eventItem.category)}">${eventItem.category}</span><h2>${escapeAttribute(eventItem.title)}</h2>${eventItem.shared ? `<p>그룹과 공유 중인 일정이에요</p>` : ""}</div>
+        <div class="event-title-block"><p>${formatKoreanDate(eventItem.date).replace("2026년 ", "")}</p><h2>${escapeAttribute(eventItem.title)}</h2><span class="event-category color-${getEventTone(eventItem.category)}">${icon(eventItem.category === "그룹" ? "users" : "user")}${eventItem.category}</span></div>
         <div class="event-info-card">
-          ${renderEventInfoRow("calendar", "날짜", formatKoreanDate(eventItem.date))}
           ${renderEventInfoRow("clock", "시간", timeText)}
           ${renderEventInfoRow("pin", "장소", eventItem.location)}
-          ${renderEventInfoRow("note", "메모", eventItem.memo)}
-          ${renderEventInfoRow("bell", "알림", eventItem.alarm)}
+          ${renderEventInfoRow("note", "준비물", eventItem.preparation)}
         </div>
-        <button class="share-event-button" type="button" data-action="open-share-groups">${icon("share")}<span><strong>그룹에 공유</strong><small>내 그룹 구성원과 이 일정을 공유해요</small></span>${icon("chevron")}</button>
+        <div class="event-info-card secondary-info-card">
+          ${renderEventInfoRow("bell", "알림", eventItem.alarm)}
+          ${renderEventInfoRow("note", "메모", eventItem.memo)}
+        </div>
+        <div class="event-info-card secondary-info-card">
+          <button class="detail-setting-row" type="button" data-action="open-share-groups">${icon("share")}<span><small>공유 설정</small><strong>${escapeAttribute(eventItem.sharedGroup || (eventItem.shared ? "그룹 공유" : "공유 안 함"))}</strong></span>${icon("chevron")}</button>
+          <div class="detail-setting-row">${icon("refresh")}<span><small>반복 설정</small><strong>${escapeAttribute(eventItem.repeat || "반복 안 함")}</strong></span></div>
+        </div>
+        <div class="detail-actions"><button class="primary-button" type="button" data-action="edit-event">수정하기</button><button class="delete-outline-button" type="button" data-action="open-delete-event">일정 삭제</button></div>
       </div>
-      <div class="detail-actions"><button type="button" data-action="edit-event">수정하기</button></div>
       ${renderDeleteEventDialog()}
       ${renderShareGroupDialog()}
     </section>`;
@@ -863,22 +942,33 @@ function renderAlarmPicker() {
 // 기능: 일정의 제목, 종류, 날짜, 시간, 장소, 메모와 알림을 입력받는다.
 function renderEventForm() {
   const isEditing = state.eventFormMode === "edit";
-  const timeText = state.eventDraft.allDay ? `${formatKoreanDate(state.eventDraft.date)} · 종일` : `${formatKoreanDate(state.eventDraft.date)} · ${state.eventDraft.start} - ${state.eventDraft.end}`;
   return `
     <section class="screen event-form-screen">
-      <header class="feature-header centered"><button type="button" data-action="cancel-event-form" aria-label="이전 화면">${icon("back")}</button><h1>${isEditing ? "일정 수정" : "일정 추가"}</h1><span></span></header>
-      <form class="event-form" data-form="event" novalidate>
-        <label class="compact-field event-title-field"><span>일정 제목 <b>*</b></span><input name="title" value="${escapeAttribute(state.eventDraft.title)}" placeholder="일정 제목을 입력해 주세요" /></label>
-        <fieldset class="category-field"><legend>일정 종류</legend><div>${["개인", "과제", "학교", "그룹"].map((category) => `<button class="${state.eventDraft.category === category ? "is-selected" : ""}" type="button" data-action="select-event-category" data-category="${category}">${category}</button>`).join("")}</div></fieldset>
-        <button class="form-navigation-row" type="button" data-action="open-date-time-picker"><span class="event-info-icon">${icon("calendar")}</span><span><small>날짜 및 시간</small><strong>${timeText}</strong></span>${icon("chevron")}</button>
+      <header class="board-page-header form-header"><button class="header-text-button" type="button" data-action="cancel-event-form">취소</button><h1>${isEditing ? "일정 수정" : "새로운 일정"}</h1><button class="header-text-button is-strong" type="submit" form="event-form">저장</button></header>
+      <form id="event-form" class="event-form board-event-form" data-form="event" novalidate>
+        <div class="segment-control event-type-segments"><button class="${state.eventDraft.category !== "그룹" ? "is-active" : ""}" type="button" data-action="select-event-category" data-category="개인">${icon("user")} 개인 일정</button><button class="${state.eventDraft.category === "그룹" ? "is-active" : ""}" type="button" data-action="select-event-category" data-category="그룹">${icon("users")} 그룹 일정</button></div>
+        <label class="board-input-card title-input"><span class="sr-only">일정 제목</span><input name="title" value="${escapeAttribute(state.eventDraft.title)}" placeholder="일정 제목" /></label>
+        <section class="form-section-card date-section-card">
+          <label class="switch-row"><span><strong>종일</strong></span><input type="checkbox" data-draft-field="allDay" ${state.eventDraft.allDay ? "checked" : ""} /></label>
+          <label class="inline-form-row"><span>날짜</span><input type="date" data-draft-field="date" value="${state.eventDraft.date}" /></label>
+          <label class="inline-form-row"><span>시작</span><input type="time" data-draft-field="start" value="${state.eventDraft.start}" ${state.eventDraft.allDay ? "disabled" : ""} /></label>
+          <label class="inline-form-row"><span>종료</span><input type="time" data-draft-field="end" value="${state.eventDraft.end}" ${state.eventDraft.allDay ? "disabled" : ""} /></label>
+        </section>
         ${state.eventFormError ? `<p class="event-form-error">${icon("warning")}${state.eventFormError}</p>` : ""}
-        <label class="compact-field"><span>장소</span><input name="location" value="${escapeAttribute(state.eventDraft.location)}" placeholder="장소를 입력해 주세요" /></label>
-        <label class="compact-field"><span>메모</span><textarea name="memo" placeholder="일정에 필요한 내용을 입력해 주세요">${escapeAttribute(state.eventDraft.memo)}</textarea></label>
-        <button class="form-navigation-row" type="button" data-action="open-alarm-picker"><span class="event-info-icon">${icon("bell")}</span><span><small>알림</small><strong>${state.eventDraft.alarm}</strong></span>${icon("chevron")}</button>
-        <button class="primary-button event-submit" type="submit" ${state.eventDraft.title.trim() ? "" : "disabled"}>${isEditing ? "수정 완료" : "일정 등록"}</button>
+        <section class="form-section-card text-section-card">
+          <label><span>장소</span><input name="location" value="${escapeAttribute(state.eventDraft.location)}" placeholder="장소" /></label>
+          <label><span>준비물</span><input name="preparation" value="${escapeAttribute(state.eventDraft.preparation)}" placeholder="준비물" /></label>
+          <label><span>메모</span><textarea name="memo" placeholder="메모">${escapeAttribute(state.eventDraft.memo)}</textarea></label>
+        </section>
+        <section class="form-section-card option-section-card">
+          <label class="inline-form-row"><span>반복</span><select name="repeat"><option ${state.eventDraft.repeat === "반복 안 함" ? "selected" : ""}>반복 안 함</option><option ${state.eventDraft.repeat === "매일" ? "selected" : ""}>매일</option><option ${state.eventDraft.repeat?.startsWith("매주") ? "selected" : ""}>매주 화요일</option></select></label>
+          <label class="inline-form-row"><span>알림</span><select name="alarm">${["알림 없음", "정시", "10분 전", "30분 전", "1시간 전", "1일 전"].map((alarm) => `<option ${state.eventDraft.alarm === alarm ? "selected" : ""}>${alarm}</option>`).join("")}</select></label>
+          <label class="inline-form-row"><span>공유 그룹</span><select name="sharedGroup"><option>공유 안 함</option>${state.groups.map((group) => `<option ${state.eventDraft.sharedGroup === group.name ? "selected" : ""}>${escapeAttribute(group.name)}</option>`).join("")}</select></label>
+        </section>
+        <p class="form-help">개인 일정은 공유하지 않으면 그룹에 보이지 않아요.</p>
+        <button class="primary-button event-submit" type="submit" ${state.eventDraft.title.trim() ? "" : "disabled"}>${isEditing ? "변경사항 저장" : "저장하기"}</button>
+        <button class="form-cancel-button" type="button" data-action="cancel-event-form">취소</button>
       </form>
-      ${renderDateTimePicker()}
-      ${renderAlarmPicker()}
     </section>`;
 }
 
@@ -887,9 +977,9 @@ function renderEventForm() {
 // 기능: 교체 가능한 이미지 분석 단계의 정적 데모 결과를 만든다.
 function createExtractionCandidates() {
   return [
-    { id: 201, selected: true, title: "영어 수행평가 제출", category: "과제", date: "2026-10-23", start: "23:00", end: "23:59", allDay: false, location: "온라인 클래스", memo: "영어 에세이 최종본 제출", alarm: "1시간 전", confidence: "확인 필요", uncertain: ["종료 시간"] },
-    { id: 202, selected: true, title: "수학 수행 보고서", category: "과제", date: "2026-10-23", start: "08:30", end: "09:00", allDay: false, location: "2학년 3반", memo: "인쇄한 보고서 준비", alarm: "1일 전", confidence: "추출 완료", uncertain: [] },
-    { id: 203, selected: true, title: "과학 조별 발표", category: "그룹", date: "2026-10-23", start: "14:00", end: "15:00", allDay: false, location: "과학실", memo: "발표 자료와 실험 결과 준비", alarm: "30분 전", confidence: "확인 필요", uncertain: ["장소"] },
+    { id: 201, selected: true, title: "국어 독서 감상문", category: "개인", date: "2026-04-16", start: "09:00", end: "10:00", allDay: false, location: "", preparation: "", memo: "", alarm: "1일 전", repeat: "반복 안 함", sharedGroup: "공유 안 함", confidence: "확인 완료", uncertain: [] },
+    { id: 202, selected: true, title: "수학 개념 탐구 보고서", category: "개인", date: "2026-04-22", start: "09:00", end: "10:00", allDay: false, location: "", preparation: "보고서", memo: "날짜를 다시 확인해 주세요.", alarm: "1일 전", repeat: "반복 안 함", sharedGroup: "공유 안 함", confidence: "확인이 필요해요", uncertain: ["날짜"] },
+    { id: 203, selected: true, title: "영어 단원별 발표", category: "개인", date: "2026-04-25", start: "09:00", end: "10:00", allDay: false, location: "", preparation: "발표 자료", memo: "", alarm: "1일 전", repeat: "반복 안 함", sharedGroup: "공유 안 함", confidence: "직접 수정됨", uncertain: [] },
   ];
 }
 
@@ -897,14 +987,14 @@ function createExtractionCandidates() {
 // 출력값: 이미지 파일 선택 영역 HTML 문자열
 // 기능: JPEG·PNG 파일을 선택하거나 드래그할 수 있는 첫 업로드 상태를 표시한다.
 function renderUploadDropzone() {
-  return `<label class="upload-dropzone" for="notice-image"><span class="upload-icon">${icon("upload")}</span><strong>안내문 이미지를 올려 주세요</strong><p>사진 속 날짜와 일정 내용을 찾아드려요</p><em>JPEG, PNG · 최대 10MB</em><input id="notice-image" type="file" accept="image/jpeg,image/png" /></label>`;
+  return `<div class="upload-choice"><label class="upload-dropzone" for="notice-image"><span class="upload-icon">${icon("image")}</span><strong>안내문을 올려 주세요</strong><p>가정통신문, 시간표, 공지 사진도 좋아요</p><input id="notice-image" type="file" accept="image/jpeg,image/png" /></label><div class="upload-button-row"><label class="primary-button" for="notice-image">${icon("image")} 이미지 선택</label><button type="button" data-action="open-camera">${icon("camera")} 카메라로 촬영</button></div></div>`;
 }
 
 // 입력값: 없음
 // 출력값: 선택한 이미지 미리보기 HTML 문자열
 // 기능: 분석 전에 파일명과 원본 이미지를 확인하고 다시 선택할 수 있게 한다.
 function renderUploadPreview() {
-  return `<div class="upload-preview"><div class="preview-image-wrap"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="선택한 안내문 미리보기" /></div><div class="preview-file-row"><span>${icon("image")}</span><div><strong>${state.upload.fileName}</strong><small>${(state.upload.fileSize / 1024 / 1024).toFixed(1)}MB</small></div><label for="notice-image">다시 선택<input id="notice-image" type="file" accept="image/jpeg,image/png" /></label></div><button class="primary-button" type="button" data-action="analyze-image">일정 분석하기</button></div>`;
+  return `<div class="upload-preview"><div class="preview-image-wrap"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="선택한 안내문 미리보기" /></div><div class="preview-file-row"><span>${icon("image")}</span><div><strong>${escapeAttribute(state.upload.fileName)}</strong><small>${(state.upload.fileSize / 1024 / 1024).toFixed(1)}MB · 확인 완료</small></div><label for="notice-image">다시 선택<input id="notice-image" type="file" accept="image/jpeg,image/png" /></label></div><button class="primary-button" type="button" data-action="analyze-image">이미지 분석하기</button></div>`;
 }
 
 // 입력값: 제목, 설명, 아이콘 이름
@@ -920,11 +1010,33 @@ function renderAnalysisMessage(title, description, iconName) {
 function renderUpload() {
   let content = renderUploadDropzone();
   if (state.upload.status === "preview") content = renderUploadPreview();
-  if (state.upload.status === "analyzing") content = `<div class="analyzing-state"><div class="scan-preview"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="분석 중인 안내문" /><i></i></div><div class="loading-orbit"></div><h2>이미지에서 일정을 찾고 있어요</h2><p>여러 날짜와 일정 내용을 꼼꼼히 확인하고 있어요</p></div>`;
+  if (state.upload.status === "analyzing") content = `<div class="analyzing-state"><div class="document-preview-card"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="분석 중인 안내문" /><i></i></div><small>${escapeAttribute(state.upload.fileName)}</small><h2>일정 정보를 찾고 있어요</h2><p>잠시만 기다려 주세요</p><div class="analysis-steps"><div class="is-complete"><span>${icon("check")}</span><strong>이미지 확인 완료</strong><em>완료</em></div><div class="is-progress"><span></span><strong>날짜와 시간 찾는 중</strong><em>진행 중</em></div><div><span></span><strong>일정 내용 정리</strong><em>대기</em></div></div><button class="analysis-cancel" type="button" data-action="reset-upload">분석 취소</button></div>`;
   if (state.upload.status === "error") content = renderAnalysisMessage("이미지를 분석하지 못했어요", state.upload.error || "이미지가 선명한지 확인하고 다시 시도해 주세요.", "warning");
   if (state.upload.status === "empty") content = renderAnalysisMessage("찾은 일정이 없어요", "날짜와 일정 내용이 잘 보이는 안내문으로 다시 시도해 주세요.", "calendar");
 
-  return `<section class="screen upload-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="home" aria-label="홈으로 돌아가기">${icon("back")}</button><h1>사진으로 일정 추가</h1><span></span></header><div class="upload-content"><div class="upload-copy"><h2>안내문을 일정으로 바꿔드릴게요</h2><p>분석 결과는 등록 전에 직접 확인하고 수정할 수 있어요.</p></div>${content}</div></section>`;
+  if (state.upload.status === "analyzing") return `<section class="screen upload-screen analyzing-screen"><header class="board-page-header"><button type="button" data-action="reset-upload">${icon("back")}<span>이미지</span></button><h1>이미지 분석 중</h1><span></span></header><div class="upload-content">${content}</div></section>`;
+  return `<section class="screen upload-screen"><div class="upload-scroll"><header class="upload-brand">PLANIT</header><div class="upload-content"><div class="upload-copy"><h1>이미지로<br />일정 만들기</h1><p>사진 속 날짜와 일정을 찾아드릴게요.</p></div>${content}<section class="upload-tips"><h2>이렇게 찍으면 더 정확해요</h2><p>${icon("check")} 안내문 전체가 보이게 촬영해요</p><p>${icon("check")} 날짜와 일정이 선명하게 보여야 해요</p><p>${icon("check")} 글자가 흐리지 않아야 해요</p><p>${icon("check")} 한 이미지의 여러 일정도 함께 분석해요</p></section><small class="upload-footnote">저장 전에 직접 확인하고 수정할 수 있어요.</small></div></div>${renderBottomNav("upload")}</section>`;
+}
+
+// 입력값: 없음
+// 출력값: 카메라 권한 안내 화면 HTML 문자열
+// 기능: 브라우저 카메라를 열기 전에 촬영 목적과 갤러리 대안을 안내한다.
+function renderCameraPermission() {
+  return `<section class="screen camera-permission-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="upload">${icon("back")}<span>이미지</span></button><h1>카메라로 촬영</h1><span></span></header><div class="permission-content"><span class="permission-icon">${icon("camera")}</span><h2>카메라 접근을<br />허용해 주세요</h2><p>안내문을 바로 촬영하려면<br />카메라 권한이 필요해요.</p><button class="primary-button" type="button" data-action="allow-camera">설정에서 허용하기</button><label class="secondary-button" for="permission-gallery">갤러리에서 선택하기<input id="permission-gallery" type="file" accept="image/jpeg,image/png" /></label></div></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 안내문 촬영 화면 HTML 문자열
+// 기능: 모바일 카메라 입력을 열고 갤러리·플래시·전환 조작을 시각적으로 제공한다.
+function renderCamera() {
+  return `<section class="screen camera-screen"><header class="camera-header"><button type="button" data-action="navigate" data-view="upload">${icon("close")}</button><h1>카메라로 촬영</h1><button type="button" aria-label="플래시">${icon("flash")}</button></header><div class="camera-viewfinder"><div class="camera-document"><strong>4월 학사 일정 안내</strong><i></i><i></i><p>4월 16일 국어 독서 감상문 제출</p><p>4월 22일 수학 개념 탐구 보고서</p><p>4월 25일 영어 단원별 발표</p></div><span class="camera-guide">안내문 전체가 보이게 맞춰 주세요</span><b class="corner top-left"></b><b class="corner top-right"></b><b class="corner bottom-left"></b><b class="corner bottom-right"></b></div><div class="camera-controls"><label for="camera-gallery" aria-label="갤러리에서 선택">${icon("image")}<input id="camera-gallery" type="file" accept="image/jpeg,image/png" /></label><label class="camera-shutter" for="camera-image" aria-label="사진 촬영"><i></i><input id="camera-image" type="file" accept="image/*" capture="environment" /></label><button type="button" aria-label="카메라 전환">${icon("refresh")}</button></div><p class="camera-mode"><strong>문서</strong><span>사진</span></p></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 촬영 이미지 확인 화면 HTML 문자열
+// 기능: 선택한 사진의 가독성을 확인하고 분석 또는 재촬영으로 이동하게 한다.
+function renderCameraReview() {
+  return `<section class="screen camera-review-screen"><header class="board-page-header"><button type="button" data-action="retake-photo">${icon("back")}<span>다시 찍기</span></button><h1>사진 확인</h1><span></span></header><div class="camera-review-scroll"><div class="review-image"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="촬영한 안내문" /></div><h2>이렇게 보여요</h2><div class="review-checks"><p>${icon("check")} 안내문 전체가 보여요</p><p>${icon("check")} 글자가 선명해요</p></div><small>날짜와 일정이 잘 읽히는지 확인해 주세요.</small><button class="primary-button" type="button" data-action="use-camera-photo">이 사진으로 분석하기</button><button class="secondary-button" type="button" data-action="retake-photo">다시 찍기</button></div></section>`;
 }
 
 // 입력값: 분석된 일정 후보 객체
@@ -952,11 +1064,19 @@ function renderRegistrationComplete() {
 }
 
 // 입력값: 없음
+// 출력값: 저장 완료 화면 HTML 문자열
+// 기능: 이미지에서 선택한 일정이 캘린더에 저장된 결과와 다음 행동을 보여 준다.
+function renderSaveComplete() {
+  const savedCandidates = state.extractionCandidates.filter((candidate) => candidate.selected);
+  return `<section class="screen save-complete-screen"><div class="save-complete-content"><span class="save-check">${icon("check")}</span><h1>일정을 저장했어요</h1><p>${savedCandidates.length}개의 일정이 캘린더에 추가되었어요.</p><div class="saved-list">${savedCandidates.map((candidate) => `<div><strong>${Number(candidate.date.slice(5, 7))}월 ${Number(candidate.date.slice(8, 10))}일</strong><span>${escapeAttribute(candidate.title)}</span></div>`).join("")}</div><button class="primary-button" type="button" data-action="finish-registration">캘린더에서 확인하기</button><button class="secondary-button" type="button" data-action="reset-and-upload">다른 이미지 등록</button></div></section>`;
+}
+
+// 입력값: 없음
 // 출력값: 이미지 분석 결과 확인 화면 HTML 문자열
 // 기능: 여러 일정 후보를 선택·수정한 뒤 한 번에 캘린더에 등록한다.
 function renderExtractionResults() {
   const selectedCount = state.extractionCandidates.filter((candidate) => candidate.selected).length;
-  return `<section class="screen extraction-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="upload" aria-label="업로드로 돌아가기">${icon("back")}</button><h1>분석 결과 확인</h1><span></span></header><div class="result-scroll"><div class="result-summary"><div><strong>${state.extractionCandidates.length}개의 일정을 찾았어요</strong><p>잘못 읽은 내용이 없는지 확인해 주세요.</p></div><span>부분 추출</span></div><div class="source-preview"><img src="${escapeAttribute(state.upload.previewUrl)}" alt="원본 안내문" /><div><strong>원본 이미지</strong><small>${state.upload.fileName}</small></div></div><div class="candidate-list">${state.extractionCandidates.map(renderCandidateCard).join("")}</div></div><div class="result-actions"><p><strong>${selectedCount}</strong>개 일정 선택</p><button class="primary-button" type="button" data-action="register-candidates" ${selectedCount ? "" : "disabled"}>선택 일정 등록</button></div>${renderCandidateEditor()}${renderRegistrationComplete()}</section>`;
+  return `<section class="screen extraction-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="upload">${icon("back")}<span>이미지</span></button><h1>분석 결과 확인</h1><span></span></header><div class="result-scroll"><div class="result-summary"><strong>${state.extractionCandidates.length}개의 일정을<br />찾았어요</strong><p>저장할 일정을 확인하고, 필요하면 수정해 주세요.</p></div><button class="source-preview" type="button"><span>${icon("note")}<strong>원본 보기</strong></span><small>${escapeAttribute(state.upload.fileName)}</small>${icon("chevron")}</button><div class="candidate-list">${state.extractionCandidates.map(renderCandidateCard).join("")}</div><div class="result-actions"><p>선택한 일정 <strong>${selectedCount}개</strong></p><button class="primary-button" type="button" data-action="register-candidates" ${selectedCount ? "" : "disabled"}>선택한 일정 저장하기</button></div></div>${renderCandidateEditor()}</section>`;
 }
 
 // 입력값: 아이콘 이름, 제목, 보조 설명, 실행 이름
@@ -975,11 +1095,59 @@ function renderMy() {
   return `<section class="screen my-screen"><header class="feature-header"><h1>마이</h1><span></span></header><div class="my-scroll"><section class="profile-card"><span class="profile-avatar">${escapeAttribute(userName.slice(0, 1))}</span><div><h2>${escapeAttribute(userName)}</h2><p>${escapeAttribute(userEmail)}</p><small>고등학생 · 2학년</small></div></section><section class="my-menu-card">${renderMyMenuRow("users", "내 그룹", `${state.groups.length}개 그룹에 참여 중`, "open-groups")}<label class="notification-row"><span class="my-menu-icon">${icon("bell")}</span><span><strong>일정 알림</strong><small>마감과 시작 전에 알려드려요</small></span><input type="checkbox" data-action="toggle-notification" ${state.notificationEnabled ? "checked" : ""} /></label>${renderMyMenuRow("note", "이용약관 및 개인정보", "PLANIT 서비스 정책 확인", "open-terms-info")}</section><button class="logout-button" type="button" data-action="logout">${icon("logout")} 로그아웃</button><p class="app-version">PLANIT v1.0.0</p></div>${renderBottomNav("my")}</section>`;
 }
 
+// 입력값: 메뉴 제목, 현재 값, 이동할 화면 또는 실행 이름
+// 출력값: 설정 화면의 공통 메뉴 행 HTML 문자열
+// 기능: 설정 항목을 같은 정렬과 터치 영역으로 표시한다.
+function renderSettingsRow(title, value, action, view = "") {
+  const viewAttribute = view ? ` data-view="${view}"` : "";
+  return `<button class="settings-row" type="button" data-action="${action}"${viewAttribute}><span>${title}</span><em>${value || ""}</em>${icon("chevron")}</button>`;
+}
+
+// 입력값: 없음
+// 출력값: 앱 설정 화면 HTML 문자열
+// 기능: 프로필·캘린더·시간표·알림·보안·앱 정보를 한곳에서 관리하게 한다.
+function renderSettings() {
+  const userName = state.signup.name.trim() || "지민";
+  const userEmail = state.signup.email.trim() || state.login.email.trim() || "jimin@example.com";
+  return `<section class="screen settings-main-screen"><div class="settings-main-scroll"><h1>설정</h1><section class="settings-profile-card"><span>${escapeAttribute(userName.slice(0, 1))}</span><div><strong>${escapeAttribute(userName)}</strong><small>${escapeAttribute(state.signup.school || "한빛고등학교")} · ${escapeAttribute(state.signup.grade || "2학년")}</small><small>${escapeAttribute(userEmail)}</small></div><button type="button" data-action="navigate" data-view="profileEdit">${icon("chevron")}</button><button class="profile-edit-link" type="button" data-action="navigate" data-view="profileEdit">프로필 편집</button></section><h2>일정 및 캘린더</h2><section class="settings-card">${renderSettingsRow("기본 캘린더", "개인", "noop")}${renderSettingsRow("기본 알림", "10분 전", "noop")}${renderSettingsRow("시간대", "Asia/Seoul", "noop")}${renderSettingsRow("주 시작 요일", "일요일", "noop")}</section><h2>시간표</h2><section class="settings-card">${renderSettingsRow("교시 시간 설정", "", "navigate", "timetableSettings")}${renderSettingsRow("과목 및 색상 관리", "", "navigate", "timetableSettings")}</section><h2>알림</h2><section class="settings-card toggle-settings-card"><label><span>일정 알림</span><input type="checkbox" data-action="toggle-notification" ${state.notificationEnabled ? "checked" : ""} /></label><label><span>그룹 일정 변경 알림</span><input type="checkbox" data-action="toggle-group-notification" ${state.groupNotificationEnabled ? "checked" : ""} /></label><label><span>마감 알림</span><input type="checkbox" data-action="toggle-deadline-notification" ${state.deadlineNotificationEnabled ? "checked" : ""} /></label></section><h2>계정 및 보안</h2><section class="settings-card">${renderSettingsRow("비밀번호 변경", "", "noop")}${renderSettingsRow("로그인 기기 관리", "", "noop")}${renderSettingsRow("개인정보 처리방침", "", "open-terms-info")}${renderSettingsRow("이용약관", "", "open-terms-info")}</section><h2>앱 정보</h2><section class="settings-card">${renderSettingsRow("버전", "1.0.0", "noop")}${renderSettingsRow("문의하기", "", "noop")}${renderSettingsRow("오픈소스 라이선스", "", "noop")}</section><button class="logout-button" type="button" data-action="logout">로그아웃</button><p class="app-version">© 2026 PLANIT</p></div>${renderBottomNav("settings")}</section>`;
+}
+
+// 입력값: 없음
+// 출력값: 프로필 편집 화면 HTML 문자열
+// 기능: 이름·이메일·학교·학년과 관심 일정 유형을 수정하게 한다.
+function renderProfileEdit() {
+  return `<section class="screen profile-edit-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="settings">${icon("back")}<span>설정</span></button><h1>프로필 편집</h1><button class="header-text-button is-strong" type="submit" form="profile-form">저장</button></header><form id="profile-form" class="profile-edit-form" data-form="profile"><span class="large-avatar">${escapeAttribute((state.signup.name || "지민").slice(0, 1))}</span><button class="photo-change-button" type="button">사진 변경</button><section class="form-section-card"><label><span>이름</span><input name="name" value="${escapeAttribute(state.signup.name || "지민")}" /></label><label><span>이메일</span><input name="email" type="email" value="${escapeAttribute(state.signup.email || "jimin@example.com")}" /></label><label><span>학교</span><input name="school" value="${escapeAttribute(state.signup.school || "한빛고등학교")}" /></label><label><span>학년</span><select name="grade">${["1학년", "2학년", "3학년"].map((grade) => `<option ${state.signup.grade === grade ? "selected" : ""}>${grade}</option>`).join("")}</select></label></section><fieldset><legend>관심 일정 유형</legend><div class="interest-chips"><button class="is-selected" type="button">${icon("check")} 시험</button><button class="is-selected" type="button">${icon("check")} 수행평가</button><button type="button">과제</button><button class="is-selected" type="button">${icon("check")} 동아리</button></div></fieldset><section class="settings-card">${renderSettingsRow("비밀번호 변경", "", "noop")}<button class="delete-account-button" type="button">회원 탈퇴</button></section><button class="primary-button" type="submit">변경사항 저장</button></form></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 알림 목록 화면 HTML 문자열
+// 기능: 일정·그룹 알림을 기간별로 보여 주고 유형 필터와 모두 읽음을 제공한다.
+function renderNotifications() {
+  const notifications = [
+    { type: "event", section: "오늘", title: "JAVA 수행평가가 10분 뒤 시작해요.", meta: "일정 · 08:50" },
+    { type: "group", section: "오늘", title: "동아리 멘토링 일정이 변경되었어요.", meta: "그룹 · 오전 11:20" },
+    { type: "event", section: "오늘", title: "과학 보고서 제출 마감이 오늘이에요.", meta: "일정 · 오전 8:00" },
+    { type: "event", section: "이번 주", title: "수학 시험이 3일 남았어요.", meta: "일정 · 월요일" },
+    { type: "group", section: "이번 주", title: "학급 사진 촬영 일정이 추가되었어요.", meta: "그룹 · 월요일" },
+    { type: "group", section: "이전 알림", title: "프로젝트 중간 점검 일정이 추가되었어요.", meta: "그룹 · 11월 9일" },
+  ];
+  const filtered = state.notificationFilter === "all" ? notifications : notifications.filter((item) => item.type === state.notificationFilter);
+  const sections = ["오늘", "이번 주", "이전 알림"];
+  return `<section class="screen notifications-screen"><div class="notifications-scroll"><header><button type="button" data-action="navigate" data-view="home">${icon("back")}</button><button type="button" data-action="mark-all-read">모두 읽음</button></header><h1>알림</h1><div class="segment-control notification-segments"><button class="${state.notificationFilter === "all" ? "is-active" : ""}" type="button" data-action="set-notification-filter" data-filter="all">전체</button><button class="${state.notificationFilter === "event" ? "is-active" : ""}" type="button" data-action="set-notification-filter" data-filter="event">일정</button><button class="${state.notificationFilter === "group" ? "is-active" : ""}" type="button" data-action="set-notification-filter" data-filter="group">그룹</button></div>${sections.map((section) => { const items = filtered.filter((item) => item.section === section); return items.length ? `<section class="notification-section"><h2>${section}</h2><div class="notification-card">${items.map((item) => `<button type="button"><i></i><span><strong>${item.title}</strong><small>${icon(item.type === "group" ? "users" : "bell")}${item.meta}</small></span></button>`).join("")}</div></section>` : ""; }).join("")}</div>${renderBottomNav("")}</section>`;
+}
+
+// 입력값: 없음
+// 출력값: 일정 검색 화면 HTML 문자열
+// 기능: 제목과 장소를 기준으로 현재 프론트엔드 일정 목록을 빠르게 탐색하게 한다.
+function renderSearch() {
+  return `<section class="screen search-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="home">${icon("back")}<span>홈</span></button><h1>일정 검색</h1><span></span></header><div class="search-content"><label class="search-field">${icon("search")}<input type="search" placeholder="일정 제목이나 장소를 검색해 보세요" /></label><h2>다가오는 일정</h2><div class="calendar-event-list">${renderCalendarEvents(state.events.filter((eventItem) => eventItem.date >= "2026-11-17").slice(0, 6))}</div></div></section>`;
+}
+
 // 입력값: 없음
 // 출력값: 서비스 약관 안내 화면 HTML 문자열
 // 기능: 가입 시 동의한 서비스 이용 및 개인정보 안내를 다시 확인하게 한다.
 function renderTermsInfo() {
-  return `<section class="screen terms-info-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="my" aria-label="마이로 돌아가기">${icon("back")}</button><h1>이용약관 및 개인정보</h1><span></span></header><div class="terms-info-scroll"><section><h2>서비스 이용약관</h2><p>PLANIT은 안내문에서 추출한 일정 정보를 사용자가 확인하고 관리할 수 있도록 돕는 서비스입니다. 분석 결과는 자동 확정되지 않으며 등록 전에 사용자가 확인해야 합니다.</p></section><section><h2>개인정보 수집·이용 안내</h2><p>계정과 일정 제공에 필요한 최소 정보만 사용합니다. 이미지 원문과 민감 정보는 불필요하게 노출하거나 기록하지 않습니다.</p></section><section><h2>일정 알림 안내</h2><p>선택한 알림 시간에 따라 일정 시작 또는 마감 전에 안내합니다. 마이 화면에서 언제든 알림을 끌 수 있습니다.</p></section></div></section>`;
+  return `<section class="screen terms-info-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="settings" aria-label="설정으로 돌아가기">${icon("back")}</button><h1>이용약관 및 개인정보</h1><span></span></header><div class="terms-info-scroll"><section><h2>서비스 이용약관</h2><p>PLANIT은 안내문에서 추출한 일정 정보를 사용자가 확인하고 관리할 수 있도록 돕는 서비스입니다. 분석 결과는 자동 확정되지 않으며 등록 전에 사용자가 확인해야 합니다.</p></section><section><h2>개인정보 수집·이용 안내</h2><p>계정과 일정 제공에 필요한 최소 정보만 사용합니다. 이미지 원문과 민감 정보는 불필요하게 노출하거나 기록하지 않습니다.</p></section><section><h2>일정 알림 안내</h2><p>선택한 알림 시간에 따라 일정 시작 또는 마감 전에 안내합니다. 설정 화면에서 언제든 알림을 끌 수 있습니다.</p></section></div></section>`;
 }
 
 // 입력값: 그룹 객체
@@ -1002,7 +1170,22 @@ function renderGroupModal() {
 // 출력값: 그룹 목록 화면 HTML 문자열
 // 기능: 참여 그룹을 확인하고 그룹 생성 또는 코드 참여를 시작한다.
 function renderGroups() {
-  return `<section class="screen groups-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="my" aria-label="마이로 돌아가기">${icon("back")}</button><h1>내 그룹</h1><button type="button" data-action="open-group-modal" aria-label="그룹 추가">${icon("plus")}</button></header><div class="groups-scroll"><div class="groups-heading"><h2>함께하는 그룹</h2><p>그룹 일정을 내 캘린더에서 한눈에 확인해요.</p></div><div class="group-list">${state.groups.map(renderGroupCard).join("")}</div></div>${renderGroupModal()}</section>`;
+  return `<section class="screen groups-screen"><div class="groups-scroll"><header class="groups-header"><h1>그룹</h1><p>함께 관리하는 일정</p></header><div class="group-action-row"><button class="primary-button" type="button" data-action="open-group-create">${icon("plus")} 그룹 만들기</button><button type="button" data-action="open-group-join">${icon("users")} 그룹 참여</button></div><div class="groups-heading"><h2>내 그룹 <em>${state.groups.length}</em></h2></div><div class="group-list">${state.groups.map(renderGroupCard).join("")}</div><p class="groups-footnote">내 개인 일정은 직접 공유를 선택한 경우에만 그룹에 보여요.</p></div>${renderBottomNav("groups")}</section>`;
+}
+
+// 입력값: 없음
+// 출력값: 그룹 만들기 화면 HTML 문자열
+// 기능: 그룹 이름·유형·설명·대표 아이콘·기본 알림을 입력받는다.
+function renderGroupCreate() {
+  return `<section class="screen group-form-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="groups">${icon("back")}<span>그룹</span></button><h1>그룹 만들기</h1><span></span></header><form class="standalone-group-form" data-form="group"><h2>새 그룹을<br />만들어요</h2><label class="board-input-card"><span>그룹 이름</span><input name="name" value="${escapeAttribute(state.groupDraft.name)}" placeholder="예: 코딩 동아리" /></label><fieldset><legend>그룹 유형</legend><div class="group-type-chips">${["반", "동아리", "스터디", "조별 과제", "기타"].map((type) => `<button class="${state.groupDraft.type === type ? "is-selected" : ""}" type="button" data-action="select-group-type" data-type="${type}">${state.groupDraft.type === type ? icon("check") : ""}${type}</button>`).join("")}</div></fieldset><label class="board-input-card description-input"><span>그룹 설명</span><textarea name="description" placeholder="그룹을 소개하는 글을 남겨 보세요">${escapeAttribute(state.groupDraft.description)}</textarea></label><fieldset><legend>그룹 대표 아이콘</legend><div class="group-icon-picker">${["users", "calendar", "lock", "note", "timetable", "bell"].map((iconName) => `<button class="${state.groupDraft.icon === iconName ? "is-selected" : ""}" type="button" data-action="select-group-icon" data-icon="${iconName}">${icon(iconName)}</button>`).join("")}</div></fieldset><label class="inline-card-row"><span>그룹 일정 기본 알림</span><select name="alarm"><option>10분 전</option><option>30분 전</option><option>1시간 전</option></select></label><p class="form-help">만들고 나면 내가 이 그룹의 소유자가 돼요.</p><button class="primary-button" type="submit" ${state.groupDraft.name.trim() ? "" : "disabled"}>만들기</button></form></section>`;
+}
+
+// 입력값: 없음
+// 출력값: 초대 코드 그룹 참여 화면 HTML 문자열
+// 기능: 초대 코드를 입력해 그룹 정보를 확인하고 참여하게 한다.
+function renderGroupJoin() {
+  const previewGroup = state.groups.find((group) => group.code.toLowerCase() === state.groupDraft.code.trim().toLowerCase());
+  return `<section class="screen group-form-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="groups">${icon("back")}<span>그룹</span></button><h1>그룹 참여</h1><span></span></header><form class="standalone-group-form join-group-form" data-form="group"><h2>그룹에<br />참여해요</h2><p>받은 초대 코드나 링크를 입력해 주세요.</p><label class="board-input-card"><span>초대 코드 또는 링크</span><input name="code" value="${escapeAttribute(state.groupDraft.code)}" placeholder="PL-7K2M-90" /></label>${previewGroup ? `<section class="join-preview"><span class="group-symbol color-${previewGroup.color}">${escapeAttribute(previewGroup.name.slice(0, 1))}</span><h3>${escapeAttribute(previewGroup.name)}</h3><small>${icon("users")} 구성원 ${previewGroup.members.length}명</small><p>${escapeAttribute(previewGroup.description)}</p></section>` : ""}${state.groupError ? `<p class="group-error">${state.groupError}</p>` : ""}<button class="primary-button" type="submit" ${state.groupDraft.code.trim() ? "" : "disabled"}>그룹 참여하기</button></form></section>`;
 }
 
 // 입력값: 그룹에서 공유 중인 일정 ID 목록
@@ -1019,7 +1202,11 @@ function renderGroupEvents(eventIds) {
 // 기능: 그룹 구성원, 초대 코드와 공유 일정을 확인하고 새 그룹 일정을 등록한다.
 function renderGroupDetail() {
   const group = state.groups.find((item) => item.id === state.selectedGroupId) ?? state.groups[0];
-  return `<section class="screen group-detail-screen"><header class="feature-header centered"><button type="button" data-action="navigate" data-view="groups" aria-label="그룹 목록으로 돌아가기">${icon("back")}</button><h1>그룹 상세</h1><span></span></header><div class="group-detail-scroll"><section class="group-hero color-${group.color}"><span>${escapeAttribute(group.name.slice(0, 1))}</span><div><h2>${escapeAttribute(group.name)}</h2><p>${escapeAttribute(group.description)}</p></div></section><section class="invite-code-card"><div><small>초대 코드</small><strong>${escapeAttribute(group.code)}</strong></div><button type="button" data-action="copy-group-code" data-code="${escapeAttribute(group.code)}">${icon("link")} 복사</button></section><section class="group-section"><div class="group-section-heading"><h3>구성원</h3><span>${group.members.length}명</span></div><div class="member-stack">${group.members.slice(0, 5).map((member, index) => `<span title="${escapeAttribute(member)}" style="--member-index:${index}">${escapeAttribute(member.slice(0, 1))}</span>`).join("")}</div><p class="member-names">${group.members.map(escapeAttribute).join(" · ")}</p></section><section class="group-section"><div class="group-section-heading"><h3>공유 일정</h3><button type="button" data-action="new-group-event">+ 일정 추가</button></div><div class="group-event-list">${renderGroupEvents(group.eventIds)}</div></section></div></section>`;
+  const eventsContent = `<section class="group-section"><div class="group-event-list">${renderGroupEvents(group.eventIds)}</div></section>`;
+  const membersContent = `<section class="group-section member-list-section"><div class="group-section-heading"><h3>구성원</h3><span>${group.members.length}명</span></div>${group.members.map((member, index) => `<div class="member-row"><span>${escapeAttribute(member.slice(0, 1))}</span><strong>${escapeAttribute(member)}</strong>${index === 0 ? `<em>소유자</em>` : ""}</div>`).join("")}</section>`;
+  const infoContent = `<section class="group-section group-info-section"><p>${escapeAttribute(group.description)}</p><div class="invite-code-card"><div><small>초대 코드</small><strong>${escapeAttribute(group.code)}</strong></div><button type="button" data-action="copy-group-code" data-code="${escapeAttribute(group.code)}">${icon("link")} 복사</button></div><button class="leave-group-button" type="button" data-action="leave-group">그룹 나가기</button></section>`;
+  const tabContent = state.groupDetailTab === "members" ? membersContent : state.groupDetailTab === "info" ? infoContent : eventsContent;
+  return `<section class="screen group-detail-screen"><header class="board-page-header"><button type="button" data-action="navigate" data-view="groups">${icon("back")}<span>그룹</span></button><span></span><button class="round-more" type="button" aria-label="그룹 메뉴">${icon("more")}</button></header><div class="group-detail-scroll"><section class="group-detail-hero"><span class="group-symbol color-${group.color}">${escapeAttribute(group.name.slice(0, 1))}</span><div><h1>${escapeAttribute(group.name)}</h1><p>${icon("users")} 구성원 ${group.members.length}명 · 공유 일정 ${group.eventIds.length}개</p></div></section><label class="group-notification-toggle">${icon("bell")}<span>그룹 일정 알림</span><input type="checkbox" data-action="toggle-group-notification" ${state.groupNotificationEnabled ? "checked" : ""} /></label><div class="segment-control group-detail-tabs"><button class="${state.groupDetailTab === "events" ? "is-active" : ""}" type="button" data-action="set-group-detail-tab" data-tab="events">공유 일정</button><button class="${state.groupDetailTab === "members" ? "is-active" : ""}" type="button" data-action="set-group-detail-tab" data-tab="members">구성원</button><button class="${state.groupDetailTab === "info" ? "is-active" : ""}" type="button" data-action="set-group-detail-tab" data-tab="info">그룹 정보</button></div>${tabContent}<button class="primary-button group-add-event" type="button" data-action="new-group-event">그룹 일정 추가</button></div></section>`;
 }
 
 // 입력값: 없음
@@ -1054,10 +1241,20 @@ function renderApp() {
     eventDetail: renderEventDetail,
     eventForm: renderEventForm,
     upload: renderUpload,
+    cameraPermission: renderCameraPermission,
+    camera: renderCamera,
+    cameraReview: renderCameraReview,
     extractionResults: renderExtractionResults,
+    saveComplete: renderSaveComplete,
     my: renderMy,
+    settings: renderSettings,
+    profileEdit: renderProfileEdit,
+    notifications: renderNotifications,
+    search: renderSearch,
     termsInfo: renderTermsInfo,
     groups: renderGroups,
+    groupCreate: renderGroupCreate,
+    groupJoin: renderGroupJoin,
     groupDetail: renderGroupDetail,
   };
   persistTemporaryData();
@@ -1126,6 +1323,10 @@ function handleInput(event) {
     syncSignupForm(form);
   }
 
+  if (form.dataset.form === "profile") {
+    state.signup[input.name] = input.value;
+  }
+
   if (form.dataset.form === "class") {
     state.classDraft[input.name] = input.value;
   }
@@ -1142,7 +1343,8 @@ function handleInput(event) {
     state.groupDraft[input.name] = input.value;
     state.groupError = "";
     const submitButton = form.querySelector('[type="submit"]');
-    if (submitButton) submitButton.disabled = !input.value.trim();
+    const requiredValue = state.groupModalTab === "create" ? state.groupDraft.name : state.groupDraft.code;
+    if (submitButton) submitButton.disabled = !requiredValue.trim();
   }
 }
 
@@ -1161,6 +1363,11 @@ function handleSubmit(event) {
 
   if (form.dataset.form === "signup" && isSignupValid()) {
     state.currentView = "terms";
+    renderApp();
+  }
+
+  if (form.dataset.form === "profile") {
+    state.currentView = "settings";
     renderApp();
   }
 
@@ -1195,7 +1402,7 @@ function handleSubmit(event) {
       const eventItem = state.events.find((item) => item.id === state.selectedEventId);
       Object.assign(eventItem, state.eventDraft);
     } else {
-      const isGroupEvent = state.eventReturnView === "groupDetail";
+      const isGroupEvent = state.eventReturnView === "groupDetail" || state.eventDraft.category === "그룹" || state.eventDraft.sharedGroup !== "공유 안 함";
       const newEvent = { id: Date.now(), ...state.eventDraft, shared: isGroupEvent, temporary: true };
       state.events.push(newEvent);
       state.selectedEventId = newEvent.id;
@@ -1208,7 +1415,6 @@ function handleSubmit(event) {
     state.calendarYear = year;
     state.calendarMonth = month;
     state.calendarSelectedDay = day;
-    if (year === 2026 && month === 10 && day >= 18 && day <= 24) state.selectedDate = String(day);
     if (state.eventReturnView !== "eventDetail") state.eventDetailReturnView = state.eventReturnView;
     state.currentView = "eventDetail";
     renderApp();
@@ -1226,11 +1432,11 @@ function handleSubmit(event) {
 
   if (form.dataset.form === "group") {
     if (state.groupModalTab === "create" && state.groupDraft.name.trim()) {
-      const group = { id: Date.now(), name: state.groupDraft.name.trim(), description: "새로운 일정 공유 그룹", code: `PLN-${String(Date.now()).slice(-6)}`, color: "violet", members: [state.signup.name.trim() || "김플래닛"], eventIds: [] };
+      const group = { id: Date.now(), name: state.groupDraft.name.trim(), description: state.groupDraft.description.trim() || `${state.groupDraft.type} 일정 공유 그룹`, code: `PL-${String(Date.now()).slice(-6)}`, color: "pink", members: [state.signup.name.trim() || "지민"], eventIds: [] };
       state.groups.push(group);
       state.selectedGroupId = group.id;
       state.groupModalOpen = false;
-      state.groupDraft = { name: "", code: "" };
+      state.groupDraft = { name: "", code: "", description: "", type: "동아리", icon: "users" };
       state.currentView = "groupDetail";
       renderApp();
     }
@@ -1241,7 +1447,7 @@ function handleSubmit(event) {
       } else {
         state.selectedGroupId = group.id;
         state.groupModalOpen = false;
-        state.groupDraft = { name: "", code: "" };
+        state.groupDraft = { name: "", code: "", description: "", type: "동아리", icon: "users" };
         state.currentView = "groupDetail";
       }
       renderApp();
@@ -1260,6 +1466,7 @@ function handleClick(event) {
   if (action === "open-signup") state.currentView = "signup";
   if (action === "back-login") state.currentView = "login";
   if (action === "back-signup") state.currentView = "signup";
+  if (action === "select-grade") state.signup.grade = target.dataset.grade;
 
   if (action === "toggle-password") {
     const field = target.dataset.passwordField;
@@ -1290,6 +1497,8 @@ function handleClick(event) {
   }
 
   if (action === "set-filter") state.homeFilter = target.dataset.filter;
+  if (action === "set-calendar-filter") state.calendarFilter = target.dataset.filter;
+  if (action === "set-notification-filter") state.notificationFilter = target.dataset.filter;
   if (action === "select-date") {
     state.selectedDate = target.dataset.date;
     state.homeFilter = "all";
@@ -1302,6 +1511,7 @@ function handleClick(event) {
     state.addMenuOpen = false;
     state.classEditorOpen = false;
   }
+  if (action === "toggle-search") state.currentView = "search";
   if (action === "select-weekday") state.selectedWeekday = target.dataset.day;
   if (action === "open-timetable-settings") {
     prepareTimetableTimeDraft();
@@ -1355,7 +1565,7 @@ function handleClick(event) {
     state.calendarSelectedDay = day;
   }
   if (action === "open-event") {
-    state.eventDetailReturnView = state.currentView === "groupDetail" ? "groupDetail" : "calendar";
+    state.eventDetailReturnView = state.currentView === "groupDetail" ? "groupDetail" : state.currentView === "home" ? "home" : "calendar";
     state.selectedEventId = Number(target.dataset.eventId);
     state.currentView = "eventDetail";
   }
@@ -1392,6 +1602,27 @@ function handleClick(event) {
     if (state.upload.previewUrl) URL.revokeObjectURL(state.upload.previewUrl);
     state.upload = { status: "idle", fileName: "", fileSize: 0, previewUrl: "", error: "" };
     state.extractionCandidates = [];
+    state.currentView = "upload";
+  }
+  if (action === "open-camera") state.currentView = state.cameraPermissionSeen ? "camera" : "cameraPermission";
+  if (action === "allow-camera") {
+    state.cameraPermissionSeen = true;
+    state.currentView = "camera";
+  }
+  if (action === "retake-photo") {
+    state.currentView = "camera";
+    state.upload.status = "idle";
+  }
+  if (action === "use-camera-photo" && state.upload.previewUrl) {
+    state.currentView = "upload";
+    state.upload.status = "analyzing";
+    renderApp();
+    window.setTimeout(() => {
+      state.extractionCandidates = createExtractionCandidates();
+      state.currentView = "extractionResults";
+      renderApp();
+    }, 850);
+    return;
   }
   if (action === "analyze-image" && state.upload.previewUrl) {
     state.upload.status = "analyzing";
@@ -1434,17 +1665,26 @@ function handleClick(event) {
       state.calendarYear = year;
       state.calendarMonth = month;
       state.calendarSelectedDay = day;
-      if (year === 2026 && month === 10 && day >= 18 && day <= 24) state.selectedDate = String(day);
     }
-    state.registrationComplete = true;
+    state.registrationComplete = false;
+    state.currentView = "saveComplete";
   }
   if (action === "finish-registration") {
     state.registrationComplete = false;
     state.currentView = "calendar";
   }
+  if (action === "reset-and-upload") {
+    if (state.upload.previewUrl) URL.revokeObjectURL(state.upload.previewUrl);
+    state.upload = { status: "idle", fileName: "", fileSize: 0, previewUrl: "", error: "" };
+    state.extractionCandidates = [];
+    state.currentView = "upload";
+  }
   if (action === "open-groups") state.currentView = "groups";
   if (action === "open-terms-info") state.currentView = "termsInfo";
   if (action === "toggle-notification") state.notificationEnabled = !state.notificationEnabled;
+  if (action === "toggle-group-notification") state.groupNotificationEnabled = !state.groupNotificationEnabled;
+  if (action === "toggle-deadline-notification") state.deadlineNotificationEnabled = !state.deadlineNotificationEnabled;
+  if (action === "mark-all-read") state.notificationFilter = state.notificationFilter;
   if (action === "logout") {
     state.currentView = "login";
     state.login.password = "";
@@ -1455,11 +1695,24 @@ function handleClick(event) {
     state.groupModalTab = "create";
     state.groupError = "";
   }
+  if (action === "open-group-create") {
+    state.groupModalTab = "create";
+    state.groupError = "";
+    state.currentView = "groupCreate";
+  }
+  if (action === "open-group-join") {
+    state.groupModalTab = "join";
+    state.groupError = "";
+    state.currentView = "groupJoin";
+  }
   if (action === "close-group-modal") state.groupModalOpen = false;
   if (action === "set-group-tab") {
     state.groupModalTab = target.dataset.tab;
     state.groupError = "";
   }
+  if (action === "select-group-type") state.groupDraft.type = target.dataset.type;
+  if (action === "select-group-icon") state.groupDraft.icon = target.dataset.icon;
+  if (action === "set-group-detail-tab") state.groupDetailTab = target.dataset.tab;
   if (action === "open-group") {
     state.selectedGroupId = Number(target.dataset.groupId);
     state.currentView = "groupDetail";
@@ -1497,10 +1750,10 @@ function handleClick(event) {
   renderApp();
 }
 
-// 입력값: 사용자가 선택하거나 드래그한 이미지 파일
+// 입력값: 사용자가 선택하거나 드래그한 이미지 파일, 선택 경로 이름
 // 출력값: 없음
 // 기능: 이미지 형식과 용량을 검증하고 안전한 로컬 미리보기 주소를 만든다.
-function processImageFile(file) {
+function processImageFile(file, source = "gallery") {
   const allowedTypes = ["image/jpeg", "image/png"];
   if (!allowedTypes.includes(file.type)) {
     state.upload = { status: "error", fileName: file.name, fileSize: file.size, previewUrl: "", error: "JPEG 또는 PNG 형식의 이미지만 올릴 수 있어요." };
@@ -1514,6 +1767,7 @@ function processImageFile(file) {
   }
   if (state.upload.previewUrl) URL.revokeObjectURL(state.upload.previewUrl);
   state.upload = { status: "preview", fileName: file.name, fileSize: file.size, previewUrl: URL.createObjectURL(file), error: "" };
+  state.currentView = source === "camera" ? "cameraReview" : "upload";
   renderApp();
 }
 
@@ -1524,7 +1778,8 @@ function handleFileChange(event) {
   const input = event.target.closest('input[type="file"]');
   if (!input) return;
   const [file] = input.files;
-  if (file) processImageFile(file);
+  const source = ["camera-image", "camera-gallery"].includes(input.id) ? "camera" : "gallery";
+  if (file) processImageFile(file, source);
 }
 
 // 입력값: 파일 드래그 이벤트
