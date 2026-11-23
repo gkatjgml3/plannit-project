@@ -341,7 +341,6 @@ function renderLogin() {
     <section class="screen auth-screen login-screen">
       <div class="brand-block">
         <p class="brand-name">PLAN<span>IT</span></p>
-        <div class="brand-icons"><span>${icon("calendar")}</span><span>${icon("image")}</span></div>
         <h1>일정을 더 쉽게<br />시작해요</h1>
         <p>사진 한 장으로 일정을 만들고,<br />캘린더에서 한눈에 확인해요.</p>
       </div>

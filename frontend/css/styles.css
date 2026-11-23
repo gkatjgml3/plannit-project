@@ -3203,27 +3203,6 @@ textarea {
   color: var(--primary);
 }
 
-.brand-icons {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 22px;
-}
-
-.brand-icons > span {
-  display: grid;
-  width: 62px;
-  height: 62px;
-  place-items: center;
-  border-radius: 20px;
-  color: var(--primary-dark);
-  background: var(--primary-soft);
-}
-
-.brand-icons svg {
-  width: 29px;
-  height: 29px;
-}
-
 .brand-block h1 {
   margin: 0;
   font-size: 36px;
