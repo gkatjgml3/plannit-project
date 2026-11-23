@@ -4201,12 +4201,37 @@ textarea {
   gap: 20px;
 }
 
+.event-type-segments {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: initial;
+  grid-auto-columns: initial;
+  width: 100%;
+  padding: 4px;
+}
+
+.event-type-segments button {
+  display: flex;
+  min-width: 0;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0 12px;
+  line-height: 1;
+}
+
 .event-type-segments svg {
-  display: inline-block;
+  display: block;
   width: 19px;
   height: 19px;
-  margin-right: 7px;
-  vertical-align: -4px;
+  flex: 0 0 19px;
+  margin: 0;
+}
+
+.event-type-segments span {
+  display: block;
+  white-space: nowrap;
 }
 
 .board-input-card,

@@ -103,9 +103,9 @@ const state = {
   },
   timetableTimeDraft: null,
   timetableTimeError: "",
-  calendarYear: 2026,
-  calendarMonth: 11,
-  calendarSelectedDay: 17,
+  calendarYear: deviceToday.getFullYear(),
+  calendarMonth: deviceToday.getMonth() + 1,
+  calendarSelectedDay: deviceToday.getDate(),
   selectedEventId: null,
   eventFormMode: "create",
   eventReturnView: "calendar",
@@ -117,7 +117,7 @@ const state = {
   eventDraft: {
     title: "",
     category: "개인",
-    date: "2026-11-17",
+    date: deviceTodayKey,
     start: "09:00",
     end: "10:00",
     allDay: false,
@@ -778,16 +778,26 @@ function formatKoreanDate(dateKey) {
   return `${year}년 ${month}월 ${day}일 ${weekday}요일`;
 }
 
+// 입력값: 완료 뒤 돌아갈 화면
+// 출력값: 새 일정에 사용할 YYYY-MM-DD 형식의 날짜 문자열
+// 기능: 캘린더에서는 선택 날짜를, 나머지 화면에서는 기기 오늘 날짜를 기본값으로 연결한다.
+function getDefaultEventDate(returnView) {
+  if (returnView === "calendar") {
+    return toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay);
+  }
+  return deviceTodayKey;
+}
+
 // 입력값: 일정 객체 또는 빈 값, 완료 뒤 돌아갈 화면
 // 출력값: 없음
-// 기능: 새 일정 또는 기존 일정을 일정 입력 상태에 준비하고 편집 화면으로 이동한다.
+// 기능: 화면 맥락에 맞는 날짜로 새 일정을 준비하거나 기존 일정을 편집한다.
 function openEventForm(eventItem = null, returnView = "calendar") {
   state.eventFormMode = eventItem ? "edit" : "create";
   state.eventReturnView = returnView;
   state.eventFormError = "";
   state.eventDraft = eventItem
     ? { title: eventItem.title, category: eventItem.category, date: eventItem.date, start: eventItem.start, end: eventItem.end, allDay: eventItem.allDay, location: eventItem.location, preparation: eventItem.preparation || "", memo: eventItem.memo, alarm: eventItem.alarm, repeat: eventItem.repeat || "반복 안 함", sharedGroup: eventItem.sharedGroup || "공유 안 함" }
-    : { title: "", category: "개인", date: toDateKey(state.calendarYear, state.calendarMonth, state.calendarSelectedDay), start: "09:00", end: "10:00", allDay: false, location: "", preparation: "", memo: "", alarm: "10분 전", repeat: "반복 안 함", sharedGroup: "공유 안 함" };
+    : { title: "", category: "개인", date: getDefaultEventDate(returnView), start: "09:00", end: "10:00", allDay: false, location: "", preparation: "", memo: "", alarm: "10분 전", repeat: "반복 안 함", sharedGroup: "공유 안 함" };
   state.dateTimePickerOpen = false;
   state.alarmPickerOpen = false;
   state.currentView = "eventForm";
@@ -946,7 +956,7 @@ function renderEventForm() {
     <section class="screen event-form-screen">
       <header class="board-page-header form-header"><button class="header-text-button" type="button" data-action="cancel-event-form">취소</button><h1>${isEditing ? "일정 수정" : "새로운 일정"}</h1><button class="header-text-button is-strong" type="submit" form="event-form">저장</button></header>
       <form id="event-form" class="event-form board-event-form" data-form="event" novalidate>
-        <div class="segment-control event-type-segments"><button class="${state.eventDraft.category !== "그룹" ? "is-active" : ""}" type="button" data-action="select-event-category" data-category="개인">${icon("user")} 개인 일정</button><button class="${state.eventDraft.category === "그룹" ? "is-active" : ""}" type="button" data-action="select-event-category" data-category="그룹">${icon("users")} 그룹 일정</button></div>
+        <div class="segment-control event-type-segments" role="group" aria-label="일정 종류"><button class="${state.eventDraft.category !== "그룹" ? "is-active" : ""}" type="button" data-action="select-event-category" data-category="개인">${icon("user")}<span>개인 일정</span></button><button class="${state.eventDraft.category === "그룹" ? "is-active" : ""}" type="button" data-action="select-event-category" data-category="그룹">${icon("users")}<span>그룹 일정</span></button></div>
         <label class="board-input-card title-input"><span class="sr-only">일정 제목</span><input name="title" value="${escapeAttribute(state.eventDraft.title)}" placeholder="일정 제목" /></label>
         <section class="form-section-card date-section-card">
           <label class="switch-row"><span><strong>종일</strong></span><input type="checkbox" data-draft-field="allDay" ${state.eventDraft.allDay ? "checked" : ""} /></label>
@@ -1589,7 +1599,15 @@ function handleClick(event) {
     state.eventDeleteOpen = false;
     state.currentView = state.eventDetailReturnView;
   }
-  if (action === "select-event-category") state.eventDraft.category = target.dataset.category;
+  if (action === "select-event-category") {
+    state.eventDraft.category = target.dataset.category;
+    if (state.eventDraft.category === "개인") {
+      state.eventDraft.sharedGroup = "공유 안 함";
+    } else if (state.eventDraft.sharedGroup === "공유 안 함") {
+      const selectedGroup = state.groups.find((group) => group.id === state.selectedGroupId) ?? state.groups[0];
+      state.eventDraft.sharedGroup = selectedGroup?.name ?? "공유 안 함";
+    }
+  }
   if (action === "open-date-time-picker") state.dateTimePickerOpen = true;
   if (action === "close-date-time-picker") state.dateTimePickerOpen = false;
   if (action === "open-alarm-picker") state.alarmPickerOpen = true;
@@ -1725,6 +1743,8 @@ function handleClick(event) {
   if (action === "new-group-event") {
     openEventForm(null, "groupDetail");
     state.eventDraft.category = "그룹";
+    const selectedGroup = state.groups.find((group) => group.id === state.selectedGroupId);
+    state.eventDraft.sharedGroup = selectedGroup?.name ?? "공유 안 함";
   }
   if (action === "open-share-groups") {
     state.groupShareOpen = true;
