@@ -2,6 +2,7 @@ const app = document.querySelector("#app");
 const temporaryStorageKey = "planitTemporaryData";
 const deviceToday = new Date();
 const deviceTodayKey = toDateKey(deviceToday.getFullYear(), deviceToday.getMonth() + 1, deviceToday.getDate());
+const defaultAfterSchoolPeriod = Object.freeze({ period: 8, label: "방과후", start: "16:10", end: "17:00", isAfterSchool: true });
 
 const state = {
   currentView: "login",
@@ -94,6 +95,7 @@ const state = {
     { period: 5, start: "13:00", end: "13:50" },
     { period: 6, start: "14:00", end: "14:50" },
     { period: 7, start: "15:00", end: "15:50" },
+    { ...defaultAfterSchoolPeriod },
   ],
   lunchTime: { start: "12:10", end: "13:00" },
   routineTimes: {
@@ -193,7 +195,14 @@ function restoreTemporaryData() {
     if (!savedData || typeof savedData !== "object") return;
     if (Array.isArray(savedData.events)) state.events = savedData.events;
     if (Array.isArray(savedData.timetable)) state.timetable = savedData.timetable;
-    if (Array.isArray(savedData.periodTimes)) state.periodTimes = savedData.periodTimes;
+    if (Array.isArray(savedData.periodTimes)) {
+      state.periodTimes = savedData.periodTimes.map((period) => period.period === defaultAfterSchoolPeriod.period
+        ? { ...defaultAfterSchoolPeriod, ...period, label: period.label || defaultAfterSchoolPeriod.label, isAfterSchool: true }
+        : period);
+      if (!state.periodTimes.some((period) => period.period === defaultAfterSchoolPeriod.period)) {
+        state.periodTimes.push({ ...defaultAfterSchoolPeriod });
+      }
+    }
     if (savedData.lunchTime && typeof savedData.lunchTime === "object") state.lunchTime = savedData.lunchTime;
     if (savedData.routineTimes && typeof savedData.routineTimes === "object") state.routineTimes = savedData.routineTimes;
     if (Array.isArray(savedData.groups)) state.groups = savedData.groups;
@@ -538,15 +547,15 @@ function getHomeWeekDates(dateKey) {
 // 기능: 홈, 시간표, 캘린더, 마이 화면을 오가는 고정 메뉴를 표시한다.
 function renderBottomNav(activeView) {
   const navItems = [
-    ["home", "홈", "home"],
-    ["calendar", "캘린더", "calendar"],
-    ["upload", "이미지 등록", "image"],
-    ["groups", "그룹", "users"],
-    ["settings", "설정", "gear"],
+    { view: "home", label: "홈", iconName: "home" },
+    { view: "calendar", label: "캘린더", iconName: "calendar" },
+    { action: "new-event", label: "일정 등록", iconName: "plus", isCreate: true },
+    { view: "groups", label: "그룹", iconName: "users" },
+    { view: "settings", label: "설정", iconName: "gear" },
   ];
 
   return `<nav class="bottom-nav" aria-label="주요 메뉴">${navItems
-    .map(([view, label, iconName]) => `<button class="nav-item ${activeView === view ? "is-active" : ""}" type="button" data-action="navigate" data-view="${view}">${icon(iconName)}<span>${label}</span></button>`)
+    .map(({ view, action = "navigate", label, iconName, isCreate = false }) => `<button class="nav-item ${activeView === view ? "is-active" : ""} ${isCreate ? "is-create" : ""}" type="button" data-action="${action}" ${view ? `data-view="${view}"` : ""} aria-label="${label}">${icon(iconName)}<span>${label}</span></button>`)
     .join("")}</nav>`;
 }
 
@@ -568,7 +577,7 @@ function renderHome() {
   return `
     <section class="screen home-screen ${state.addMenuOpen ? "has-menu" : ""}">
       <div class="home-scroll">
-        <header class="board-home-header"><strong class="wordmark">PLANIT</strong><div><button type="button" data-action="toggle-search" aria-label="검색">${icon("search")}</button><button type="button" data-action="navigate" data-view="notifications" aria-label="알림">${icon("bell")}<i></i></button></div></header>
+        <header class="board-home-header"><strong class="wordmark">PLANIT</strong><div><button class="home-add-button" type="button" data-action="new-event">${icon("plus")}<span>일정 등록</span></button><button class="home-icon-button" type="button" data-action="toggle-search" aria-label="검색">${icon("search")}</button><button class="home-icon-button" type="button" data-action="navigate" data-view="notifications" aria-label="알림">${icon("bell")}<i></i></button></div></header>
 
         <p class="today-label">오늘 · ${todayDateText}</p>
         <h1 class="home-greeting">안녕하세요, 서희님!</h1>
@@ -644,7 +653,7 @@ function renderClassEditor() {
         <label class="compact-field"><span>과목명</span><input name="title" value="${escapeAttribute(state.classDraft.title)}" placeholder="과목명을 입력해 주세요" /></label>
         <div class="field-pair">
           <label class="compact-field"><span>요일</span><select name="day">${weekdays.map((day) => `<option ${day === state.classDraft.day ? "selected" : ""}>${day}</option>`).join("")}</select></label>
-          <label class="compact-field"><span>교시</span><select name="period">${state.periodTimes.map(({ period }) => `<option value="${period}" ${String(period) === state.classDraft.period ? "selected" : ""}>${period}교시</option>`).join("")}</select></label>
+          <label class="compact-field"><span>교시</span><select name="period">${state.periodTimes.map(({ period, label }) => `<option value="${period}" ${String(period) === state.classDraft.period ? "selected" : ""}>${label || `${period}교시`}</option>`).join("")}</select></label>
         </div>
         <div class="field-pair">
           <label class="compact-field"><span>선생님</span><input name="teacher" value="${escapeAttribute(state.classDraft.teacher)}" placeholder="선생님" /></label>
@@ -664,27 +673,46 @@ function formatRoutineTime(routine) {
   return routine.note ? `${mainTime} (${routine.note})` : mainTime;
 }
 
+// 입력값: 교시 번호
+// 출력값: 교시 또는 방과후 표시 문자열
+// 기능: 시간표와 설정 목록에서 같은 교시 이름을 사용한다.
+function getTimetablePeriodLabel(period) {
+  const periodItem = state.periodTimes.find((item) => item.period === period);
+  return periodItem?.label || `${period}교시`;
+}
+
+// 입력값: 교시 정보와 평일 목록
+// 출력값: 한 교시의 시간 및 월~금 수업 셀 HTML 문자열
+// 기능: 정규 교시와 방과후 수업을 같은 격자 규칙으로 표시한다.
+function renderTimetablePeriodRow(periodItem, weekdays) {
+  const { period, start, label, isAfterSchool } = periodItem;
+  const periodLabel = label || `${period}교시`;
+  const compactLabel = label || String(period);
+  const periodClass = isAfterSchool ? " is-after-school" : "";
+  const cells = weekdays.map((day) => {
+    const classItem = state.timetable.find((item) => item.day === day && item.period === period);
+    const activeDayClass = day === state.selectedWeekday ? " is-active-day" : "";
+    if (!classItem) {
+      return `<button class="timetable-cell is-empty${activeDayClass}${periodClass}" type="button" data-action="add-class-for-slot" data-day="${day}" data-period="${period}" aria-label="${day}요일 ${periodLabel} 수업 추가">${icon("plus")}</button>`;
+    }
+    return `<button class="timetable-cell color-${classItem.color}${activeDayClass}${periodClass}" type="button" data-action="edit-class" data-class-id="${classItem.id}" data-day="${day}"><strong>${escapeAttribute(classItem.title)}</strong>${classItem.room ? `<small>${escapeAttribute(classItem.room)}</small>` : ""}</button>`;
+  }).join("");
+  const lunch = period === 4 ? `<div class="timetable-lunch">점심시간 ${state.lunchTime.start} – ${state.lunchTime.end}</div>` : "";
+  return `<div class="timetable-time${periodClass}" aria-label="${periodLabel}"><strong>${compactLabel}</strong><small>${start}</small></div>${cells}${lunch}`;
+}
+
 // 입력값: 없음
 // 출력값: 월요일부터 금요일까지의 전체 시간표 격자 HTML 문자열
-// 기능: 1교시부터 7교시까지 모든 요일을 빠짐없이 학교 시간표 구조로 표시한다.
+// 기능: 1교시부터 방과후까지 모든 요일을 빠짐없이 학교 시간표 구조로 표시한다.
 function renderTimetableClasses() {
   const weekdays = ["월", "화", "수", "목", "금"];
-  const header = `<span class="timetable-corner"></span>${weekdays.map((day) => `<strong class="timetable-weekday">${day}</strong>`).join("")}`;
+  const header = `<span class="timetable-corner"></span>${weekdays.map((day) => `<button class="timetable-weekday ${day === state.selectedWeekday ? "is-active" : ""}" type="button" data-action="select-weekday" data-day="${day}" aria-pressed="${day === state.selectedWeekday}">${day}</button>`).join("")}`;
   const morning = `<div class="timetable-routine"><strong>${state.routineTimes.morning.label}</strong><span>${formatRoutineTime(state.routineTimes.morning)}</span></div>`;
-  const rows = state.periodTimes.map(({ period, start }) => {
-    const cells = weekdays.map((day) => {
-      const classItem = state.timetable.find((item) => item.day === day && item.period === period);
-      if (!classItem) {
-        return `<button class="timetable-cell is-empty" type="button" data-action="add-class-for-slot" data-day="${day}" data-period="${period}" aria-label="${day}요일 ${period}교시 수업 추가">${icon("plus")}</button>`;
-      }
-      return `<button class="timetable-cell color-${classItem.color}" type="button" data-action="edit-class" data-class-id="${classItem.id}"><strong>${escapeAttribute(classItem.title)}</strong>${classItem.room ? `<small>${escapeAttribute(classItem.room)}</small>` : ""}</button>`;
-    }).join("");
-    const lunch = period === 4 ? `<div class="timetable-lunch">점심시간 ${state.lunchTime.start} – ${state.lunchTime.end}</div>` : "";
-    return `<div class="timetable-time"><strong>${period}</strong><small>${start}</small></div>${cells}${lunch}`;
-  }).join("");
+  const regularRows = state.periodTimes.filter((period) => !period.isAfterSchool).map((period) => renderTimetablePeriodRow(period, weekdays)).join("");
+  const afterSchoolRows = state.periodTimes.filter((period) => period.isAfterSchool).map((period) => renderTimetablePeriodRow(period, weekdays)).join("");
   const cleaning = `<div class="timetable-routine"><strong>${state.routineTimes.cleaning.label}</strong><span>${formatRoutineTime(state.routineTimes.cleaning)}</span></div>`;
   const homeroom = `<div class="timetable-routine"><strong>${state.routineTimes.homeroom.label}</strong><span>${formatRoutineTime(state.routineTimes.homeroom)}</span></div>`;
-  return `<div class="timetable-grid">${header}${morning}${rows}${cleaning}${homeroom}</div>`;
+  return `<div class="timetable-grid">${header}${morning}${regularRows}${cleaning}${homeroom}${afterSchoolRows}</div>`;
 }
 
 // 입력값: 없음
@@ -707,7 +735,7 @@ function renderSubjectSettings() {
   const weekdays = ["월", "화", "수", "목", "금"];
   return `<div class="settings-content">${weekdays.map((day) => {
     const classes = state.timetable.filter((item) => item.day === day).sort((a, b) => a.period - b.period);
-    return `<section class="settings-day"><h3>${day}요일</h3>${classes.length ? classes.map((item) => `<div class="settings-class color-${item.color}"><button type="button" data-action="edit-class" data-class-id="${item.id}"><strong>${item.period}교시 · ${escapeAttribute(item.title)}</strong>${item.teacher || item.room ? `<small>${escapeAttribute([item.teacher, item.room].filter(Boolean).join(" · "))}</small>` : ""}</button><button class="row-delete" type="button" data-action="delete-class" data-class-id="${item.id}" aria-label="${escapeAttribute(item.title)} 삭제">${icon("trash")}</button></div>`).join("") : `<p class="settings-empty">등록된 수업이 없어요</p>`}<button class="inline-add" type="button" data-action="add-class-for-day" data-day="${day}">${icon("plus")} 과목 추가</button></section>`;
+    return `<section class="settings-day"><h3>${day}요일</h3>${classes.length ? classes.map((item) => `<div class="settings-class color-${item.color}"><button type="button" data-action="edit-class" data-class-id="${item.id}"><strong>${getTimetablePeriodLabel(item.period)} · ${escapeAttribute(item.title)}</strong>${item.teacher || item.room ? `<small>${escapeAttribute([item.teacher, item.room].filter(Boolean).join(" · "))}</small>` : ""}</button><button class="row-delete" type="button" data-action="delete-class" data-class-id="${item.id}" aria-label="${escapeAttribute(item.title)} 삭제">${icon("trash")}</button></div>`).join("") : `<p class="settings-empty">등록된 수업이 없어요</p>`}<button class="inline-add" type="button" data-action="add-class-for-day" data-day="${day}">${icon("plus")} 과목 추가</button></section>`;
   }).join("")}</div>`;
 }
 
@@ -741,12 +769,13 @@ function renderRoutineSettingRow(key, routine) {
 
 // 입력값: 없음
 // 출력값: 교시 시간 설정 HTML 문자열
-// 기능: 조회, 각 교시, 점심, 청소와 종례 시간을 직접 입력하고 시간표에 적용하게 한다.
+// 기능: 조회, 각 교시, 점심, 청소, 종례와 방과후 시간을 직접 입력하고 시간표에 적용하게 한다.
 function renderPeriodSettings() {
   const draft = state.timetableTimeDraft ?? { periods: state.periodTimes, lunch: state.lunchTime, routines: state.routineTimes };
   const lunchRow = `<div class="period-setting-row lunch-setting-row"><strong>점심</strong><label><span>시작</span><input type="time" data-time-kind="lunch" data-time-field="start" value="${draft.lunch.start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="lunch" data-time-field="end" value="${draft.lunch.end}" /></label></div>`;
-  const periodRows = draft.periods.map(({ period, start, end }) => `<div class="period-setting-row"><strong>${period}교시</strong><label><span>시작</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="end" value="${end}" /></label></div>${period === 4 ? lunchRow : ""}`).join("");
-  return `<div class="settings-content period-settings"><div class="time-settings-guide"><strong>수업 시간을 설정해 주세요</strong><p>조회·교시·점심·청소·종례 시간을 학교 시간에 맞게 직접 바꿀 수 있어요.</p></div>${renderRoutineSettingRow("morning", draft.routines.morning)}${periodRows}${renderRoutineSettingRow("cleaning", draft.routines.cleaning)}${renderRoutineSettingRow("homeroom", draft.routines.homeroom)}${state.timetableTimeError ? `<p class="time-settings-error">${icon("warning")}${state.timetableTimeError}</p>` : ""}<button class="primary-button time-settings-submit" type="button" data-action="apply-timetable-times">시간표에 적용</button></div>`;
+  const regularPeriodRows = draft.periods.filter((period) => !period.isAfterSchool).map(({ period, start, end, label }) => `<div class="period-setting-row"><strong>${label || `${period}교시`}</strong><label><span>시작</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="end" value="${end}" /></label></div>${period === 4 ? lunchRow : ""}`).join("");
+  const afterSchoolRows = draft.periods.filter((period) => period.isAfterSchool).map(({ period, start, end, label }) => `<div class="period-setting-row after-school-setting-row"><strong>${label || "방과후"}</strong><label><span>시작</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="start" value="${start}" /></label><i>—</i><label><span>종료</span><input type="time" data-time-kind="period" data-period="${period}" data-time-field="end" value="${end}" /></label></div>`).join("");
+  return `<div class="settings-content period-settings"><div class="time-settings-guide"><strong>수업 시간을 설정해 주세요</strong><p>조회부터 방과후까지 학교 시간에 맞게 직접 바꿀 수 있어요.</p></div>${renderRoutineSettingRow("morning", draft.routines.morning)}${regularPeriodRows}${renderRoutineSettingRow("cleaning", draft.routines.cleaning)}${renderRoutineSettingRow("homeroom", draft.routines.homeroom)}${afterSchoolRows}${state.timetableTimeError ? `<p class="time-settings-error">${icon("warning")}${state.timetableTimeError}</p>` : ""}<button class="primary-button time-settings-submit" type="button" data-action="apply-timetable-times">시간표에 적용</button></div>`;
 }
 
 // 입력값: 없음
@@ -1581,7 +1610,8 @@ function handleClick(event) {
   }
   if (action === "new-event") {
     state.addMenuOpen = false;
-    openEventForm(null, state.currentView === "home" ? "home" : "calendar");
+    const returnView = ["home", "calendar", "timetable", "groups", "settings"].includes(state.currentView) ? state.currentView : "calendar";
+    openEventForm(null, returnView);
   }
   if (action === "edit-event") {
     const eventItem = state.events.find((item) => item.id === state.selectedEventId);
