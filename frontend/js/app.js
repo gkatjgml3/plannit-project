@@ -361,7 +361,7 @@ function renderLogin() {
         <button class="forgot-button" type="button">비밀번호 찾기</button>
       </form>
       <div class="social-divider"><span></span><em>또는</em><span></span></div>
-      <div class="social-login"><button type="button">Google 로그인</button><button type="button">카카오 로그인</button></div>
+      <div class="social-login"><button type="button">Google 로그인</button></div>
       <p class="auth-footer">계정이 없나요?<button type="button" data-action="open-signup">회원가입</button></p>
       <small class="auth-legal">로그인하면 이용약관과 개인정보 처리방침에<br />동의하게 돼요.</small>
     </section>
